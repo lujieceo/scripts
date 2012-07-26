@@ -75,3 +75,4 @@ http://www.linuxfromscratch.org/patches/lfs/development/procps-3.2.8-watch_unico
 http://www.linuxfromscratch.org/patches/lfs/development/readline-6.2-fixes-1.patch
 http://www.intestinate.com/pilfs/patches/gcc-4.7.1-gnueabihf-triplet-support.patch
 http://www.intestinate.com/pilfs/patches/glibc-ports-2.15-arm_build_fix.patch
+http://www.intestinate.com/pilfs/scripts/mkimage-git.tar.xz
