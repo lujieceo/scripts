@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20120722 v1.0
+# PiLFS Build Script SVN-20120806 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -63,12 +63,10 @@ gcc-4.7.1.tar.bz2
 gcc-4.7.1-gnueabihf-triplet-support.patch
 mpfr-3.1.1.tar.xz 
 gmp-5.0.5.tar.xz
-mpc-0.9.tar.gz  
-glibc-2.15.tar.xz
-glibc-2.15-gcc_fix-1.patch
-glibc-ports-2.15.tar.xz
-glibc-ports-2.15-arm_build_fix.patch
-tcl8.5.11-src.tar.gz
+mpc-1.0.tar.gz  
+glibc-2.16.0.tar.xz
+glibc-ports-2.16.0.tar.xz
+tcl8.5.12-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.tar.gz   
 check-0.9.8.tar.gz
@@ -131,6 +129,7 @@ function check_firmware() {
 }
 
 function do_strip {
+    set +o errexit
     if [[ $STRIP_AND_DELETE_DOCS = 1 ]] ; then
         strip --strip-debug /tools/lib/*
         strip --strip-unneeded /tools/{,s}bin/*
@@ -181,8 +180,8 @@ tar -Jxf ../mpfr-3.1.1.tar.xz
 mv -v mpfr-3.1.1 mpfr
 tar -Jxf ../gmp-5.0.5.tar.xz
 mv -v gmp-5.0.5 gmp
-tar -zxf ../mpc-0.9.tar.gz
-mv -v mpc-0.9 mpc
+tar -zxf ../mpc-1.0.tar.gz
+mv -v mpc-1.0 mpc
 
 for file in \
  $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
@@ -197,6 +196,8 @@ do
 #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
   touch $file.orig
 done
+
+sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 
 mkdir -v ../gcc-build
 cd ../gcc-build
@@ -235,21 +236,18 @@ make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-# 5.7. Glibc-2.15
-tar xvf glibc-2.15.tar.xz
-cd glibc-2.15
-tar -Jxf ../glibc-ports-2.15.tar.xz
-mv -v glibc-ports-2.15 ports
-patch -Np1 -i ../glibc-ports-2.15-arm_build_fix.patch
-sed -i 's#$ac_includes_default#\n\n#' sysdeps/i386/configure
-sed -i 's#/var/db#/tools/var/db#' Makeconfig
-patch -Np1 -i ../glibc-2.15-gcc_fix-1.patch
+# 5.7. Glibc-2.16.0
+tar xvf glibc-2.16.0.tar.xz
+cd glibc-2.16.0
+tar -Jxf ../glibc-ports-2.16.0.tar.xz
+mv -v glibc-ports-2.16.0 ports
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.15/configure                             \
+sed -i 's/ -lgcc_s//' ../glibc-2.16.0/Makeconfig
+../glibc-2.16.0/configure                             \
       --prefix=/tools                                 \
       --host=$LFS_TGT                                 \
-      --build=$(../glibc-2.15/scripts/config.guess) \
+      --build=$(../glibc-2.16.0/scripts/config.guess) \
       --disable-profile                               \
       --enable-add-ons                                \
       --enable-kernel=2.6.25                          \
@@ -259,8 +257,10 @@ cd ../glibc-build
       libc_cv_c_cleanup=yes
 make
 make install
+# Compatibility symlink for non ld-linux-armhf awareness
+ln -sv ld-2.16.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-build glibc-2.15
+rm -rf glibc-build glibc-2.16.0
 
 # 5.8. Binutils-2.22 - Pass 2
 tar xvf binutils-2.22.tar.bz2
@@ -310,8 +310,8 @@ tar -Jxf ../mpfr-3.1.1.tar.xz
 mv -v mpfr-3.1.1 mpfr
 tar -Jxf ../gmp-5.0.5.tar.xz
 mv -v gmp-5.0.5 gmp
-tar -zxf ../mpc-0.9.tar.gz
-mv -v mpc-0.9 mpc
+tar -zxf ../mpc-1.0.tar.gz
+mv -v mpc-1.0 mpc
 
 mkdir -v ../gcc-build
 cd ../gcc-build
@@ -339,9 +339,9 @@ ln -vs gcc /tools/bin/cc
 cd $LFS/sources
 rm -rf gcc-build gcc-4.7.1
 
-# 5.10. Tcl-8.5.11
-tar xvf tcl8.5.11-src.tar.gz
-cd tcl8.5.11
+# 5.10. Tcl-8.5.12
+tar xvf tcl8.5.12-src.tar.gz
+cd tcl8.5.12
 cd unix
 ./configure --prefix=/tools
 make
@@ -350,7 +350,7 @@ chmod -v u+w /tools/lib/libtcl8.5.so
 make install-private-headers
 ln -sv tclsh8.5 /tools/bin/tclsh
 cd $LFS/sources
-rm -rf tcl8.5.11
+rm -rf tcl8.5.12
 
 # 5.11. Expect-5.45
 tar xvf expect5.45.tar.gz
@@ -423,6 +423,7 @@ rm -rf coreutils-8.17
 # 5.18. Diffutils-3.2
 tar xvf diffutils-3.2.tar.gz
 cd diffutils-3.2
+sed -i -e '/gets is a/d' lib/stdio.in.h
 ./configure --prefix=/tools
 make
 make install
@@ -459,6 +460,7 @@ rm -rf gawk-4.0.1
 # 5.22. Gettext-0.18.1.1
 tar xvf gettext-0.18.1.1.tar.gz
 cd gettext-0.18.1.1
+sed -i -e '/gets is a/d' gettext-*/*/stdio.in.h
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
@@ -488,6 +490,7 @@ rm -rf gzip-1.5
 # 5.25. M4-1.4.16
 tar xvf m4-1.4.16.tar.bz2
 cd m4-1.4.16
+sed -i -e '/gets is a/d' lib/stdio.in.h
 ./configure --prefix=/tools
 make
 make install
@@ -536,6 +539,7 @@ rm -rf sed-4.2.1
 # 5.30. Tar-1.26
 tar xvf tar-1.26.tar.bz2
 cd tar-1.26
+sed -i -e '/gets is a/d' gnu/stdio.in.h
 ./configure --prefix=/tools
 make
 make install
