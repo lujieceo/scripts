@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20120806 v1.0
+# PiLFS Build Script SVN-20120824 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -74,19 +74,19 @@ ncurses-5.9.tar.gz
 bash-4.2.tar.gz
 bash-4.2-fixes-8.patch
 bzip2-1.0.6.tar.gz
-coreutils-8.17.tar.xz
+coreutils-8.19.tar.xz
 diffutils-3.2.tar.gz 
 file-5.11.tar.gz 
 findutils-4.4.2.tar.gz
 gawk-4.0.1.tar.xz  
 gettext-0.18.1.1.tar.gz
-grep-2.13.tar.xz
+grep-2.14.tar.xz
 gzip-1.5.tar.xz  
 m4-1.4.16.tar.bz2
 make-3.82.tar.bz2    
 patch-2.6.1.tar.bz2
-perl-5.16.0.tar.bz2    
-perl-5.16.0-libc-2.patch
+perl-5.16.1.tar.bz2
+perl-5.16.1-libc-2.patch
 sed-4.2.1.tar.bz2  
 tar-1.26.tar.bz2   
 texinfo-4.13a.tar.gz
@@ -107,7 +107,7 @@ function check_kernel() {
         echo "Would you like to download it now?"
         select yn in "Yes" "No"; do
             case $yn in
-                Yes ) wget https://github.com/raspberrypi/linux/tarball/rpi-patches -O $LFS/sources/raspberrypi-linux-git.tar.gz; break;;
+                Yes ) wget https://github.com/raspberrypi/linux/tarball/rpi-3.2.27 -O $LFS/sources/raspberrypi-linux-git.tar.gz; break;;
                 No ) exit;;
             esac
         done
@@ -230,9 +230,9 @@ rm -rf gcc-build gcc-4.7.1
 # 5.6. Raspberry Linux API Headers
 tar xvf raspberrypi-linux-git.tar.gz
 cd raspberrypi-linux-???????
-make mrproper
-make headers_check
-make INSTALL_HDR_PATH=dest headers_install
+KDIR=$PWD make mrproper
+KDIR=$PWD make headers_check
+KDIR=$PWD make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
@@ -410,15 +410,14 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-# 5.17. Coreutils-8.17
-tar xvf coreutils-8.17.tar.xz
-cd coreutils-8.17
+# 5.17. Coreutils-8.19
+tar xvf coreutils-8.19.tar.xz
+cd coreutils-8.19
 ./configure --prefix=/tools --enable-install-program=hostname
 make
 make install
-cp -v src/su /tools/bin
 cd $LFS/sources
-rm -rf coreutils-8.17
+rm -rf coreutils-8.19
 
 # 5.18. Diffutils-3.2
 tar xvf diffutils-3.2.tar.gz
@@ -469,14 +468,14 @@ cp -v src/msgfmt /tools/bin
 cd $LFS/sources
 rm -rf gettext-0.18.1.1
 
-# 5.23. Grep-2.13
-tar xvf grep-2.13.tar.xz
-cd grep-2.13
+# 5.23. Grep-2.14
+tar xvf grep-2.14.tar.xz
+cd grep-2.14
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf grep-2.13
+rm -rf grep-2.14
 
 # 5.24. Gzip-1.5
 tar xvf gzip-1.5.tar.xz
@@ -515,17 +514,17 @@ make install
 cd $LFS/sources
 rm -rf patch-2.6.1
 
-# 5.28. Perl-5.16.0
-tar xvf perl-5.16.0.tar.bz2
-cd perl-5.16.0
-patch -Np1 -i ../perl-5.16.0-libc-2.patch
+# 5.28. Perl-5.16.1
+tar xvf perl-5.16.1.tar.bz2
+cd perl-5.16.1
+patch -Np1 -i ../perl-5.16.1-libc-2.patch
 sh Configure -des -Dprefix=/tools
 make
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.16.0
-cp -Rv lib/* /tools/lib/perl5/5.16.0
+mkdir -pv /tools/lib/perl5/5.16.1
+cp -Rv lib/* /tools/lib/perl5/5.16.1
 cd $LFS/sources
-rm -rf perl-5.16.0
+rm -rf perl-5.16.1
 
 # 5.29. Sed-4.2.1
 tar xvf sed-4.2.1.tar.bz2

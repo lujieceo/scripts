@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20120806 v1.0
+# PiLFS Build Script SVN-20120824 v1.0
 # Builds chapters 6.7 - Raspberry Linux API Headers to 6.62 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -35,10 +35,10 @@ function prebuild_sanity_check() {
 
 function check_tarballs() {
 LIST_OF_TARBALLS="
-man-pages-3.41.tar.xz
+man-pages-3.42.tar.xz
 glibc-2.16.0.tar.xz
 glibc-ports-2.16.0.tar.xz
-tzdata2012c.tar.gz
+tzdata2012e.tar.gz
 zlib-1.2.7.tar.bz2
 file-5.11.tar.gz
 binutils-2.22.tar.bz2
@@ -49,6 +49,7 @@ mpc-1.0.tar.gz
 gcc-4.7.1.tar.bz2
 gcc-4.7.1-gnueabihf-triplet-support.patch
 sed-4.2.1.tar.bz2
+sed-4.2.1-testsuite_fixes-1.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.27.tar.gz
@@ -56,15 +57,15 @@ ncurses-5.9.tar.gz
 util-linux-2.21.2.tar.xz
 psmisc-22.19.tar.gz
 e2fsprogs-1.42.5.tar.gz
-coreutils-8.17.tar.xz
-coreutils-8.17-i18n-1.patch
+coreutils-8.19.tar.xz
+coreutils-8.19-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.16.tar.bz2
 bison-2.6.2.tar.xz
 procps-3.2.8.tar.gz
 procps-3.2.8-fix_HZ_errors-1.patch
 procps-3.2.8-watch_unicode-1.patch
-grep-2.13.tar.xz
+grep-2.14.tar.xz
 readline-6.2.tar.gz
 readline-6.2-fixes-1.patch
 bash-4.2.tar.gz
@@ -72,20 +73,20 @@ bash-4.2-fixes-8.patch
 libtool-2.4.2.tar.gz
 gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
-perl-5.16.0.tar.bz2
+perl-5.16.1.tar.bz2
 autoconf-2.69.tar.xz
-automake-1.12.2.tar.xz
+automake-1.12.3.tar.xz
 diffutils-3.2.tar.gz
 gawk-4.0.1.tar.xz
 findutils-4.4.2.tar.gz
-flex-2.5.35.tar.bz2
-flex-2.5.35-gcc44-1.patch
+flex-2.5.37.tar.bz2
+flex-2.5.37-bison-2.6.1-1.patch
 gettext-0.18.1.1.tar.gz
 groff-1.21.tar.gz
 xz-5.0.4.tar.xz
 less-444.tar.gz
 gzip-1.5.tar.xz
-iproute2-3.5.0.tar.xz
+iproute2-3.5.1.tar.xz
 kbd-1.15.3.tar.gz
 kbd-1.15.3-backspace-1.patch
 kbd-1.15.3-upstream_fixes-1.patch
@@ -101,8 +102,8 @@ sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
 texinfo-4.13a.tar.gz
-systemd-187.tar.xz
-udev-lfs-187-2.tar.bz2
+systemd-188.tar.xz
+udev-lfs-188-3.tar.bz2
 vim-7.3.tar.bz2
 "
 
@@ -119,7 +120,7 @@ function check_kernel() {
         if ! [[ -f /sources/raspberrypi-linux-git.tar.gz ]] ; then
             echo "Can't find the Raspberry Pi kernel sources (raspberrypi-linux-git.tar.gz)."
             echo "You need to exit your chroot and grab it with wget:"
-            echo 'wget https://github.com/raspberrypi/linux/tarball/rpi-patches -O $LFS/sources/raspberrypi-linux-git.tar.gz'
+            echo 'wget https://github.com/raspberrypi/linux/tarball/rpi-3.2.27 -O $LFS/sources/raspberrypi-linux-git.tar.gz'
             exit 1
         fi
         tar xvf raspberrypi-linux-git.tar.gz
@@ -154,19 +155,19 @@ done
 # 6.7. Raspberry Linux API Headers
 cd /sources
 cd raspberrypi-linux-???????
-make mrproper
-make headers_check
-make INSTALL_HDR_PATH=dest headers_install
+KDIR=$PWD make mrproper
+KDIR=$PWD make headers_check
+KDIR=$PWD make INSTALL_HDR_PATH=dest headers_install
 find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-# 6.8. Man-pages-3.41
-tar xvf man-pages-3.41.tar.xz
-cd man-pages-3.41
+# 6.8. Man-pages-3.42
+tar xvf man-pages-3.42.tar.xz
+cd man-pages-3.42
 make install
 cd /sources
-rm -rf man-pages-3.41
+rm -rf man-pages-3.42
 
 # 6.9. Glibc-2.16.0
 tar xvf glibc-2.16.0.tar.xz
@@ -217,12 +218,16 @@ rpc: files
 # End /etc/nsswitch.conf
 EOF
 
-tar -xf ../tzdata2012c.tar.gz
+tar -xf ../tzdata2012e.tar.gz
+mkdir -pv /usr/share/zoneinfo/{posix,right} &&
 for tz in etcetera southamerica northamerica europe africa antarctica \
-    asia australasia backward pacificnew solar87 solar88 solar89 systemv; do
-        zic -L leapseconds -d /usr/share/zoneinfo -y "sh yearistype.sh" ${tz}
+          asia australasia backward pacificnew solar87 solar88 solar89 systemv; do
+    zic -L /dev/null   -d /usr/share/zoneinfo       -y "sh yearistype.sh" ${tz} &&
+    zic -L /dev/null   -d /usr/share/zoneinfo/posix -y "sh yearistype.sh" ${tz} &&
+    zic -L leapseconds -d /usr/share/zoneinfo/right -y "sh yearistype.sh" ${tz}
 done
-cp -v *.tab /usr/share/zoneinfo
+cp -v zone.tab /usr/share/zoneinfo &&
+zic -d /usr/share/zoneinfo -p America/New_York
 
 if ! [[ -f /usr/share/zoneinfo/$LOCAL_TIMEZONE ]] ; then
     echo "Seems like your timezone won't work out. Defaulting to London. Either fix it yourself later or consider moving there :)"
@@ -342,6 +347,7 @@ tar xvf gcc-4.7.1.tar.bz2
 cd gcc-4.7.1
 patch -Np1 -i ../gcc-4.7.1-gnueabihf-triplet-support.patch
 sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
+sed -i -e /autogen/d -e /check.sh/d fixincludes/Makefile.in
 mkdir -v ../gcc-build
 cd ../gcc-build
 ../gcc-4.7.1/configure --prefix=/usr            \
@@ -366,8 +372,10 @@ rm -rf gcc-build gcc-4.7.1
 # 6.18. Sed-4.2.1
 tar xvf sed-4.2.1.tar.bz2
 cd sed-4.2.1
+patch -Np1 -i ../sed-4.2.1-testsuite_fixes-1.patch
 ./configure --prefix=/usr --bindir=/bin --htmldir=/usr/share/doc/sed-4.2.1
 make
+make html
 make install
 
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -487,12 +495,29 @@ fi
 cd /sources
 rm -rf e2fsprogs-1.42.5
 
-# 6.25. Coreutils-8.17
-tar xvf coreutils-8.17.tar.xz
-cd coreutils-8.17
+# 6.25. Shadow-4.1.5.1
+tar xvf shadow-4.1.5.1.tar.bz2
+cd shadow-4.1.5.1
+sed -i 's/groups$(EXEEXT) //' src/Makefile.in
+find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
+sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
+       -e 's@/var/spool/mail@/var/mail@' etc/login.defs
+./configure --sysconfdir=/etc
+make
+make install
+mv -v /usr/bin/passwd /bin
+pwconv
+grpconv
+sed -i 's/yes/no/' /etc/default/useradd
+cd /sources
+rm -rf shadow-4.1.5.1
+
+# 6.26. Coreutils-8.19
+tar xvf coreutils-8.19.tar.xz
+cd coreutils-8.19
 sed -i -e 's/! isatty/isatty/' \
        -e '45i\              || errno == ENOENT' gnulib-tests/test-getlogin.c
-patch -Np1 -i ../coreutils-8.17-i18n-1.patch
+patch -Np1 -i ../coreutils-8.19-i18n-1.patch
 FORCE_UNSAFE_CONFIGURE=1 ./configure \
             --prefix=/usr         \
             --libexecdir=/usr/lib \
@@ -501,7 +526,7 @@ make
 make install
 mv -v /usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo} /bin
 mv -v /usr/bin/{false,ln,ls,mkdir,mknod,mv,pwd,rm} /bin
-# Found a problem here where the moved mv binary from the line about can't be found by the next line.   
+# Found a problem here where the moved mv binary from the line above can't be found by the next line.   
 # Inserting a sync, let me know if that works.
 sync
 mv -v /usr/bin/{rmdir,stty,sync,true,uname} /bin
@@ -510,9 +535,9 @@ mv -v /usr/share/man/man1/chroot.1 /usr/share/man/man8/chroot.8
 sed -i s/\"1\"/\"8\"/1 /usr/share/man/man8/chroot.8
 mv -v /usr/bin/{head,sleep,nice} /bin
 cd /sources
-rm -rf coreutils-8.17
+rm -rf coreutils-8.19
 
-# 6.26. Iana-Etc-2.30
+# 6.27. Iana-Etc-2.30
 tar xvf iana-etc-2.30.tar.bz2
 cd iana-etc-2.30
 make
@@ -520,7 +545,7 @@ make install
 cd /sources
 rm -rf iana-etc-2.30
 
-# 6.27. M4-1.4.16
+# 6.28. M4-1.4.16
 tar xvf m4-1.4.16.tar.bz2
 cd m4-1.4.16
 sed -i -e '/gets is a/d' lib/stdio.in.h
@@ -530,7 +555,7 @@ make install
 cd /sources
 rm -rf m4-1.4.16
 
-# 6.28. Bison-2.6.2
+# 6.29. Bison-2.6.2
 tar xvf bison-2.6.2.tar.xz
 cd bison-2.6.2
 ./configure --prefix=/usr
@@ -540,7 +565,7 @@ make install
 cd /sources
 rm -rf bison-2.6.2
 
-# 6.29. Procps-3.2.8
+# 6.30. Procps-3.2.8
 tar xvf procps-3.2.8.tar.gz
 cd procps-3.2.8
 patch -Np1 -i ../procps-3.2.8-fix_HZ_errors-1.patch
@@ -551,16 +576,16 @@ make install
 cd /sources
 rm -rf procps-3.2.8
 
-# 6.30. Grep-2.13
-tar xvf grep-2.13.tar.xz
-cd grep-2.13
+# 6.31. Grep-2.14
+tar xvf grep-2.14.tar.xz
+cd grep-2.14
 ./configure --prefix=/usr --bindir=/bin
 make
 make install
 cd /sources
-rm -rf grep-2.13
+rm -rf grep-2.14
 
-# 6.31. Readline-6.2
+# 6.32. Readline-6.2
 tar xvf readline-6.2.tar.gz
 cd readline-6.2
 sed -i '/MV.*old/d' Makefile.in
@@ -583,7 +608,7 @@ fi
 cd /sources
 rm -rf readline-6.2
 
-# 6.32. Bash-4.2
+# 6.33. Bash-4.2
 tar xvf bash-4.2.tar.gz
 cd bash-4.2
 patch -Np1 -i ../bash-4.2-fixes-8.patch
@@ -599,7 +624,7 @@ make install
 cd /sources
 rm -rf bash-4.2
 
-# 6.33. Libtool-2.4.2
+# 6.34. Libtool-2.4.2
 tar xvf libtool-2.4.2.tar.gz
 cd libtool-2.4.2
 ./configure --prefix=/usr
@@ -608,7 +633,7 @@ make install
 cd /sources
 rm -rf libtool-2.4.2
 
-# 6.34. GDBM-1.10
+# 6.35. GDBM-1.10
 tar xvf gdbm-1.10.tar.gz
 cd gdbm-1.10
 ./configure --prefix=/usr --enable-libgdbm-compat
@@ -617,7 +642,7 @@ make install
 cd /sources
 rm -rf gdbm-1.10
 
-# 6.35. Inetutils-1.9.1
+# 6.36. Inetutils-1.9.1
 tar xvf inetutils-1.9.1.tar.gz
 cd inetutils-1.9.1
 sed -i -e '/gets is a/d' lib/stdio.in.h
@@ -642,9 +667,9 @@ mv -v /usr/bin/traceroute /sbin
 cd /sources
 rm -rf inetutils-1.9.1
 
-# 6.36. Perl-5.16.0
-tar xvf perl-5.16.0.tar.bz2
-cd perl-5.16.0
+# 6.37. Perl-5.16.1
+tar xvf perl-5.16.1.tar.bz2
+cd perl-5.16.1
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
        -e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
@@ -659,10 +684,9 @@ sh Configure -des -Dprefix=/usr                 \
 make
 make install
 cd /sources
-rm -rf perl-5.16.0
+rm -rf perl-5.16.1
 
-
-# 6.37. Autoconf-2.69
+# 6.38. Autoconf-2.69
 tar xvf autoconf-2.69.tar.xz
 cd autoconf-2.69
 ./configure --prefix=/usr
@@ -671,17 +695,16 @@ make install
 cd /sources
 rm -rf autoconf-2.69
 
-# 6.38. Automake-1.12.2
-tar xvf automake-1.12.2.tar.xz
-cd automake-1.12.2
-sed -i -e '48i$sleep' t/aclocal7.sh
-./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.12.2
+# 6.39. Automake-1.12.3
+tar xvf automake-1.12.3.tar.xz
+cd automake-1.12.3
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.12.3
 make
 make install
 cd /sources
-rm -rf automake-1.12.2
+rm -rf automake-1.12.3
 
-# 6.39. Diffutils-3.2
+# 6.40. Diffutils-3.2
 tar xvf diffutils-3.2.tar.gz
 cd diffutils-3.2
 sed -i -e '/gets is a/d' lib/stdio.in.h
@@ -691,7 +714,7 @@ make install
 cd /sources
 rm -rf diffutils-3.2
 
-# 6.40. Gawk-4.0.1
+# 6.41. Gawk-4.0.1
 tar xvf gawk-4.0.1.tar.xz
 cd gawk-4.0.1
 ./configure --prefix=/usr --libexecdir=/usr/lib
@@ -706,7 +729,7 @@ fi
 cd /sources
 rm -rf gawk-4.0.1
 
-# 6.41. Findutils-4.4.2
+# 6.42. Findutils-4.4.2
 tar xvf findutils-4.4.2.tar.gz
 cd findutils-4.4.2
 ./configure --prefix=/usr                   \
@@ -719,10 +742,10 @@ sed -i 's/find:=${BINDIR}/find:=\/bin/' /usr/bin/updatedb
 cd /sources
 rm -rf findutils-4.4.2
 
-# 6.42. Flex-2.5.35
-tar xvf flex-2.5.35.tar.bz2
-cd flex-2.5.35
-patch -Np1 -i ../flex-2.5.35-gcc44-1.patch
+# 6.43. Flex-2.5.37
+tar xvf flex-2.5.37.tar.bz2
+cd flex-2.5.37
+patch -Np1 -i ../flex-2.5.37-bison-2.6.1-1.patch
 ./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info
 make
 make install
@@ -738,14 +761,14 @@ EOF
 chmod -v 755 /usr/bin/lex
 
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/flex-2.5.35
-    cp -v doc/flex.pdf /usr/share/doc/flex-2.5.35
+    mkdir -v /usr/share/doc/flex-2.5.37
+    cp -v doc/flex.pdf /usr/share/doc/flex-2.5.37
 fi
 
 cd /sources
-rm -rf flex-2.5.35
+rm -rf flex-2.5.37
 
-# 6.43. Gettext-0.18.1.1
+# 6.44. Gettext-0.18.1.1
 tar xvf gettext-0.18.1.1.tar.gz
 cd gettext-0.18.1.1
 sed -i -e '/gets is a/d' gettext-*/*/stdio.in.h
@@ -756,7 +779,7 @@ make install
 cd /sources
 rm -rf gettext-0.18.1.1
 
-# 6.44. Groff-1.21
+# 6.45. Groff-1.21
 tar xvf groff-1.21.tar.gz
 cd groff-1.21
 PAGE=$GROFF_PAPER_SIZE ./configure --prefix=/usr
@@ -767,7 +790,7 @@ ln -sv tbl /usr/bin/gtbl
 cd /sources
 rm -rf groff-1.21
 
-# 6.45. Xz-5.0.4
+# 6.46. Xz-5.0.4
 tar xvf xz-5.0.4.tar.xz
 cd xz-5.0.4
 ./configure --prefix=/usr --libdir=/lib --docdir=/usr/share/doc/xz-5.0.4
@@ -776,9 +799,9 @@ make pkgconfigdir=/usr/lib/pkgconfig install
 cd /sources
 rm -rf xz-5.0.4
 
-# 6.46. GRUB-2.00
+# 6.47. GRUB-2.00
 
-# 6.47. Less-444
+# 6.48. Less-444
 tar xvf less-444.tar.gz
 cd less-444
 ./configure --prefix=/usr --sysconfdir=/etc
@@ -787,7 +810,7 @@ make install
 cd /sources
 rm -rf less-444
 
-# 6.48. Gzip-1.5
+# 6.49. Gzip-1.5
 tar xvf gzip-1.5.tar.xz
 cd gzip-1.5
 ./configure --prefix=/usr --bindir=/bin
@@ -798,20 +821,20 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.5
 
-# 6.49. IPRoute2-3.5.0
-tar xvf iproute2-3.5.0.tar.xz
-cd iproute2-3.5.0
+# 6.50. IPRoute2-3.5.1
+tar xvf iproute2-3.5.1.tar.xz
+cd iproute2-3.5.1
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make DESTDIR=
 make DESTDIR=              \
      MANDIR=/usr/share/man \
-     DOCDIR=/usr/share/doc/iproute2-3.5.0 install
+     DOCDIR=/usr/share/doc/iproute2-3.5.1 install
 cd /sources
-rm -rf iproute2-3.5.0
+rm -rf iproute2-3.5.1
 
-# 6.50. Kbd-1.15.3
+# 6.51. Kbd-1.15.3
 tar xvf kbd-1.15.3.tar.gz
 cd kbd-1.15.3
 patch -Np1 -i ../kbd-1.15.3-upstream_fixes-1.patch
@@ -834,7 +857,7 @@ fi
 cd /sources
 rm -rf kbd-1.15.3
 
-# 6.51. Kmod-9
+# 6.52. Kmod-9
 tar xvf kmod-9.tar.xz
 cd kmod-9
 patch -Np1 -i ../kmod-9-testsuite-1.patch
@@ -853,7 +876,7 @@ ln -sv kmod /bin/lsmod
 cd /sources
 rm -rf kmod-9
 
-# 6.52. Libpipeline-1.2.1
+# 6.53. Libpipeline-1.2.1
 tar xvf libpipeline-1.2.1.tar.gz
 cd libpipeline-1.2.1
 sed -i -e '/gets is a/d' gnulib/lib/stdio.in.h
@@ -863,7 +886,7 @@ make install
 cd /sources
 rm -rf libpipeline-1.2.1
 
-# 6.53. Make-3.82
+# 6.54. Make-3.82
 tar xvf make-3.82.tar.bz2
 cd make-3.82
 ./configure --prefix=/usr
@@ -872,7 +895,7 @@ make install
 cd /sources
 rm -rf make-3.82
 
-# 6.54. Man-DB-2.6.2
+# 6.55. Man-DB-2.6.2
 tar xvf man-db-2.6.2.tar.xz
 cd man-db-2.6.2
 sed -i -e '/gets is a/d' gnulib/lib/stdio.in.h
@@ -889,7 +912,7 @@ make install
 cd /sources
 rm -rf man-db-2.6.2
 
-# 6.55. Patch-2.6.1
+# 6.56. Patch-2.6.1
 tar xvf patch-2.6.1.tar.bz2
 cd patch-2.6.1
 patch -Np1 -i ../patch-2.6.1-test_fix-1.patch
@@ -898,23 +921,6 @@ make
 make install
 cd /sources
 rm -rf patch-2.6.1
-
-# 6.56. Shadow-4.1.5.1
-tar xvf shadow-4.1.5.1.tar.bz2
-cd shadow-4.1.5.1
-sed -i 's/groups$(EXEEXT) //' src/Makefile.in
-find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
-sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
-       -e 's@/var/spool/mail@/var/mail@' etc/login.defs
-./configure --sysconfdir=/etc
-make
-make install
-mv -v /usr/bin/passwd /bin
-pwconv
-grpconv
-sed -i 's/yes/no/' /etc/default/useradd
-cd /sources
-rm -rf shadow-4.1.5.1
 
 # 6.57. Sysklogd-1.5
 tar xvf sysklogd-1.5.tar.gz
@@ -978,14 +984,15 @@ make install
 cd /sources
 rm -rf texinfo-4.13
 
-# 6.61. Udev-187 (Extracted from systemd-187)
-tar xvf systemd-187.tar.xz
-cd systemd-187
-tar -xvf ../udev-lfs-187-2.tar.bz2
-make -f udev-lfs-187/Makefile.lfs
-make -f udev-lfs-187/Makefile.lfs install
+# 6.61. Udev-188 (Extracted from systemd-188)
+tar xvf systemd-188.tar.xz
+cd systemd-188
+tar -xvf ../udev-lfs-188-3.tar.bz2
+make -f udev-lfs-188/Makefile.lfs
+make -f udev-lfs-188/Makefile.lfs install
+bash udev-lfs-188/init-net-rules.sh
 cd /sources
-rm -rf systemd-187
+rm -rf systemd-188
 
 # 6.62. Vim-7.3
 tar xvf vim-7.3.tar.bz2
@@ -995,7 +1002,7 @@ echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
 make
 make install
 ln -sv vim /usr/bin/vi
-for L in  /usr/share/man/{,*/}man1/vim.1; do
+for L in /usr/share/man/{,*/}man1/vim.1; do
     ln -sv vim.1 $(dirname $L)/vi.1
 done
 ln -sv ../vim/vim73/doc /usr/share/doc/vim-7.3
