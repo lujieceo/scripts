@@ -1,0 +1,24 @@
+#!/bin/sh
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      log_info_msg "Switching to ondemand scaling governor..."
+      SYS_CPUFREQ_GOVERNOR=/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+      [ -e $SYS_CPUFREQ_GOVERNOR ] && echo "ondemand" > $SYS_CPUFREQ_GOVERNOR
+      evaluate_retval
+      ;;
+
+   status)
+      SYS_CPUFREQ_GOVERNOR=/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+      [ -e $SYS_CPUFREQ_GOVERNOR ] && cat $SYS_CPUFREQ_GOVERNOR
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|status}"
+      exit 1
+      ;;
+esac
+
+exit 0
