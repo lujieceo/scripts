@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20120824 v1.0
+# PiLFS Build Script SVN-20120916 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -63,7 +63,7 @@ gcc-4.7.1.tar.bz2
 gcc-4.7.1-gnueabihf-triplet-support.patch
 mpfr-3.1.1.tar.xz 
 gmp-5.0.5.tar.xz
-mpc-1.0.tar.gz  
+mpc-1.0.1.tar.gz  
 glibc-2.16.0.tar.xz
 glibc-ports-2.16.0.tar.xz
 tcl8.5.12-src.tar.gz
@@ -72,7 +72,7 @@ dejagnu-1.5.tar.gz
 check-0.9.8.tar.gz
 ncurses-5.9.tar.gz
 bash-4.2.tar.gz
-bash-4.2-fixes-8.patch
+bash-4.2-fixes-9.patch
 bzip2-1.0.6.tar.gz
 coreutils-8.19.tar.xz
 diffutils-3.2.tar.gz 
@@ -84,7 +84,7 @@ grep-2.14.tar.xz
 gzip-1.5.tar.xz  
 m4-1.4.16.tar.bz2
 make-3.82.tar.bz2    
-patch-2.6.1.tar.bz2
+patch-2.7.tar.xz
 perl-5.16.1.tar.bz2
 perl-5.16.1-libc-2.patch
 sed-4.2.1.tar.bz2  
@@ -116,7 +116,7 @@ function check_kernel() {
 
 function check_firmware() {
     if ! [[ -f $LFS/sources/raspberrypi-firmware-git.tar.gz ]] ; then
-        echo "Can't find the Raspberry firmware binaries (raspberrypi-firmware-git.tar.gz)."
+        echo "Can't find the Raspberry Pi firmware binaries (raspberrypi-firmware-git.tar.gz)."
         echo "These will come in handy at the end of chapter 6."
         echo "Would you like to download it now?"
         select yn in "Yes" "No"; do
@@ -180,8 +180,8 @@ tar -Jxf ../mpfr-3.1.1.tar.xz
 mv -v mpfr-3.1.1 mpfr
 tar -Jxf ../gmp-5.0.5.tar.xz
 mv -v gmp-5.0.5 gmp
-tar -zxf ../mpc-1.0.tar.gz
-mv -v mpc-1.0 mpc
+tar -zxf ../mpc-1.0.1.tar.gz
+mv -v mpc-1.0.1 mpc
 
 for file in \
  $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
@@ -227,12 +227,12 @@ ln -vs libgcc.a `$LFS_TGT-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/'`
 cd $LFS/sources
 rm -rf gcc-build gcc-4.7.1
 
-# 5.6. Raspberry Linux API Headers
+# 5.6. Raspberry Pi Linux API Headers
 tar xvf raspberrypi-linux-git.tar.gz
 cd raspberrypi-linux-???????
-KDIR=$PWD make mrproper
-KDIR=$PWD make headers_check
-KDIR=$PWD make INSTALL_HDR_PATH=dest headers_install
+make mrproper
+make headers_check
+make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
@@ -241,9 +241,13 @@ tar xvf glibc-2.16.0.tar.xz
 cd glibc-2.16.0
 tar -Jxf ../glibc-ports-2.16.0.tar.xz
 mv -v glibc-ports-2.16.0 ports
+if [ ! -r /usr/include/rpc/types.h ]; then
+  su -c 'mkdir -p /usr/include/rpc'
+  su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
+fi
+sed -i 's/ -lgcc_s//' Makeconfig
 mkdir -v ../glibc-build
 cd ../glibc-build
-sed -i 's/ -lgcc_s//' ../glibc-2.16.0/Makeconfig
 ../glibc-2.16.0/configure                             \
       --prefix=/tools                                 \
       --host=$LFS_TGT                                 \
@@ -310,8 +314,8 @@ tar -Jxf ../mpfr-3.1.1.tar.xz
 mv -v mpfr-3.1.1 mpfr
 tar -Jxf ../gmp-5.0.5.tar.xz
 mv -v gmp-5.0.5 gmp
-tar -zxf ../mpc-1.0.tar.gz
-mv -v mpc-1.0 mpc
+tar -zxf ../mpc-1.0.1.tar.gz
+mv -v mpc-1.0.1 mpc
 
 mkdir -v ../gcc-build
 cd ../gcc-build
@@ -394,7 +398,7 @@ rm -rf ncurses-5.9
 # 5.15. Bash-4.2
 tar xvf bash-4.2.tar.gz
 cd bash-4.2
-patch -Np1 -i ../bash-4.2-fixes-8.patch
+patch -Np1 -i ../bash-4.2-fixes-9.patch
 ./configure --prefix=/tools --without-bash-malloc
 make
 make install
@@ -505,14 +509,14 @@ make install
 cd $LFS/sources
 rm -rf make-3.82
 
-# 5.27. Patch-2.6.1
-tar xvf patch-2.6.1.tar.bz2
-cd patch-2.6.1
+# 5.27. Patch-2.7
+tar xvf patch-2.7.tar.xz
+cd patch-2.7
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf patch-2.6.1
+rm -rf patch-2.7
 
 # 5.28. Perl-5.16.1
 tar xvf perl-5.16.1.tar.bz2

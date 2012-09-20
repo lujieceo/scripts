@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20120824 v1.0
-# Builds chapters 6.7 - Raspberry Linux API Headers to 6.62 - Vim
+# PiLFS Build Script SVN-20120916 v1.0
+# Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.62 - Vim
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
@@ -38,6 +38,8 @@ LIST_OF_TARBALLS="
 man-pages-3.42.tar.xz
 glibc-2.16.0.tar.xz
 glibc-ports-2.16.0.tar.xz
+glibc-2.16.0-res_query_fix-1.patch
+glibc-2.16.0-fix_test_installation-1.patch
 tzdata2012e.tar.gz
 zlib-1.2.7.tar.bz2
 file-5.11.tar.gz
@@ -45,16 +47,16 @@ binutils-2.22.tar.bz2
 binutils-2.22-build_fix-1.patch
 gmp-5.0.5.tar.xz
 mpfr-3.1.1.tar.xz
-mpc-1.0.tar.gz
+mpc-1.0.1.tar.gz
 gcc-4.7.1.tar.bz2
 gcc-4.7.1-gnueabihf-triplet-support.patch
 sed-4.2.1.tar.bz2
 sed-4.2.1-testsuite_fixes-1.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
-pkg-config-0.27.tar.gz
+pkg-config-0.27.1.tar.gz
 ncurses-5.9.tar.gz
-util-linux-2.21.2.tar.xz
+util-linux-2.22.tar.xz
 psmisc-22.19.tar.gz
 e2fsprogs-1.42.5.tar.gz
 coreutils-8.19.tar.xz
@@ -69,7 +71,7 @@ grep-2.14.tar.xz
 readline-6.2.tar.gz
 readline-6.2-fixes-1.patch
 bash-4.2.tar.gz
-bash-4.2-fixes-8.patch
+bash-4.2-fixes-9.patch
 libtool-2.4.2.tar.gz
 gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
@@ -84,26 +86,25 @@ flex-2.5.37-bison-2.6.1-1.patch
 gettext-0.18.1.1.tar.gz
 groff-1.21.tar.gz
 xz-5.0.4.tar.xz
-less-444.tar.gz
+less-451.tar.gz
 gzip-1.5.tar.xz
 iproute2-3.5.1.tar.xz
 kbd-1.15.3.tar.gz
 kbd-1.15.3-backspace-1.patch
 kbd-1.15.3-upstream_fixes-1.patch
-kmod-9.tar.xz
-kmod-9-testsuite-1.patch
+kmod-10.tar.xz
 libpipeline-1.2.1.tar.gz
 make-3.82.tar.bz2
+make-3.82-upstream_fixes-2.patch
 man-db-2.6.2.tar.xz
-patch-2.6.1.tar.bz2
-patch-2.6.1-test_fix-1.patch
+patch-2.7.tar.xz
 shadow-4.1.5.1.tar.bz2
 sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
 texinfo-4.13a.tar.gz
-systemd-188.tar.xz
-udev-lfs-188-3.tar.bz2
+systemd-189.tar.xz
+udev-lfs-189.tar.bz2
 vim-7.3.tar.bz2
 "
 
@@ -152,12 +153,12 @@ select yn in "Yes" "No"; do
     esac
 done
                         
-# 6.7. Raspberry Linux API Headers
+# 6.7. Raspberry Pi Linux API Headers
 cd /sources
 cd raspberrypi-linux-???????
-KDIR=$PWD make mrproper
-KDIR=$PWD make headers_check
-KDIR=$PWD make INSTALL_HDR_PATH=dest headers_install
+make mrproper
+make headers_check
+make INSTALL_HDR_PATH=dest headers_install
 find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
@@ -175,8 +176,9 @@ cd glibc-2.16.0
 tar -Jxf ../glibc-ports-2.16.0.tar.xz
 mv -v glibc-ports-2.16.0 ports
 sed -i 's#<rpc/types.h>#"rpc/types.h"#' sunrpc/rpc_clntout.c
-sed -i '/test-installation.pl/d' Makefile
+patch -Np1 -i ../glibc-2.16.0-fix_test_installation-1.patch
 sed -i 's|@BASH@|/bin/bash|' elf/ldd.bash.in
+patch -Np1 -i ../glibc-2.16.0-res_query_fix-1.patch
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.16.0/configure  \
@@ -219,15 +221,18 @@ rpc: files
 EOF
 
 tar -xf ../tzdata2012e.tar.gz
-mkdir -pv /usr/share/zoneinfo/{posix,right} &&
-for tz in etcetera southamerica northamerica europe africa antarctica \
-          asia australasia backward pacificnew solar87 solar88 solar89 systemv; do
-    zic -L /dev/null   -d /usr/share/zoneinfo       -y "sh yearistype.sh" ${tz} &&
-    zic -L /dev/null   -d /usr/share/zoneinfo/posix -y "sh yearistype.sh" ${tz} &&
-    zic -L leapseconds -d /usr/share/zoneinfo/right -y "sh yearistype.sh" ${tz}
+ZONEINFO=/usr/share/zoneinfo
+mkdir -pv $ZONEINFO/{posix,right}
+for tz in etcetera southamerica northamerica europe africa antarctica  \
+          asia australasia backward pacificnew solar87 solar88 solar89 \
+          systemv; do
+    zic -L /dev/null   -d $ZONEINFO       -y "sh yearistype.sh" ${tz}
+    zic -L /dev/null   -d $ZONEINFO/posix -y "sh yearistype.sh" ${tz}
+    zic -L leapseconds -d $ZONEINFO/right -y "sh yearistype.sh" ${tz}
 done
-cp -v zone.tab /usr/share/zoneinfo &&
-zic -d /usr/share/zoneinfo -p America/New_York
+cp -v zone.tab iso3166.tab $ZONEINFO
+zic -d $ZONEINFO -p America/New_York
+unset ZONEINFO
 
 if ! [[ -f /usr/share/zoneinfo/$LOCAL_TIMEZONE ]] ; then
     echo "Seems like your timezone won't work out. Defaulting to London. Either fix it yourself later or consider moving there :)"
@@ -333,14 +338,14 @@ fi
 cd /sources
 rm -rf mpfr-3.1.1
 
-# 6.16. MPC-1.0
-tar xvf mpc-1.0.tar.gz
-cd mpc-1.0
+# 6.16. MPC-1.0.1
+tar xvf mpc-1.0.1.tar.gz
+cd mpc-1.0.1
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf mpc-1.0
+rm -rf mpc-1.0.1
 
 # 6.17. GCC-4.7.1
 tar xvf gcc-4.7.1.tar.bz2
@@ -404,16 +409,16 @@ ln -sv bzip2 /bin/bzcat
 cd /sources
 rm -rf bzip2-1.0.6
 
-# 6.20. Pkg-config-0.27
-tar xvf pkg-config-0.27.tar.gz
-cd pkg-config-0.27
+# 6.20. Pkg-config-0.27.1
+tar xvf pkg-config-0.27.1.tar.gz
+cd pkg-config-0.27.1
 ./configure --prefix=/usr         \
             --with-internal-glib  \
-            --docdir=/usr/share/doc/pkg-config-0.27
+            --docdir=/usr/share/doc/pkg-config-0.27.1
 make
 make install
 cd /sources
-rm -rf pkg-config-0.27
+rm -rf pkg-config-0.27.1
 
 # 6.21. Ncurses-5.9
 tar xvf ncurses-5.9.tar.gz
@@ -444,17 +449,17 @@ fi
 cd /sources
 rm -rf ncurses-5.9
 
-# 6.22. Util-linux-2.21.2
-tar xvf util-linux-2.21.2.tar.xz
-cd util-linux-2.21.2
+# 6.22. Util-linux-2.22
+tar xvf util-linux-2.22.tar.xz
+cd util-linux-2.22
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
     $(grep -rl '/etc/adjtime' .)
 mkdir -pv /var/lib/hwclock
-./configure
+./configure --disable-su --disable-sulogin --disable-login
 make
 make install
 cd /sources
-rm -rf util-linux-2.21.2
+rm -rf util-linux-2.22
 
 # 6.23. Psmisc-22.19
 tar xvf psmisc-22.19.tar.gz
@@ -611,7 +616,7 @@ rm -rf readline-6.2
 # 6.33. Bash-4.2
 tar xvf bash-4.2.tar.gz
 cd bash-4.2
-patch -Np1 -i ../bash-4.2-fixes-8.patch
+patch -Np1 -i ../bash-4.2-fixes-9.patch
 ./configure --prefix=/usr                     \
             --bindir=/bin                     \
             --htmldir=/usr/share/doc/bash-4.2 \
@@ -801,14 +806,14 @@ rm -rf xz-5.0.4
 
 # 6.47. GRUB-2.00
 
-# 6.48. Less-444
-tar xvf less-444.tar.gz
-cd less-444
+# 6.48. Less-451
+tar xvf less-451.tar.gz
+cd less-451
 ./configure --prefix=/usr --sysconfdir=/etc
 make
 make install
 cd /sources
-rm -rf less-444
+rm -rf less-451
 
 # 6.49. Gzip-1.5
 tar xvf gzip-1.5.tar.xz
@@ -857,10 +862,9 @@ fi
 cd /sources
 rm -rf kbd-1.15.3
 
-# 6.52. Kmod-9
-tar xvf kmod-9.tar.xz
-cd kmod-9
-patch -Np1 -i ../kmod-9-testsuite-1.patch
+# 6.52. Kmod-10
+tar xvf kmod-10.tar.xz
+cd kmod-10
 ./configure --prefix=/usr       \
             --bindir=/bin       \
             --libdir=/lib       \
@@ -874,7 +878,7 @@ for target in depmod insmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-9
+rm -rf kmod-10
 
 # 6.53. Libpipeline-1.2.1
 tar xvf libpipeline-1.2.1.tar.gz
@@ -889,6 +893,7 @@ rm -rf libpipeline-1.2.1
 # 6.54. Make-3.82
 tar xvf make-3.82.tar.bz2
 cd make-3.82
+patch -Np1 -i ../make-3.82-upstream_fixes-2.patch
 ./configure --prefix=/usr
 make
 make install
@@ -912,15 +917,14 @@ make install
 cd /sources
 rm -rf man-db-2.6.2
 
-# 6.56. Patch-2.6.1
-tar xvf patch-2.6.1.tar.bz2
-cd patch-2.6.1
-patch -Np1 -i ../patch-2.6.1-test_fix-1.patch
+# 6.56. Patch-2.7
+tar xvf patch-2.7.tar.xz
+cd patch-2.7
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf patch-2.6.1
+rm -rf patch-2.7
 
 # 6.57. Sysklogd-1.5
 tar xvf sysklogd-1.5.tar.gz
@@ -984,15 +988,15 @@ make install
 cd /sources
 rm -rf texinfo-4.13
 
-# 6.61. Udev-188 (Extracted from systemd-188)
-tar xvf systemd-188.tar.xz
-cd systemd-188
-tar -xvf ../udev-lfs-188-3.tar.bz2
-make -f udev-lfs-188/Makefile.lfs
-make -f udev-lfs-188/Makefile.lfs install
-bash udev-lfs-188/init-net-rules.sh
+# 6.61. Udev-189 (Extracted from systemd-189)
+tar xvf systemd-189.tar.xz
+cd systemd-189
+tar -xvf ../udev-lfs-189.tar.bz2
+make -f udev-lfs-189/Makefile.lfs
+make -f udev-lfs-189/Makefile.lfs install
+bash udev-lfs-189/init-net-rules.sh
 cd /sources
-rm -rf systemd-188
+rm -rf systemd-189
 
 # 6.62. Vim-7.3
 tar xvf vim-7.3.tar.bz2
