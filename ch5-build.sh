@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20120916 v1.0
+# PiLFS Build Script SVN-20121002 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -59,8 +59,8 @@ function check_tarballs() {
 LIST_OF_TARBALLS="
 binutils-2.22.tar.bz2
 binutils-2.22-build_fix-1.patch
-gcc-4.7.1.tar.bz2
-gcc-4.7.1-gnueabihf-triplet-support.patch
+gcc-4.7.2.tar.bz2
+gcc-4.7.2-gnueabihf-triplet-support.patch
 mpfr-3.1.1.tar.xz 
 gmp-5.0.5.tar.xz
 mpc-1.0.1.tar.gz  
@@ -84,7 +84,7 @@ grep-2.14.tar.xz
 gzip-1.5.tar.xz  
 m4-1.4.16.tar.bz2
 make-3.82.tar.bz2    
-patch-2.7.tar.xz
+patch-2.7.1.tar.xz
 perl-5.16.1.tar.bz2
 perl-5.16.1-libc-2.patch
 sed-4.2.1.tar.bz2  
@@ -170,11 +170,11 @@ make install
 cd $LFS/sources
 rm -rf binutils-build binutils-2.22
 
-# 5.5. GCC-4.7.1 - Pass 1
-tar xvf gcc-4.7.1.tar.bz2
-cd gcc-4.7.1
+# 5.5. GCC-4.7.2 - Pass 1
+tar xvf gcc-4.7.2.tar.bz2
+cd gcc-4.7.2
 
-patch -Np1 -i ../gcc-4.7.1-gnueabihf-triplet-support.patch
+patch -Np1 -i ../gcc-4.7.2-gnueabihf-triplet-support.patch
 
 tar -Jxf ../mpfr-3.1.1.tar.xz
 mv -v mpfr-3.1.1 mpfr
@@ -201,7 +201,7 @@ sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.7.1/configure         \
+../gcc-4.7.2/configure         \
     --target=$LFS_TGT          \
     --prefix=/tools            \
     --with-sysroot=$LFS        \
@@ -219,13 +219,13 @@ cd ../gcc-build
     --disable-libgomp          \
     --disable-libquadmath      \
     --enable-languages=c       \
-    --with-mpfr-include=$(pwd)/../gcc-4.7.1/mpfr/src \
+    --with-mpfr-include=$(pwd)/../gcc-4.7.2/mpfr/src \
     --with-mpfr-lib=$(pwd)/mpfr/src/.libs
 make
 make install
 ln -vs libgcc.a `$LFS_TGT-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/'`
 cd $LFS/sources
-rm -rf gcc-build gcc-4.7.1
+rm -rf gcc-build gcc-4.7.2
 
 # 5.6. Raspberry Pi Linux API Headers
 tar xvf raspberrypi-linux-git.tar.gz
@@ -287,11 +287,11 @@ cp -v ld/ld-new /tools/bin
 cd $LFS/sources
 rm -rf binutils-build binutils-2.22
 
-# 5.9. GCC-4.7.1 - Pass 2
-tar xvf gcc-4.7.1.tar.bz2
-cd gcc-4.7.1
+# 5.9. GCC-4.7.2 - Pass 2
+tar xvf gcc-4.7.2.tar.bz2
+cd gcc-4.7.2
 
-patch -Np1 -i ../gcc-4.7.1-gnueabihf-triplet-support.patch
+patch -Np1 -i ../gcc-4.7.2-gnueabihf-triplet-support.patch
 
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
@@ -322,7 +322,7 @@ cd ../gcc-build
 CC=$LFS_TGT-gcc \
 AR=$LFS_TGT-ar                  \
 RANLIB=$LFS_TGT-ranlib          \
-../gcc-4.7.1/configure          \
+../gcc-4.7.2/configure          \
     --prefix=/tools             \
     --with-local-prefix=/tools  \
     --with-native-system-header-dir=/tools/include \
@@ -335,13 +335,13 @@ RANLIB=$LFS_TGT-ranlib          \
     --disable-multilib          \
     --disable-bootstrap         \
     --disable-libgomp           \
-    --with-mpfr-include=$(pwd)/../gcc-4.7.1/mpfr/src \
+    --with-mpfr-include=$(pwd)/../gcc-4.7.2/mpfr/src \
     --with-mpfr-lib=$(pwd)/mpfr/src/.libs
 make
 make install
 ln -vs gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-build gcc-4.7.1
+rm -rf gcc-build gcc-4.7.2
 
 # 5.10. Tcl-8.5.12
 tar xvf tcl8.5.12-src.tar.gz
@@ -402,7 +402,7 @@ patch -Np1 -i ../bash-4.2-fixes-9.patch
 ./configure --prefix=/tools --without-bash-malloc
 make
 make install
-ln -vs bash /tools/bin/sh
+ln -sv bash /tools/bin/sh
 cd $LFS/sources
 rm -rf bash-4.2
 
@@ -509,14 +509,14 @@ make install
 cd $LFS/sources
 rm -rf make-3.82
 
-# 5.27. Patch-2.7
-tar xvf patch-2.7.tar.xz
-cd patch-2.7
+# 5.27. Patch-2.7.1
+tar xvf patch-2.7.1.tar.xz
+cd patch-2.7.1
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf patch-2.7
+rm -rf patch-2.7.1
 
 # 5.28. Perl-5.16.1
 tar xvf perl-5.16.1.tar.bz2

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20120916 v1.0
+# PiLFS Build Script SVN-20121002 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.62 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -48,8 +48,8 @@ binutils-2.22-build_fix-1.patch
 gmp-5.0.5.tar.xz
 mpfr-3.1.1.tar.xz
 mpc-1.0.1.tar.gz
-gcc-4.7.1.tar.bz2
-gcc-4.7.1-gnueabihf-triplet-support.patch
+gcc-4.7.2.tar.bz2
+gcc-4.7.2-gnueabihf-triplet-support.patch
 sed-4.2.1.tar.bz2
 sed-4.2.1-testsuite_fixes-1.patch
 bzip2-1.0.6.tar.gz
@@ -57,7 +57,7 @@ bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.27.1.tar.gz
 ncurses-5.9.tar.gz
 util-linux-2.22.tar.xz
-psmisc-22.19.tar.gz
+psmisc-22.20.tar.gz
 e2fsprogs-1.42.5.tar.gz
 coreutils-8.19.tar.xz
 coreutils-8.19-i18n-1.patch
@@ -77,7 +77,7 @@ gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
 perl-5.16.1.tar.bz2
 autoconf-2.69.tar.xz
-automake-1.12.3.tar.xz
+automake-1.12.4.tar.xz
 diffutils-3.2.tar.gz
 gawk-4.0.1.tar.xz
 findutils-4.4.2.tar.gz
@@ -88,23 +88,25 @@ groff-1.21.tar.gz
 xz-5.0.4.tar.xz
 less-451.tar.gz
 gzip-1.5.tar.xz
-iproute2-3.5.1.tar.xz
+iproute2-3.6.0.tar.xz
+iproute2-3.6.0-ipset-1.patch
 kbd-1.15.3.tar.gz
 kbd-1.15.3-backspace-1.patch
 kbd-1.15.3-upstream_fixes-1.patch
 kmod-10.tar.xz
-libpipeline-1.2.1.tar.gz
+kmod-10-testsuite-1.patch
+libpipeline-1.2.2.tar.gz
 make-3.82.tar.bz2
-make-3.82-upstream_fixes-2.patch
-man-db-2.6.2.tar.xz
-patch-2.7.tar.xz
+make-3.82-upstream_fixes-3.patch
+man-db-2.6.3.tar.xz
+patch-2.7.1.tar.xz
 shadow-4.1.5.1.tar.bz2
 sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
 texinfo-4.13a.tar.gz
-systemd-189.tar.xz
-udev-lfs-189.tar.bz2
+systemd-193.tar.xz
+udev-lfs-193.tar.bz2
 vim-7.3.tar.bz2
 "
 
@@ -347,15 +349,15 @@ make install
 cd /sources
 rm -rf mpc-1.0.1
 
-# 6.17. GCC-4.7.1
-tar xvf gcc-4.7.1.tar.bz2
-cd gcc-4.7.1
-patch -Np1 -i ../gcc-4.7.1-gnueabihf-triplet-support.patch
+# 6.17. GCC-4.7.2
+tar xvf gcc-4.7.2.tar.bz2
+cd gcc-4.7.2
+patch -Np1 -i ../gcc-4.7.2-gnueabihf-triplet-support.patch
 sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
 sed -i -e /autogen/d -e /check.sh/d fixincludes/Makefile.in
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.7.1/configure --prefix=/usr            \
+../gcc-4.7.2/configure --prefix=/usr            \
                        --libexecdir=/usr/lib    \
                        --enable-shared          \
                        --enable-threads=posix   \
@@ -372,7 +374,7 @@ ln -sv gcc /usr/bin/cc
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-build gcc-4.7.1
+rm -rf gcc-build gcc-4.7.2
 
 # 6.18. Sed-4.2.1
 tar xvf sed-4.2.1.tar.bz2
@@ -423,8 +425,11 @@ rm -rf pkg-config-0.27.1
 # 6.21. Ncurses-5.9
 tar xvf ncurses-5.9.tar.gz
 cd ncurses-5.9
-./configure --prefix=/usr --mandir=/usr/share/man --with-shared \
-            --without-debug --enable-widec
+./configure --prefix=/usr           \
+            --mandir=/usr/share/man \
+            --with-shared           \
+            --without-debug         \
+            --enable-widec
 make
 make install
 mv -v /usr/lib/libncursesw.so.5* /lib
@@ -461,16 +466,16 @@ make install
 cd /sources
 rm -rf util-linux-2.22
 
-# 6.23. Psmisc-22.19
-tar xvf psmisc-22.19.tar.gz
-cd psmisc-22.19
+# 6.23. Psmisc-22.20
+tar xvf psmisc-22.20.tar.gz
+cd psmisc-22.20
 ./configure --prefix=/usr
 make
 make install
 mv -v /usr/bin/fuser /bin
 mv -v /usr/bin/killall /bin
 cd /sources
-rm -rf psmisc-22.19
+rm -rf psmisc-22.20
 
 # 6.24. E2fsprogs-1.42.5
 tar xvf e2fsprogs-1.42.5.tar.gz
@@ -700,14 +705,14 @@ make install
 cd /sources
 rm -rf autoconf-2.69
 
-# 6.39. Automake-1.12.3
-tar xvf automake-1.12.3.tar.xz
-cd automake-1.12.3
-./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.12.3
+# 6.39. Automake-1.12.4
+tar xvf automake-1.12.4.tar.xz
+cd automake-1.12.4
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.12.4
 make
 make install
 cd /sources
-rm -rf automake-1.12.3
+rm -rf automake-1.12.4
 
 # 6.40. Diffutils-3.2
 tar xvf diffutils-3.2.tar.gz
@@ -751,7 +756,10 @@ rm -rf findutils-4.4.2
 tar xvf flex-2.5.37.tar.bz2
 cd flex-2.5.37
 patch -Np1 -i ../flex-2.5.37-bison-2.6.1-1.patch
-./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info
+./configure --prefix=/usr             \
+            --mandir=/usr/share/man   \
+            --infodir=/usr/share/info \
+            --docdir=/usr/share/doc/flex-2.5.37
 make
 make install
 ln -sv libfl.a /usr/lib/libl.a
@@ -766,7 +774,6 @@ EOF
 chmod -v 755 /usr/bin/lex
 
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/flex-2.5.37
     cp -v doc/flex.pdf /usr/share/doc/flex-2.5.37
 fi
 
@@ -826,18 +833,19 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.5
 
-# 6.50. IPRoute2-3.5.1
-tar xvf iproute2-3.5.1.tar.xz
-cd iproute2-3.5.1
+# 6.50. IPRoute2-3.6.0
+tar xvf iproute2-3.6.0.tar.xz
+cd iproute2-3.6.0
+patch -Np1 -i ../iproute2-3.6.0-ipset-1.patch
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make DESTDIR=
 make DESTDIR=              \
      MANDIR=/usr/share/man \
-     DOCDIR=/usr/share/doc/iproute2-3.5.1 install
+     DOCDIR=/usr/share/doc/iproute2-3.6.0 install
 cd /sources
-rm -rf iproute2-3.5.1
+rm -rf iproute2-3.6.0
 
 # 6.51. Kbd-1.15.3
 tar xvf kbd-1.15.3.tar.gz
@@ -865,6 +873,7 @@ rm -rf kbd-1.15.3
 # 6.52. Kmod-10
 tar xvf kmod-10.tar.xz
 cd kmod-10
+patch -Np1 -i ../kmod-10-testsuite-1.patch
 ./configure --prefix=/usr       \
             --bindir=/bin       \
             --libdir=/lib       \
@@ -880,33 +889,31 @@ ln -sv kmod /bin/lsmod
 cd /sources
 rm -rf kmod-10
 
-# 6.53. Libpipeline-1.2.1
-tar xvf libpipeline-1.2.1.tar.gz
-cd libpipeline-1.2.1
-sed -i -e '/gets is a/d' gnulib/lib/stdio.in.h
+# 6.53. Libpipeline-1.2.2
+tar xvf libpipeline-1.2.2.tar.gz
+cd libpipeline-1.2.2
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf libpipeline-1.2.1
+rm -rf libpipeline-1.2.2
 
 # 6.54. Make-3.82
 tar xvf make-3.82.tar.bz2
 cd make-3.82
-patch -Np1 -i ../make-3.82-upstream_fixes-2.patch
+patch -Np1 -i ../make-3.82-upstream_fixes-3.patch
 ./configure --prefix=/usr
 make
 make install
 cd /sources
 rm -rf make-3.82
 
-# 6.55. Man-DB-2.6.2
-tar xvf man-db-2.6.2.tar.xz
-cd man-db-2.6.2
-sed -i -e '/gets is a/d' gnulib/lib/stdio.in.h
+# 6.55. Man-DB-2.6.3
+tar xvf man-db-2.6.3.tar.xz
+cd man-db-2.6.3
 ./configure --prefix=/usr                        \
             --libexecdir=/usr/lib                \
-            --docdir=/usr/share/doc/man-db-2.6.2 \
+            --docdir=/usr/share/doc/man-db-2.6.3 \
             --sysconfdir=/etc                    \
             --disable-setuid                     \
             --with-browser=/usr/bin/lynx         \
@@ -915,16 +922,16 @@ sed -i -e '/gets is a/d' gnulib/lib/stdio.in.h
 make
 make install
 cd /sources
-rm -rf man-db-2.6.2
+rm -rf man-db-2.6.3
 
-# 6.56. Patch-2.7
-tar xvf patch-2.7.tar.xz
-cd patch-2.7
+# 6.56. Patch-2.7.1
+tar xvf patch-2.7.1.tar.xz
+cd patch-2.7.1
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf patch-2.7
+rm -rf patch-2.7.1
 
 # 6.57. Sysklogd-1.5
 tar xvf sysklogd-1.5.tar.gz
@@ -988,15 +995,15 @@ make install
 cd /sources
 rm -rf texinfo-4.13
 
-# 6.61. Udev-189 (Extracted from systemd-189)
-tar xvf systemd-189.tar.xz
-cd systemd-189
-tar -xvf ../udev-lfs-189.tar.bz2
-make -f udev-lfs-189/Makefile.lfs
-make -f udev-lfs-189/Makefile.lfs install
-bash udev-lfs-189/init-net-rules.sh
+# 6.61. Udev-193 (Extracted from systemd-193)
+tar xvf systemd-193.tar.xz
+cd systemd-193
+tar -xvf ../udev-lfs-193.tar.bz2
+make -f udev-lfs-193/Makefile.lfs
+make -f udev-lfs-193/Makefile.lfs install
+bash udev-lfs-193/init-net-rules.sh
 cd /sources
-rm -rf systemd-189
+rm -rf systemd-193
 
 # 6.62. Vim-7.3
 tar xvf vim-7.3.tar.bz2
