@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121002 v1.0
+# PiLFS Build Script SVN-20121015 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -59,6 +59,7 @@ function check_tarballs() {
 LIST_OF_TARBALLS="
 binutils-2.22.tar.bz2
 binutils-2.22-build_fix-1.patch
+binutils-2.22-arm-assert-fix.patch
 gcc-4.7.2.tar.bz2
 gcc-4.7.2-gnueabihf-triplet-support.patch
 mpfr-3.1.1.tar.xz 
@@ -156,6 +157,7 @@ cd $LFS/sources
 tar xvf binutils-2.22.tar.bz2
 cd binutils-2.22
 patch -Np1 -i ../binutils-2.22-build_fix-1.patch
+patch -Np1 -i ../binutils-2.22-arm-assert-fix.patch
 mkdir -v ../binutils-build
 cd ../binutils-build
 ../binutils-2.22/configure     \
@@ -270,6 +272,7 @@ rm -rf glibc-build glibc-2.16.0
 tar xvf binutils-2.22.tar.bz2
 cd binutils-2.22
 patch -Np1 -i ../binutils-2.22-build_fix-1.patch
+patch -Np1 -i ../binutils-2.22-arm-assert-fix.patch
 mkdir -v ../binutils-build
 cd ../binutils-build
 CC=$LFS_TGT-gcc            \

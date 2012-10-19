@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121002 v1.0
+# PiLFS Build Script SVN-20121015 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.62 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -40,11 +40,12 @@ glibc-2.16.0.tar.xz
 glibc-ports-2.16.0.tar.xz
 glibc-2.16.0-res_query_fix-1.patch
 glibc-2.16.0-fix_test_installation-1.patch
-tzdata2012e.tar.gz
+tzdata2012f.tar.gz
 zlib-1.2.7.tar.bz2
 file-5.11.tar.gz
 binutils-2.22.tar.bz2
 binutils-2.22-build_fix-1.patch
+binutils-2.22-arm-assert-fix.patch
 gmp-5.0.5.tar.xz
 mpfr-3.1.1.tar.xz
 mpc-1.0.1.tar.gz
@@ -56,7 +57,7 @@ bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.27.1.tar.gz
 ncurses-5.9.tar.gz
-util-linux-2.22.tar.xz
+util-linux-2.22.1.tar.xz
 psmisc-22.20.tar.gz
 e2fsprogs-1.42.5.tar.gz
 coreutils-8.19.tar.xz
@@ -222,7 +223,7 @@ rpc: files
 # End /etc/nsswitch.conf
 EOF
 
-tar -xf ../tzdata2012e.tar.gz
+tar -xf ../tzdata2012f.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -298,6 +299,7 @@ cd binutils-2.22
 rm -fv etc/standards.info
 sed -i.bak '/^INFO/s/standards.info //' etc/Makefile.in
 patch -Np1 -i ../binutils-2.22-build_fix-1.patch
+patch -Np1 -i ../binutils-2.22-arm-assert-fix.patch
 mkdir -v ../binutils-build
 cd ../binutils-build
 ../binutils-2.22/configure --prefix=/usr --enable-shared
@@ -454,9 +456,9 @@ fi
 cd /sources
 rm -rf ncurses-5.9
 
-# 6.22. Util-linux-2.22
-tar xvf util-linux-2.22.tar.xz
-cd util-linux-2.22
+# 6.22. Util-linux-2.22.1
+tar xvf util-linux-2.22.1.tar.xz
+cd util-linux-2.22.1
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
     $(grep -rl '/etc/adjtime' .)
 mkdir -pv /var/lib/hwclock
@@ -464,7 +466,7 @@ mkdir -pv /var/lib/hwclock
 make
 make install
 cd /sources
-rm -rf util-linux-2.22
+rm -rf util-linux-2.22.1
 
 # 6.23. Psmisc-22.20
 tar xvf psmisc-22.20.tar.gz
@@ -580,7 +582,8 @@ tar xvf procps-3.2.8.tar.gz
 cd procps-3.2.8
 patch -Np1 -i ../procps-3.2.8-fix_HZ_errors-1.patch
 patch -Np1 -i ../procps-3.2.8-watch_unicode-1.patch
-sed -i -e 's@\*/module.mk@proc/module.mk ps/module.mk@' Makefile
+sed -i -e 's@\*/module.mk@proc/module.mk ps/module.mk@' \
+       -e 's@^#SKIP@SKIP@' Makefile
 make
 make install
 cd /sources
@@ -958,9 +961,8 @@ rm -rf sysklogd-1.5
 tar xvf sysvinit-2.88dsf.tar.bz2
 cd sysvinit-2.88dsf
 sed -i 's@Sending processes@& configured via /etc/inittab@g' src/init.c
-sed -i -e 's/utmpdump wall/utmpdump/' \
-       -e '/= mountpoint/d' \
-       -e 's/mountpoint.1 wall.1//' src/Makefile
+sed -i -e '/utmpdump/d' \
+       -e '/mountpoint/d' src/Makefile
 make -C src
 make -C src install
 cd /sources

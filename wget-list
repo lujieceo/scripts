@@ -29,7 +29,7 @@ http://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-3.6.0.tar.xz
 http://ftp.altlinux.org/pub/people/legion/kbd/kbd-1.15.3.tar.gz
 http://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-10.tar.xz
 http://www.greenwoodsoftware.com/less/less-451.tar.gz
-http://www.linuxfromscratch.org/lfs/downloads/development/lfs-bootscripts-20120905.tar.bz2
+http://www.linuxfromscratch.org/lfs/downloads/development/lfs-bootscripts-20121013.tar.bz2
 http://download.savannah.gnu.org/releases/libpipeline/libpipeline-1.2.2.tar.gz
 http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz
 http://ftp.gnu.org/gnu/m4/m4-1.4.16.tar.bz2
@@ -51,11 +51,11 @@ http://www.infodrom.org/projects/sysklogd/download/sysklogd-1.5.tar.gz
 http://download.savannah.gnu.org/releases/sysvinit/sysvinit-2.88dsf.tar.bz2
 http://ftp.gnu.org/gnu/tar/tar-1.26.tar.bz2
 http://prdownloads.sourceforge.net/tcl/tcl8.5.12-src.tar.gz
-http://www.iana.org//time-zones/repository/releases/tzdata2012e.tar.gz
+http://www.iana.org//time-zones/repository/releases/tzdata2012f.tar.gz
 http://ftp.gnu.org/gnu/texinfo/texinfo-4.13a.tar.gz
 http://www.freedesktop.org/software/systemd/systemd-193.tar.xz
 http://anduin.linuxfromscratch.org/sources/other/udev-lfs-193.tar.bz2
-http://www.kernel.org/pub/linux/utils/util-linux/v2.22/util-linux-2.22.tar.xz
+http://www.kernel.org/pub/linux/utils/util-linux/v2.22/util-linux-2.22.1.tar.xz
 ftp://ftp.vim.org/pub/vim/unix/vim-7.3.tar.bz2
 http://tukaani.org/xz/xz-5.0.4.tar.xz
 http://www.zlib.net/zlib-1.2.7.tar.bz2
@@ -77,4 +77,5 @@ http://www.linuxfromscratch.org/patches/lfs/development/procps-3.2.8-watch_unico
 http://www.linuxfromscratch.org/patches/lfs/development/readline-6.2-fixes-1.patch
 http://www.linuxfromscratch.org/patches/lfs/development/sed-4.2.1-testsuite_fixes-1.patch
 http://www.intestinate.com/pilfs/patches/gcc-4.7.2-gnueabihf-triplet-support.patch
+http://www.intestinate.com/pilfs/patches/binutils-2.22-arm-assert-fix.patch
 http://www.intestinate.com/pilfs/scripts/mkimage-git.tar.xz
