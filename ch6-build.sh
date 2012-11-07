@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121015 v1.0
+# PiLFS Build Script SVN-20121103 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.62 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -35,12 +35,12 @@ function prebuild_sanity_check() {
 
 function check_tarballs() {
 LIST_OF_TARBALLS="
-man-pages-3.42.tar.xz
+man-pages-3.43.tar.xz
 glibc-2.16.0.tar.xz
 glibc-ports-2.16.0.tar.xz
 glibc-2.16.0-res_query_fix-1.patch
 glibc-2.16.0-fix_test_installation-1.patch
-tzdata2012f.tar.gz
+tzdata2012h.tar.gz
 zlib-1.2.7.tar.bz2
 file-5.11.tar.gz
 binutils-2.22.tar.bz2
@@ -64,7 +64,7 @@ coreutils-8.19.tar.xz
 coreutils-8.19-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.16.tar.bz2
-bison-2.6.2.tar.xz
+bison-2.6.4.tar.xz
 procps-3.2.8.tar.gz
 procps-3.2.8-fix_HZ_errors-1.patch
 procps-3.2.8-watch_unicode-1.patch
@@ -72,11 +72,11 @@ grep-2.14.tar.xz
 readline-6.2.tar.gz
 readline-6.2-fixes-1.patch
 bash-4.2.tar.gz
-bash-4.2-fixes-9.patch
+bash-4.2-fixes-10.patch
 libtool-2.4.2.tar.gz
 gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
-perl-5.16.1.tar.bz2
+perl-5.16.2.tar.bz2
 autoconf-2.69.tar.xz
 automake-1.12.4.tar.xz
 diffutils-3.2.tar.gz
@@ -106,8 +106,8 @@ sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
 texinfo-4.13a.tar.gz
-systemd-193.tar.xz
-udev-lfs-193.tar.bz2
+systemd-195.tar.xz
+udev-lfs-195.tar.bz2
 vim-7.3.tar.bz2
 "
 
@@ -120,11 +120,11 @@ done
 }
 
 function check_kernel() {
-    if ! [ -d /sources/raspberrypi-linux-??????? ] ; then
+    if ! [ -d /sources/linux-rpi-3.2.27 ] ; then
         if ! [[ -f /sources/raspberrypi-linux-git.tar.gz ]] ; then
             echo "Can't find the Raspberry Pi kernel sources (raspberrypi-linux-git.tar.gz)."
             echo "You need to exit your chroot and grab it with wget:"
-            echo 'wget https://github.com/raspberrypi/linux/tarball/rpi-3.2.27 -O $LFS/sources/raspberrypi-linux-git.tar.gz'
+            echo 'wget https://github.com/raspberrypi/linux/archive/rpi-3.2.27.tar.gz -O $LFS/sources/raspberrypi-linux-git.tar.gz'
             exit 1
         fi
         tar xvf raspberrypi-linux-git.tar.gz
@@ -132,11 +132,11 @@ function check_kernel() {
 }
 
 function check_firmware() {
-    if ! [ -d /sources/raspberrypi-firmware-??????? ] ; then
+    if ! [ -d /sources/firmware-master ] ; then
         if ! [[ -f /sources/raspberrypi-firmware-git.tar.gz ]] ; then
             echo "Can't find the Raspberry Pi firmware binaries (raspberrypi-firmware-git.tar.gz)."
             echo "You need to exit your chroot and grab it with wget:"
-            echo 'wget https://github.com/raspberrypi/firmware/tarball/master -O $LFS/sources/raspberrypi-firmware-git.tar.gz'
+            echo 'wget https://github.com/raspberrypi/firmware/archive/master.tar.gz -O $LFS/sources/raspberrypi-firmware-git.tar.gz'
             exit 1
         fi
         tar xvf raspberrypi-firmware-git.tar.gz
@@ -158,7 +158,7 @@ done
                         
 # 6.7. Raspberry Pi Linux API Headers
 cd /sources
-cd raspberrypi-linux-???????
+cd linux-rpi-3.2.27
 make mrproper
 make headers_check
 make INSTALL_HDR_PATH=dest headers_install
@@ -166,12 +166,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-# 6.8. Man-pages-3.42
-tar xvf man-pages-3.42.tar.xz
-cd man-pages-3.42
+# 6.8. Man-pages-3.43
+tar xvf man-pages-3.43.tar.xz
+cd man-pages-3.43
 make install
 cd /sources
-rm -rf man-pages-3.42
+rm -rf man-pages-3.43
 
 # 6.9. Glibc-2.16.0
 tar xvf glibc-2.16.0.tar.xz
@@ -223,7 +223,7 @@ rpc: files
 # End /etc/nsswitch.conf
 EOF
 
-tar -xf ../tzdata2012f.tar.gz
+tar -xf ../tzdata2012h.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -567,15 +567,15 @@ make install
 cd /sources
 rm -rf m4-1.4.16
 
-# 6.29. Bison-2.6.2
-tar xvf bison-2.6.2.tar.xz
-cd bison-2.6.2
+# 6.29. Bison-2.6.4
+tar xvf bison-2.6.4.tar.xz
+cd bison-2.6.4
 ./configure --prefix=/usr
 echo '#define YYENABLE_NLS 1' >> lib/config.h
 make
 make install
 cd /sources
-rm -rf bison-2.6.2
+rm -rf bison-2.6.4
 
 # 6.30. Procps-3.2.8
 tar xvf procps-3.2.8.tar.gz
@@ -624,7 +624,7 @@ rm -rf readline-6.2
 # 6.33. Bash-4.2
 tar xvf bash-4.2.tar.gz
 cd bash-4.2
-patch -Np1 -i ../bash-4.2-fixes-9.patch
+patch -Np1 -i ../bash-4.2-fixes-10.patch
 ./configure --prefix=/usr                     \
             --bindir=/bin                     \
             --htmldir=/usr/share/doc/bash-4.2 \
@@ -680,9 +680,9 @@ mv -v /usr/bin/traceroute /sbin
 cd /sources
 rm -rf inetutils-1.9.1
 
-# 6.37. Perl-5.16.1
-tar xvf perl-5.16.1.tar.bz2
-cd perl-5.16.1
+# 6.37. Perl-5.16.2
+tar xvf perl-5.16.2.tar.bz2
+cd perl-5.16.2
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
        -e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
@@ -697,7 +697,7 @@ sh Configure -des -Dprefix=/usr                 \
 make
 make install
 cd /sources
-rm -rf perl-5.16.1
+rm -rf perl-5.16.2
 
 # 6.38. Autoconf-2.69
 tar xvf autoconf-2.69.tar.xz
@@ -760,8 +760,6 @@ tar xvf flex-2.5.37.tar.bz2
 cd flex-2.5.37
 patch -Np1 -i ../flex-2.5.37-bison-2.6.1-1.patch
 ./configure --prefix=/usr             \
-            --mandir=/usr/share/man   \
-            --infodir=/usr/share/info \
             --docdir=/usr/share/doc/flex-2.5.37
 make
 make install
@@ -775,10 +773,6 @@ exec /usr/bin/flex -l "$@"
 # End /usr/bin/lex
 EOF
 chmod -v 755 /usr/bin/lex
-
-if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    cp -v doc/flex.pdf /usr/share/doc/flex-2.5.37
-fi
 
 cd /sources
 rm -rf flex-2.5.37
@@ -997,15 +991,15 @@ make install
 cd /sources
 rm -rf texinfo-4.13
 
-# 6.61. Udev-193 (Extracted from systemd-193)
-tar xvf systemd-193.tar.xz
-cd systemd-193
-tar -xvf ../udev-lfs-193.tar.bz2
-make -f udev-lfs-193/Makefile.lfs
-make -f udev-lfs-193/Makefile.lfs install
-bash udev-lfs-193/init-net-rules.sh
+# 6.61. Udev-195 (Extracted from systemd-195)
+tar xvf systemd-195.tar.xz
+cd systemd-195
+tar -xvf ../udev-lfs-195.tar.bz2
+make -f udev-lfs-195/Makefile.lfs
+make -f udev-lfs-195/Makefile.lfs install
+bash udev-lfs-195/init-net-rules.sh
 cd /sources
-rm -rf systemd-193
+rm -rf systemd-195
 
 # 6.62. Vim-7.3
 tar xvf vim-7.3.tar.bz2
@@ -1054,7 +1048,7 @@ echo -e "\nNow about the firmware..."
 echo "You probably want to copy the supplied Broadcom libraries to /opt/vc?"
 select yn in "Yes" "No"; do
     case $yn in
-        Yes ) cp -rv /sources/raspberrypi-firmware-???????/hardfp/opt/vc /opt && echo "/opt/vc/lib" >> /etc/ld.so.conf.d/broadcom.conf && ldconfig; break;;
+        Yes ) cp -rv /sources/firmware-master/hardfp/opt/vc /opt && echo "/opt/vc/lib" >> /etc/ld.so.conf.d/broadcom.conf && ldconfig; break;;
         No ) break;;
     esac
 done
@@ -1062,7 +1056,7 @@ done
 echo -e "\nLast question, if you want I can mount the boot partition and overwrite the kernel and bootloader with the one you downloaded?"
 select yn in "Yes" "No"; do
     case $yn in
-        Yes ) mount /dev/mmcblk0p1 /boot && cp -rv /sources/raspberrypi-firmware-???????/boot / && umount /boot; break;;
+        Yes ) mount /dev/mmcblk0p1 /boot && cp -rv /sources/firmware-master/boot / && umount /boot; break;;
         No ) break;;
     esac
 done

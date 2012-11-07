@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121015 v1.0
+# PiLFS Build Script SVN-20121103 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -70,10 +70,10 @@ glibc-ports-2.16.0.tar.xz
 tcl8.5.12-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.tar.gz   
-check-0.9.8.tar.gz
+check-0.9.9.tar.gz
 ncurses-5.9.tar.gz
 bash-4.2.tar.gz
-bash-4.2-fixes-9.patch
+bash-4.2-fixes-10.patch
 bzip2-1.0.6.tar.gz
 coreutils-8.19.tar.xz
 diffutils-3.2.tar.gz 
@@ -86,8 +86,8 @@ gzip-1.5.tar.xz
 m4-1.4.16.tar.bz2
 make-3.82.tar.bz2    
 patch-2.7.1.tar.xz
-perl-5.16.1.tar.bz2
-perl-5.16.1-libc-2.patch
+perl-5.16.2.tar.bz2
+perl-5.16.2-libc-1.patch
 sed-4.2.1.tar.bz2  
 tar-1.26.tar.bz2   
 texinfo-4.13a.tar.gz
@@ -108,7 +108,7 @@ function check_kernel() {
         echo "Would you like to download it now?"
         select yn in "Yes" "No"; do
             case $yn in
-                Yes ) wget https://github.com/raspberrypi/linux/tarball/rpi-3.2.27 -O $LFS/sources/raspberrypi-linux-git.tar.gz; break;;
+                Yes ) wget https://github.com/raspberrypi/linux/archive/rpi-3.2.27.tar.gz -O $LFS/sources/raspberrypi-linux-git.tar.gz; break;;
                 No ) exit;;
             esac
         done
@@ -122,7 +122,7 @@ function check_firmware() {
         echo "Would you like to download it now?"
         select yn in "Yes" "No"; do
             case $yn in
-                Yes ) wget https://github.com/raspberrypi/firmware/tarball/master -O $LFS/sources/raspberrypi-firmware-git.tar.gz; break;;
+                Yes ) wget https://github.com/raspberrypi/firmware/archive/master.tar.gz -O $LFS/sources/raspberrypi-firmware-git.tar.gz; break;;
                 No ) exit;;
             esac
         done
@@ -231,7 +231,7 @@ rm -rf gcc-build gcc-4.7.2
 
 # 5.6. Raspberry Pi Linux API Headers
 tar xvf raspberrypi-linux-git.tar.gz
-cd raspberrypi-linux-???????
+cd linux-rpi-3.2.27
 make mrproper
 make headers_check
 make INSTALL_HDR_PATH=dest headers_install
@@ -379,14 +379,14 @@ make install
 cd $LFS/sources
 rm -rf dejagnu-1.5
 
-# 5.13. Check-0.9.8
-tar xvf check-0.9.8.tar.gz
-cd check-0.9.8
+# 5.13. Check-0.9.9
+tar xvf check-0.9.9.tar.gz
+cd check-0.9.9
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf check-0.9.8
+rm -rf check-0.9.9
 
 # 5.14. Ncurses-5.9
 tar xvf ncurses-5.9.tar.gz
@@ -401,7 +401,7 @@ rm -rf ncurses-5.9
 # 5.15. Bash-4.2
 tar xvf bash-4.2.tar.gz
 cd bash-4.2
-patch -Np1 -i ../bash-4.2-fixes-9.patch
+patch -Np1 -i ../bash-4.2-fixes-10.patch
 ./configure --prefix=/tools --without-bash-malloc
 make
 make install
@@ -521,17 +521,17 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.1
 
-# 5.28. Perl-5.16.1
-tar xvf perl-5.16.1.tar.bz2
-cd perl-5.16.1
-patch -Np1 -i ../perl-5.16.1-libc-2.patch
+# 5.28. Perl-5.16.2
+tar xvf perl-5.16.2.tar.bz2
+cd perl-5.16.2
+patch -Np1 -i ../perl-5.16.2-libc-1.patch
 sh Configure -des -Dprefix=/tools
 make
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.16.1
-cp -Rv lib/* /tools/lib/perl5/5.16.1
+mkdir -pv /tools/lib/perl5/5.16.2
+cp -Rv lib/* /tools/lib/perl5/5.16.2
 cd $LFS/sources
-rm -rf perl-5.16.1
+rm -rf perl-5.16.2
 
 # 5.29. Sed-4.2.1
 tar xvf sed-4.2.1.tar.bz2
