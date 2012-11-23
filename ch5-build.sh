@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121103 v1.0
+# PiLFS Build Script SVN-20121118 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -57,9 +57,7 @@ function prebuild_sanity_check() {
 
 function check_tarballs() {
 LIST_OF_TARBALLS="
-binutils-2.22.tar.bz2
-binutils-2.22-build_fix-1.patch
-binutils-2.22-arm-assert-fix.patch
+binutils-2.23.1.tar.bz2
 gcc-4.7.2.tar.bz2
 gcc-4.7.2-gnueabihf-triplet-support.patch
 mpfr-3.1.1.tar.xz 
@@ -67,7 +65,7 @@ gmp-5.0.5.tar.xz
 mpc-1.0.1.tar.gz  
 glibc-2.16.0.tar.xz
 glibc-ports-2.16.0.tar.xz
-tcl8.5.12-src.tar.gz
+tcl8.5.13-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.tar.gz   
 check-0.9.9.tar.gz
@@ -152,15 +150,13 @@ select yn in "Yes" "No"; do
     esac
 done
 
-# 5.4. Binutils-2.22 - Pass 1
+# 5.4. Binutils-2.23.1 - Pass 1
 cd $LFS/sources
-tar xvf binutils-2.22.tar.bz2
-cd binutils-2.22
-patch -Np1 -i ../binutils-2.22-build_fix-1.patch
-patch -Np1 -i ../binutils-2.22-arm-assert-fix.patch
+tar xvf binutils-2.23.1.tar.bz2
+cd binutils-2.23.1
 mkdir -v ../binutils-build
 cd ../binutils-build
-../binutils-2.22/configure     \
+../binutils-2.23.1/configure     \
     --prefix=/tools            \
     --with-sysroot=$LFS        \
     --with-lib-path=/tools/lib \
@@ -170,7 +166,7 @@ cd ../binutils-build
 make
 make install
 cd $LFS/sources
-rm -rf binutils-build binutils-2.22
+rm -rf binutils-build binutils-2.23.1
 
 # 5.5. GCC-4.7.2 - Pass 1
 tar xvf gcc-4.7.2.tar.bz2
@@ -268,17 +264,15 @@ ln -sv ld-2.16.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
 rm -rf glibc-build glibc-2.16.0
 
-# 5.8. Binutils-2.22 - Pass 2
-tar xvf binutils-2.22.tar.bz2
-cd binutils-2.22
-patch -Np1 -i ../binutils-2.22-build_fix-1.patch
-patch -Np1 -i ../binutils-2.22-arm-assert-fix.patch
+# 5.8. Binutils-2.23.1 - Pass 2
+tar xvf binutils-2.23.1.tar.bz2
+cd binutils-2.23.1
 mkdir -v ../binutils-build
 cd ../binutils-build
 CC=$LFS_TGT-gcc            \
 AR=$LFS_TGT-ar             \
 RANLIB=$LFS_TGT-ranlib     \
-../binutils-2.22/configure \
+../binutils-2.23.1/configure \
     --prefix=/tools        \
     --disable-nls          \
     --with-lib-path=/tools/lib
@@ -288,7 +282,7 @@ make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
 cp -v ld/ld-new /tools/bin
 cd $LFS/sources
-rm -rf binutils-build binutils-2.22
+rm -rf binutils-build binutils-2.23.1
 
 # 5.9. GCC-4.7.2 - Pass 2
 tar xvf gcc-4.7.2.tar.bz2
@@ -346,9 +340,9 @@ ln -vs gcc /tools/bin/cc
 cd $LFS/sources
 rm -rf gcc-build gcc-4.7.2
 
-# 5.10. Tcl-8.5.12
-tar xvf tcl8.5.12-src.tar.gz
-cd tcl8.5.12
+# 5.10. Tcl-8.5.13
+tar xvf tcl8.5.13-src.tar.gz
+cd tcl8.5.13
 cd unix
 ./configure --prefix=/tools
 make
@@ -357,7 +351,7 @@ chmod -v u+w /tools/lib/libtcl8.5.so
 make install-private-headers
 ln -sv tclsh8.5 /tools/bin/tclsh
 cd $LFS/sources
-rm -rf tcl8.5.12
+rm -rf tcl8.5.13
 
 # 5.11. Expect-5.45
 tar xvf expect5.45.tar.gz

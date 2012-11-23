@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121103 v1.0
+# PiLFS Build Script SVN-20121118 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.62 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -35,17 +35,15 @@ function prebuild_sanity_check() {
 
 function check_tarballs() {
 LIST_OF_TARBALLS="
-man-pages-3.43.tar.xz
+man-pages-3.44.tar.xz
 glibc-2.16.0.tar.xz
 glibc-ports-2.16.0.tar.xz
 glibc-2.16.0-res_query_fix-1.patch
 glibc-2.16.0-fix_test_installation-1.patch
-tzdata2012h.tar.gz
+tzdata2012j.tar.gz
 zlib-1.2.7.tar.bz2
 file-5.11.tar.gz
-binutils-2.22.tar.bz2
-binutils-2.22-build_fix-1.patch
-binutils-2.22-arm-assert-fix.patch
+binutils-2.23.1.tar.bz2
 gmp-5.0.5.tar.xz
 mpfr-3.1.1.tar.xz
 mpc-1.0.1.tar.gz
@@ -64,7 +62,7 @@ coreutils-8.19.tar.xz
 coreutils-8.19-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.16.tar.bz2
-bison-2.6.4.tar.xz
+bison-2.6.5.tar.xz
 procps-3.2.8.tar.gz
 procps-3.2.8-fix_HZ_errors-1.patch
 procps-3.2.8-watch_unicode-1.patch
@@ -78,7 +76,7 @@ gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
 perl-5.16.2.tar.bz2
 autoconf-2.69.tar.xz
-automake-1.12.4.tar.xz
+automake-1.12.5.tar.xz
 diffutils-3.2.tar.gz
 gawk-4.0.1.tar.xz
 findutils-4.4.2.tar.gz
@@ -94,8 +92,7 @@ iproute2-3.6.0-ipset-1.patch
 kbd-1.15.3.tar.gz
 kbd-1.15.3-backspace-1.patch
 kbd-1.15.3-upstream_fixes-1.patch
-kmod-10.tar.xz
-kmod-10-testsuite-1.patch
+kmod-11.tar.xz
 libpipeline-1.2.2.tar.gz
 make-3.82.tar.bz2
 make-3.82-upstream_fixes-3.patch
@@ -166,12 +163,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-# 6.8. Man-pages-3.43
-tar xvf man-pages-3.43.tar.xz
-cd man-pages-3.43
+# 6.8. Man-pages-3.44
+tar xvf man-pages-3.44.tar.xz
+cd man-pages-3.44
 make install
 cd /sources
-rm -rf man-pages-3.43
+rm -rf man-pages-3.44
 
 # 6.9. Glibc-2.16.0
 tar xvf glibc-2.16.0.tar.xz
@@ -223,7 +220,7 @@ rpc: files
 # End /etc/nsswitch.conf
 EOF
 
-tar -xf ../tzdata2012h.tar.gz
+tar -xf ../tzdata2012j.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -293,21 +290,19 @@ make install
 cd /sources
 rm -rf file-5.11
 
-# 6.13. Binutils-2.22
-tar xvf binutils-2.22.tar.bz2
-cd binutils-2.22
+# 6.13. Binutils-2.23.1
+tar xvf binutils-2.23.1.tar.bz2
+cd binutils-2.23.1
 rm -fv etc/standards.info
 sed -i.bak '/^INFO/s/standards.info //' etc/Makefile.in
-patch -Np1 -i ../binutils-2.22-build_fix-1.patch
-patch -Np1 -i ../binutils-2.22-arm-assert-fix.patch
 mkdir -v ../binutils-build
 cd ../binutils-build
-../binutils-2.22/configure --prefix=/usr --enable-shared
+../binutils-2.23.1/configure --prefix=/usr --enable-shared
 make tooldir=/usr
 make tooldir=/usr install
-cp -v ../binutils-2.22/include/libiberty.h /usr/include
+cp -v ../binutils-2.23.1/include/libiberty.h /usr/include
 cd /sources
-rm -rf binutils-build binutils-2.22
+rm -rf binutils-build binutils-2.23.1
 
 # 6.14. GMP-5.0.5
 tar xvf gmp-5.0.5.tar.xz
@@ -567,15 +562,15 @@ make install
 cd /sources
 rm -rf m4-1.4.16
 
-# 6.29. Bison-2.6.4
-tar xvf bison-2.6.4.tar.xz
-cd bison-2.6.4
+# 6.29. Bison-2.6.5
+tar xvf bison-2.6.5.tar.xz
+cd bison-2.6.5
 ./configure --prefix=/usr
 echo '#define YYENABLE_NLS 1' >> lib/config.h
 make
 make install
 cd /sources
-rm -rf bison-2.6.4
+rm -rf bison-2.6.5
 
 # 6.30. Procps-3.2.8
 tar xvf procps-3.2.8.tar.gz
@@ -708,14 +703,14 @@ make install
 cd /sources
 rm -rf autoconf-2.69
 
-# 6.39. Automake-1.12.4
-tar xvf automake-1.12.4.tar.xz
-cd automake-1.12.4
-./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.12.4
+# 6.39. Automake-1.12.5
+tar xvf automake-1.12.5.tar.xz
+cd automake-1.12.5
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.12.5
 make
 make install
 cd /sources
-rm -rf automake-1.12.4
+rm -rf automake-1.12.5
 
 # 6.40. Diffutils-3.2
 tar xvf diffutils-3.2.tar.gz
@@ -867,14 +862,14 @@ fi
 cd /sources
 rm -rf kbd-1.15.3
 
-# 6.52. Kmod-10
-tar xvf kmod-10.tar.xz
-cd kmod-10
-patch -Np1 -i ../kmod-10-testsuite-1.patch
+# 6.52. Kmod-11
+tar xvf kmod-11.tar.xz
+cd kmod-11
 ./configure --prefix=/usr       \
             --bindir=/bin       \
             --libdir=/lib       \
             --sysconfdir=/etc   \
+            --disable-manpages  \
             --with-xz           \
             --with-zlib
 make
@@ -884,7 +879,7 @@ for target in depmod insmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-10
+rm -rf kmod-11
 
 # 6.53. Libpipeline-1.2.2
 tar xvf libpipeline-1.2.2.tar.gz
