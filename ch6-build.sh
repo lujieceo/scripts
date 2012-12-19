@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121118 v1.0
+# PiLFS Build Script SVN-20121216 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.62 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -55,14 +55,15 @@ bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.27.1.tar.gz
 ncurses-5.9.tar.gz
-util-linux-2.22.1.tar.xz
+util-linux-2.22.2.tar.xz
 psmisc-22.20.tar.gz
-e2fsprogs-1.42.5.tar.gz
+e2fsprogs-1.42.6.tar.gz
+shadow-4.1.5.1.tar.bz2
 coreutils-8.19.tar.xz
 coreutils-8.19-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.16.tar.bz2
-bison-2.6.5.tar.xz
+bison-2.7.tar.xz
 procps-3.2.8.tar.gz
 procps-3.2.8-fix_HZ_errors-1.patch
 procps-3.2.8-watch_unicode-1.patch
@@ -87,24 +88,22 @@ groff-1.21.tar.gz
 xz-5.0.4.tar.xz
 less-451.tar.gz
 gzip-1.5.tar.xz
-iproute2-3.6.0.tar.xz
-iproute2-3.6.0-ipset-1.patch
+iproute2-3.7.0.tar.xz
 kbd-1.15.3.tar.gz
 kbd-1.15.3-backspace-1.patch
 kbd-1.15.3-upstream_fixes-1.patch
-kmod-11.tar.xz
+kmod-12.tar.xz
 libpipeline-1.2.2.tar.gz
 make-3.82.tar.bz2
 make-3.82-upstream_fixes-3.patch
 man-db-2.6.3.tar.xz
 patch-2.7.1.tar.xz
-shadow-4.1.5.1.tar.bz2
 sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
 texinfo-4.13a.tar.gz
-systemd-195.tar.xz
-udev-lfs-195.tar.bz2
+systemd-196.tar.xz
+udev-lfs-196-3.tar.bz2
 vim-7.3.tar.bz2
 "
 
@@ -184,7 +183,6 @@ cd ../glibc-build
 ../glibc-2.16.0/configure  \
     --prefix=/usr          \
     --disable-profile      \
-    --enable-add-ons       \
     --enable-kernel=2.6.25 \
     --libexecdir=/usr/lib/glibc
 make
@@ -451,9 +449,9 @@ fi
 cd /sources
 rm -rf ncurses-5.9
 
-# 6.22. Util-linux-2.22.1
-tar xvf util-linux-2.22.1.tar.xz
-cd util-linux-2.22.1
+# 6.22. Util-linux-2.22.2
+tar xvf util-linux-2.22.2.tar.xz
+cd util-linux-2.22.2
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
     $(grep -rl '/etc/adjtime' .)
 mkdir -pv /var/lib/hwclock
@@ -461,7 +459,7 @@ mkdir -pv /var/lib/hwclock
 make
 make install
 cd /sources
-rm -rf util-linux-2.22.1
+rm -rf util-linux-2.22.2
 
 # 6.23. Psmisc-22.20
 tar xvf psmisc-22.20.tar.gz
@@ -474,9 +472,9 @@ mv -v /usr/bin/killall /bin
 cd /sources
 rm -rf psmisc-22.20
 
-# 6.24. E2fsprogs-1.42.5
-tar xvf e2fsprogs-1.42.5.tar.gz
-cd e2fsprogs-1.42.5
+# 6.24. E2fsprogs-1.42.6
+tar xvf e2fsprogs-1.42.6.tar.gz
+cd e2fsprogs-1.42.6
 mkdir -v build
 cd build
 ../configure --prefix=/usr         \
@@ -500,7 +498,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
 fi
 
 cd /sources
-rm -rf e2fsprogs-1.42.5
+rm -rf e2fsprogs-1.42.6
 
 # 6.25. Shadow-4.1.5.1
 tar xvf shadow-4.1.5.1.tar.bz2
@@ -516,6 +514,8 @@ mv -v /usr/bin/passwd /bin
 pwconv
 grpconv
 sed -i 's/yes/no/' /etc/default/useradd
+# passwd root
+# Root password will be set at the end of the script to prevent a stop here
 cd /sources
 rm -rf shadow-4.1.5.1
 
@@ -562,15 +562,15 @@ make install
 cd /sources
 rm -rf m4-1.4.16
 
-# 6.29. Bison-2.6.5
-tar xvf bison-2.6.5.tar.xz
-cd bison-2.6.5
+# 6.29. Bison-2.7
+tar xvf bison-2.7.tar.xz
+cd bison-2.7
 ./configure --prefix=/usr
 echo '#define YYENABLE_NLS 1' >> lib/config.h
 make
 make install
 cd /sources
-rm -rf bison-2.6.5
+rm -rf bison-2.7
 
 # 6.30. Procps-3.2.8
 tar xvf procps-3.2.8.tar.gz
@@ -804,6 +804,7 @@ cd /sources
 rm -rf xz-5.0.4
 
 # 6.47. GRUB-2.00
+# We don't use GRUB on ARM
 
 # 6.48. Less-451
 tar xvf less-451.tar.gz
@@ -825,19 +826,18 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.5
 
-# 6.50. IPRoute2-3.6.0
-tar xvf iproute2-3.6.0.tar.xz
-cd iproute2-3.6.0
-patch -Np1 -i ../iproute2-3.6.0-ipset-1.patch
+# 6.50. IPRoute2-3.7.0
+tar xvf iproute2-3.7.0.tar.xz
+cd iproute2-3.7.0
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make DESTDIR=
 make DESTDIR=              \
      MANDIR=/usr/share/man \
-     DOCDIR=/usr/share/doc/iproute2-3.6.0 install
+     DOCDIR=/usr/share/doc/iproute2-3.7.0 install
 cd /sources
-rm -rf iproute2-3.6.0
+rm -rf iproute2-3.7.0
 
 # 6.51. Kbd-1.15.3
 tar xvf kbd-1.15.3.tar.gz
@@ -862,9 +862,9 @@ fi
 cd /sources
 rm -rf kbd-1.15.3
 
-# 6.52. Kmod-11
-tar xvf kmod-11.tar.xz
-cd kmod-11
+# 6.52. Kmod-12
+tar xvf kmod-12.tar.xz
+cd kmod-12
 ./configure --prefix=/usr       \
             --bindir=/bin       \
             --libdir=/lib       \
@@ -879,7 +879,7 @@ for target in depmod insmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-11
+rm -rf kmod-12
 
 # 6.53. Libpipeline-1.2.2
 tar xvf libpipeline-1.2.2.tar.gz
@@ -986,15 +986,17 @@ make install
 cd /sources
 rm -rf texinfo-4.13
 
-# 6.61. Udev-195 (Extracted from systemd-195)
-tar xvf systemd-195.tar.xz
-cd systemd-195
-tar -xvf ../udev-lfs-195.tar.bz2
-make -f udev-lfs-195/Makefile.lfs
-make -f udev-lfs-195/Makefile.lfs install
-bash udev-lfs-195/init-net-rules.sh
+# 6.61. Udev-196 (Extracted from systemd-196)
+tar xvf systemd-196.tar.xz
+cd systemd-196
+tar -xvf ../udev-lfs-196-3.tar.bz2
+sed -i -e 's/create/update/' src/udev/udevadm-hwdb.c
+make -f udev-lfs-196-3/Makefile.lfs
+make -f udev-lfs-196-3/Makefile.lfs install
+build/udevadm hwdb --update
+bash udev-lfs-196-3/init-net-rules.sh
 cd /sources
-rm -rf systemd-195
+rm -rf systemd-196
 
 # 6.62. Vim-7.3
 tar xvf vim-7.3.tar.bz2

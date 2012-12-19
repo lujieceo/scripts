@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20121118 v1.0
+# PiLFS Build Script SVN-20121216 v1.0
 # Builds chapters 5.4 - Binutils to 5.32 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -251,7 +251,6 @@ cd ../glibc-build
       --host=$LFS_TGT                                 \
       --build=$(../glibc-2.16.0/scripts/config.guess) \
       --disable-profile                               \
-      --enable-add-ons                                \
       --enable-kernel=2.6.25                          \
       --with-headers=/tools/include                   \
       libc_cv_forced_unwind=yes                       \
