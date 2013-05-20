@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130401 v1.0
+# PiLFS Build Script SVN-20130515 v1.0
 # Builds chapters 5.4 - Binutils to 5.33 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -70,7 +70,7 @@ glibc-2.17-arm-ld-cache-fix.patch
 tcl8.6.0-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.1.tar.gz
-check-0.9.9.tar.gz
+check-0.9.10.tar.gz
 ncurses-5.9.tar.gz
 bash-4.2.tar.gz
 bash-4.2-fixes-12.patch
@@ -79,8 +79,8 @@ coreutils-8.21.tar.xz
 diffutils-3.3.tar.xz
 file-5.14.tar.gz
 findutils-4.4.2.tar.gz
-gawk-4.0.2.tar.xz
-gettext-0.18.2.tar.gz
+gawk-4.1.0.tar.xz
+gettext-0.18.2.1.tar.gz
 grep-2.14.tar.xz
 gzip-1.5.tar.xz
 m4-1.4.16.tar.bz2
@@ -393,14 +393,14 @@ make install
 cd $LFS/sources
 rm -rf dejagnu-1.5.1
 
-echo "# 5.14. Check-0.9.9"
-tar -zxf check-0.9.9.tar.gz
-cd check-0.9.9
+echo "# 5.14. Check-0.9.10"
+tar -zxf check-0.9.10.tar.gz
+cd check-0.9.10
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf check-0.9.9
+rm -rf check-0.9.10
 
 echo "# 5.15. Ncurses-5.9"
 tar -zxf ncurses-5.9.tar.gz
@@ -467,25 +467,25 @@ make install
 cd $LFS/sources
 rm -rf findutils-4.4.2
 
-echo "# 5.22. Gawk-4.0.2"
-tar -Jxf gawk-4.0.2.tar.xz
-cd gawk-4.0.2
+echo "# 5.22. Gawk-4.1.0"
+tar -Jxf gawk-4.1.0.tar.xz
+cd gawk-4.1.0
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf gawk-4.0.2
+rm -rf gawk-4.1.0
 
-echo "# 5.23. Gettext-0.18.2"
-tar -zxf gettext-0.18.2.tar.gz
-cd gettext-0.18.2
+echo "# 5.23. Gettext-0.18.2.1"
+tar -zxf gettext-0.18.2.1.tar.gz
+cd gettext-0.18.2.1
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
 make -C src msgfmt
 cp -v src/msgfmt /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.18.2
+rm -rf gettext-0.18.2.1
 
 echo "# 5.24. Grep-2.14"
 tar -Jxf grep-2.14.tar.xz
