@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130515 v1.0
+# PiLFS Build Script SVN-20130605 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.63 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -44,21 +44,21 @@ zlib-1.2.8.tar.xz
 file-5.14.tar.gz
 binutils-2.23.2.tar.bz2
 binutils-2.23.2-gas-whitespace-fix.patch
-gmp-5.1.1.tar.xz
+gmp-5.1.2.tar.xz
 mpfr-3.1.2.tar.xz
 mpc-1.0.1.tar.gz
-gcc-4.8.0.tar.bz2
+gcc-4.8.1.tar.bz2
 gcc-4.8.0-pi-cpu-default.patch
 sed-4.2.2.tar.bz2
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
 ncurses-5.9.tar.gz
-util-linux-2.23.tar.xz
-psmisc-22.20.tar.gz
-procps-ng-3.3.7.tar.xz
-e2fsprogs-1.42.7.tar.gz
 shadow-4.1.5.1.tar.bz2
+util-linux-2.23.1.tar.xz
+psmisc-22.20.tar.gz
+procps-ng-3.3.8.tar.xz
+e2fsprogs-1.42.7.tar.gz
 coreutils-8.21.tar.xz
 coreutils-8.21-i18n-1.patch
 iana-etc-2.30.tar.bz2
@@ -73,9 +73,9 @@ bc-1.06.95.tar.bz2
 libtool-2.4.2.tar.gz
 gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
-perl-5.16.3.tar.bz2
+perl-5.18.0.tar.bz2
 autoconf-2.69.tar.xz
-automake-1.13.1.tar.xz
+automake-1.13.3.tar.xz
 diffutils-3.3.tar.xz
 gawk-4.1.0.tar.xz
 findutils-4.4.2.tar.gz
@@ -287,19 +287,19 @@ cp -v ../binutils-2.23.2/include/libiberty.h /usr/include
 cd /sources
 rm -rf binutils-build binutils-2.23.2
 
-echo "# 6.14. GMP-5.1.1"
-tar -Jxf gmp-5.1.1.tar.xz
-cd gmp-5.1.1
+echo "# 6.14. GMP-5.1.2"
+tar -Jxf gmp-5.1.2.tar.xz
+cd gmp-5.1.2
 ./configure --prefix=/usr --enable-cxx
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/gmp-5.1.1
+    mkdir -v /usr/share/doc/gmp-5.1.2
     cp    -v doc/{isa_abi_headache,configuration} doc/*.html \
-             /usr/share/doc/gmp-5.1.1
+             /usr/share/doc/gmp-5.1.2
 fi
 cd /sources
-rm -rf gmp-5.1.1
+rm -rf gmp-5.1.2
 
 echo "# 6.15. MPFR-3.1.2"
 tar -Jxf mpfr-3.1.2.tar.xz
@@ -325,16 +325,16 @@ make install
 cd /sources
 rm -rf mpc-1.0.1
 
-echo "# 6.17. GCC-4.8.0"
-tar -jxf gcc-4.8.0.tar.bz2
-cd gcc-4.8.0
+echo "# 6.17. GCC-4.8.1"
+tar -jxf gcc-4.8.1.tar.bz2
+cd gcc-4.8.1
 patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
 sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
 sed -i -e /autogen/d -e /check.sh/d fixincludes/Makefile.in
 mv -v libmudflap/testsuite/libmudflap.c++/pass41-frag.cxx{,.disable}
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.8.0/configure --prefix=/usr               \
+../gcc-4.8.1/configure --prefix=/usr               \
                        --libexecdir=/usr/lib       \
                        --enable-shared             \
                        --enable-threads=posix      \
@@ -352,7 +352,7 @@ ln -sv gcc /usr/bin/cc
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-build gcc-4.8.0
+rm -rf gcc-build gcc-4.8.1
 
 echo "# 6.18. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -430,9 +430,28 @@ fi
 cd /sources
 rm -rf ncurses-5.9
 
-echo "# 6.22. Util-linux-2.23"
-tar -Jxf util-linux-2.23.tar.xz
-cd util-linux-2.23
+echo "# 6.22. Shadow-4.1.5.1"
+tar -jxf shadow-4.1.5.1.tar.bz2
+cd shadow-4.1.5.1
+sed -i 's/groups$(EXEEXT) //' src/Makefile.in
+find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
+sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
+       -e 's@/var/spool/mail@/var/mail@' etc/login.defs
+./configure --sysconfdir=/etc
+make
+make install
+mv -v /usr/bin/passwd /bin
+pwconv
+grpconv
+sed -i 's/yes/no/' /etc/default/useradd
+# passwd root
+# Root password will be set at the end of the script to prevent a stop here
+cd /sources
+rm -rf shadow-4.1.5.1
+
+echo "# 6.23. Util-linux-2.23.1"
+tar -Jxf util-linux-2.23.1.tar.xz
+cd util-linux-2.23.1
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
      $(grep -rl '/etc/adjtime' .)
 mkdir -pv /var/lib/hwclock
@@ -440,9 +459,9 @@ mkdir -pv /var/lib/hwclock
 make
 make install
 cd /sources
-rm -rf util-linux-2.23
+rm -rf util-linux-2.23.1
 
-echo "# 6.23. Psmisc-22.20"
+echo "# 6.24. Psmisc-22.20"
 tar -zxf psmisc-22.20.tar.gz
 cd psmisc-22.20
 ./configure --prefix=/usr
@@ -453,24 +472,24 @@ mv -v /usr/bin/killall /bin
 cd /sources
 rm -rf psmisc-22.20
 
-echo "# 6.24. Procps-ng-3.3.7"
-tar -Jxf procps-ng-3.3.7.tar.xz
-cd procps-ng-3.3.7
+echo "# 6.25. Procps-ng-3.3.8"
+tar -Jxf procps-ng-3.3.8.tar.xz
+cd procps-ng-3.3.8
 ./configure --prefix=/usr                           \
             --exec-prefix=                          \
             --libdir=/usr/lib                       \
-            --docdir=/usr/share/doc/procps-ng-3.3.7 \
+            --docdir=/usr/share/doc/procps-ng-3.3.8 \
             --disable-static                        \
             --disable-skill                         \
             --disable-kill
 make
 make install
 mv -v /usr/lib/libprocps.so.* /lib
-ln -sfv ../../lib/libprocps.so.1.1.1 /usr/lib/libprocps.so
+ln -sfv ../../lib/libprocps.so.1.1.2 /usr/lib/libprocps.so
 cd /sources
-rm -rf procps-ng-3.3.7
+rm -rf procps-ng-3.3.8
 
-echo "# 6.25. E2fsprogs-1.42.7"
+echo "# 6.26. E2fsprogs-1.42.7"
 tar -zxf e2fsprogs-1.42.7.tar.gz
 cd e2fsprogs-1.42.7
 mkdir -v build
@@ -495,25 +514,6 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
 fi
 cd /sources
 rm -rf e2fsprogs-1.42.7
-
-echo "# 6.26. Shadow-4.1.5.1"
-tar -jxf shadow-4.1.5.1.tar.bz2
-cd shadow-4.1.5.1
-sed -i 's/groups$(EXEEXT) //' src/Makefile.in
-find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
-sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
-       -e 's@/var/spool/mail@/var/mail@' etc/login.defs
-./configure --sysconfdir=/etc
-make
-make install
-mv -v /usr/bin/passwd /bin
-pwconv
-grpconv
-sed -i 's/yes/no/' /etc/default/useradd
-# passwd root
-# Root password will be set at the end of the script to prevent a stop here
-cd /sources
-rm -rf shadow-4.1.5.1
 
 echo "# 6.27. Coreutils-8.21"
 tar -Jxf coreutils-8.21.tar.xz
@@ -657,9 +657,9 @@ mv -v /usr/bin/{hostname,ping,ping6,traceroute} /bin
 cd /sources
 rm -rf inetutils-1.9.1
 
-echo "# 6.38. Perl-5.16.3"
-tar -jxf perl-5.16.3.tar.bz2
-cd perl-5.16.3
+echo "# 6.38. Perl-5.18.0"
+tar -jxf perl-5.18.0.tar.bz2
+cd perl-5.18.0
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
        -e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
@@ -674,7 +674,7 @@ sh Configure -des -Dprefix=/usr                 \
 make
 make install
 cd /sources
-rm -rf perl-5.16.3
+rm -rf perl-5.18.0
 
 echo "# 6.39. Autoconf-2.69"
 tar -Jxf autoconf-2.69.tar.xz
@@ -685,14 +685,14 @@ make install
 cd /sources
 rm -rf autoconf-2.69
 
-echo "# 6.40. Automake-1.13.1"
-tar -Jxf automake-1.13.1.tar.xz
-cd automake-1.13.1
-./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.13.1
+echo "# 6.40. Automake-1.13.3"
+tar -Jxf automake-1.13.3.tar.xz
+cd automake-1.13.3
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.13.3
 make
 make install
 cd /sources
-rm -rf automake-1.13.1
+rm -rf automake-1.13.3
 
 echo "# 6.41. Diffutils-3.3"
 tar -Jxf diffutils-3.3.tar.xz

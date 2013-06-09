@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130515 v1.0
+# PiLFS Build Script SVN-20130605 v1.0
 # Builds chapters 5.4 - Binutils to 5.33 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -59,10 +59,10 @@ function check_tarballs() {
 LIST_OF_TARBALLS="
 binutils-2.23.2.tar.bz2
 binutils-2.23.2-gas-whitespace-fix.patch
-gcc-4.8.0.tar.bz2
+gcc-4.8.1.tar.bz2
 gcc-4.8.0-pi-cpu-default.patch
 mpfr-3.1.2.tar.xz
-gmp-5.1.1.tar.xz
+gmp-5.1.2.tar.xz
 mpc-1.0.1.tar.gz
 rpi-3.6.y.tar.gz
 glibc-2.17.tar.xz
@@ -86,8 +86,8 @@ gzip-1.5.tar.xz
 m4-1.4.16.tar.bz2
 make-3.82.tar.bz2
 patch-2.7.1.tar.xz
-perl-5.16.3.tar.bz2
-perl-5.16.3-libc-1.patch
+perl-5.18.0.tar.bz2
+perl-5.18.0-libc-1.patch
 sed-4.2.2.tar.bz2
 tar-1.26.tar.bz2
 texinfo-5.1.tar.xz
@@ -166,14 +166,14 @@ echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
 echo -e "==========================\n"
 
-echo "# 5.5. GCC-4.8.0 - Pass 1"
-tar -jxf gcc-4.8.0.tar.bz2
-cd gcc-4.8.0
+echo "# 5.5. gcc-4.8.1 - Pass 1"
+tar -jxf gcc-4.8.1.tar.bz2
+cd gcc-4.8.1
 patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
 tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
-tar -Jxf ../gmp-5.1.1.tar.xz
-mv -v gmp-5.1.1 gmp
+tar -Jxf ../gmp-5.1.2.tar.xz
+mv -v gmp-5.1.2 gmp
 tar -zxf ../mpc-1.0.1.tar.gz
 mv -v mpc-1.0.1 mpc
 for file in \
@@ -192,7 +192,7 @@ done
 sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.8.0/configure                               \
+../gcc-4.8.1/configure                               \
     --target=$LFS_TGT                                \
     --prefix=/tools                                  \
     --with-sysroot=$LFS                              \
@@ -214,7 +214,7 @@ cd ../gcc-build
     --disable-libssp                                 \
     --disable-libstdc++-v3                           \
     --enable-languages=c,c++                         \
-    --with-mpfr-include=$(pwd)/../gcc-4.8.0/mpfr/src \
+    --with-mpfr-include=$(pwd)/../gcc-4.8.1/mpfr/src \
     --with-mpfr-lib=$(pwd)/mpfr/src/.libs
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
@@ -223,7 +223,7 @@ make
 make install
 ln -sv libgcc.a `$LFS_TGT-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/'`
 cd $LFS/sources
-rm -rf gcc-build gcc-4.8.0
+rm -rf gcc-build gcc-4.8.1
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
 tar -zxf rpi-3.6.y.tar.gz
@@ -261,12 +261,12 @@ ln -sv ld-2.17.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
 rm -rf glibc-build glibc-2.17
 
-echo "# 5.8. Libstdc++-4.8.0"
-tar -jxf gcc-4.8.0.tar.bz2
-cd gcc-4.8.0
+echo "# 5.8. Libstdc++-4.8.1"
+tar -jxf gcc-4.8.1.tar.bz2
+cd gcc-4.8.1
 mkdir -pv ../gcc-build
 cd ../gcc-build
-../gcc-4.8.0/libstdc++-v3/configure      \
+../gcc-4.8.1/libstdc++-v3/configure      \
     --host=$LFS_TGT                      \
     --prefix=/tools                      \
     --disable-multilib                   \
@@ -274,11 +274,11 @@ cd ../gcc-build
     --disable-nls                        \
     --disable-libstdcxx-threads          \
     --disable-libstdcxx-pch              \
-    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.8.0
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.8.1
 make
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-4.8.0
+rm -rf gcc-build gcc-4.8.1
 
 echo "# 5.9. Binutils-2.23.2 - Pass 2"
 tar -jxf binutils-2.23.2.tar.bz2
@@ -304,9 +304,9 @@ cp -v ld/ld-new /tools/bin
 cd $LFS/sources
 rm -rf binutils-build binutils-2.23.2
 
-echo "# 5.10. GCC-4.8.0 - Pass 2"
-tar -jxf gcc-4.8.0.tar.bz2
-cd gcc-4.8.0
+echo "# 5.10. gcc-4.8.1 - Pass 2"
+tar -jxf gcc-4.8.1.tar.bz2
+cd gcc-4.8.1
 patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
@@ -325,8 +325,8 @@ do
 done
 tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
-tar -Jxf ../gmp-5.1.1.tar.xz
-mv -v gmp-5.1.1 gmp
+tar -Jxf ../gmp-5.1.2.tar.xz
+mv -v gmp-5.1.2 gmp
 tar -zxf ../mpc-1.0.1.tar.gz
 mv -v mpc-1.0.1 mpc
 mkdir -v ../gcc-build
@@ -335,7 +335,7 @@ CC=$LFS_TGT-gcc                                      \
 CXX=$LFS_TGT-g++                                     \
 AR=$LFS_TGT-ar                                       \
 RANLIB=$LFS_TGT-ranlib                               \
-../gcc-4.8.0/configure                               \
+../gcc-4.8.1/configure                               \
     --prefix=/tools                                  \
     --with-local-prefix=/tools                       \
     --with-native-system-header-dir=/tools/include   \
@@ -348,7 +348,7 @@ RANLIB=$LFS_TGT-ranlib                               \
     --disable-multilib                               \
     --disable-bootstrap                              \
     --disable-libgomp                                \
-    --with-mpfr-include=$(pwd)/../gcc-4.8.0/mpfr/src \
+    --with-mpfr-include=$(pwd)/../gcc-4.8.1/mpfr/src \
     --with-mpfr-lib=$(pwd)/mpfr/src/.libs
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
@@ -357,7 +357,7 @@ make
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-build gcc-4.8.0
+rm -rf gcc-build gcc-4.8.1
 
 echo "# 5.11. Tcl-8.6.0"
 tar -zxf tcl8.6.0-src.tar.gz
@@ -533,17 +533,17 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.1
 
-echo "# 5.29. Perl-5.16.3"
-tar -jxf perl-5.16.3.tar.bz2
-cd perl-5.16.3
-patch -Np1 -i ../perl-5.16.3-libc-1.patch
+echo "# 5.29. Perl-5.18.0"
+tar -jxf perl-5.18.0.tar.bz2
+cd perl-5.18.0
+patch -Np1 -i ../perl-5.18.0-libc-1.patch
 sh Configure -des -Dprefix=/tools
 make
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.16.3
-cp -Rv lib/* /tools/lib/perl5/5.16.3
+mkdir -pv /tools/lib/perl5/5.18.0
+cp -Rv lib/* /tools/lib/perl5/5.18.0
 cd $LFS/sources
-rm -rf perl-5.16.3
+rm -rf perl-5.18.0
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
