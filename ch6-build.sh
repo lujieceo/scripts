@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130605 v1.0
+# PiLFS Build Script SVN-20130711 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.63 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -36,10 +36,10 @@ function prebuild_sanity_check() {
 function check_tarballs() {
 LIST_OF_TARBALLS="
 rpi-3.6.y.tar.gz
-man-pages-3.51.tar.xz
+man-pages-3.52.tar.xz
 glibc-2.17.tar.xz
 glibc-2.17-arm-ld-cache-fix.patch
-tzdata2013c.tar.gz
+tzdata2013d.tar.gz
 zlib-1.2.8.tar.xz
 file-5.14.tar.gz
 binutils-2.23.2.tar.bz2
@@ -58,7 +58,7 @@ shadow-4.1.5.1.tar.bz2
 util-linux-2.23.1.tar.xz
 psmisc-22.20.tar.gz
 procps-ng-3.3.8.tar.xz
-e2fsprogs-1.42.7.tar.gz
+e2fsprogs-1.42.8.tar.gz
 coreutils-8.21.tar.xz
 coreutils-8.21-i18n-1.patch
 iana-etc-2.30.tar.bz2
@@ -75,33 +75,32 @@ gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
 perl-5.18.0.tar.bz2
 autoconf-2.69.tar.xz
-automake-1.13.3.tar.xz
+automake-1.14.tar.xz
 diffutils-3.3.tar.xz
 gawk-4.1.0.tar.xz
 findutils-4.4.2.tar.gz
 flex-2.5.37.tar.bz2
 flex-2.5.37-bison-2.6.1-1.patch
-gettext-0.18.2.1.tar.gz
+gettext-0.18.3.tar.gz
 groff-1.22.2.tar.gz
-xz-5.0.4.tar.xz
+xz-5.0.5.tar.xz
 less-458.tar.gz
-gzip-1.5.tar.xz
+gzip-1.6.tar.xz
 iproute2-3.9.0.tar.xz
 kbd-1.15.5.tar.gz
 kbd-1.15.5-backspace-1.patch
-kmod-13.tar.xz
-kmod-13-arm-finit-fix.patch
-libpipeline-1.2.3.tar.gz
+kmod-14.tar.xz
+libpipeline-1.2.4.tar.gz
 make-3.82.tar.bz2
 make-3.82-upstream_fixes-3.patch
-man-db-2.6.3.tar.xz
+man-db-2.6.5.tar.xz
 patch-2.7.1.tar.xz
 sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
 texinfo-5.1.tar.xz
-systemd-204.tar.xz
-udev-lfs-204-1.tar.bz2
+systemd-205.tar.xz
+udev-lfs-205-1.tar.bz2
 vim-7.3.tar.bz2
 master.tar.gz
 "
@@ -156,12 +155,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.51"
-tar -Jxf man-pages-3.51.tar.xz
-cd man-pages-3.51
+echo "# 6.8. Man-pages-3.52"
+tar -Jxf man-pages-3.52.tar.xz
+cd man-pages-3.52
 make install
 cd /sources
-rm -rf man-pages-3.51
+rm -rf man-pages-3.52
 
 echo "# 6.9. Glibc-2.17"
 tar -Jxf glibc-2.17.tar.xz
@@ -172,7 +171,7 @@ cd ../glibc-build
 ../glibc-2.17/configure    \
     --prefix=/usr          \
     --disable-profile      \
-    --enable-kernel=2.6.25 \
+    --enable-kernel=2.6.34 \
     --libexecdir=/usr/lib/glibc
 make
 touch /etc/ld.so.conf
@@ -204,7 +203,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2013c.tar.gz
+tar -zxf ../tzdata2013d.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -489,9 +488,9 @@ ln -sfv ../../lib/libprocps.so.1.1.2 /usr/lib/libprocps.so
 cd /sources
 rm -rf procps-ng-3.3.8
 
-echo "# 6.26. E2fsprogs-1.42.7"
-tar -zxf e2fsprogs-1.42.7.tar.gz
-cd e2fsprogs-1.42.7
+echo "# 6.26. E2fsprogs-1.42.8"
+tar -zxf e2fsprogs-1.42.8.tar.gz
+cd e2fsprogs-1.42.8
 mkdir -v build
 cd build
 ../configure --prefix=/usr         \
@@ -513,7 +512,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     install-info --dir-file=/usr/share/info/dir /usr/share/info/com_err.info
 fi
 cd /sources
-rm -rf e2fsprogs-1.42.7
+rm -rf e2fsprogs-1.42.8
 
 echo "# 6.27. Coreutils-8.21"
 tar -Jxf coreutils-8.21.tar.xz
@@ -685,14 +684,14 @@ make install
 cd /sources
 rm -rf autoconf-2.69
 
-echo "# 6.40. Automake-1.13.3"
-tar -Jxf automake-1.13.3.tar.xz
-cd automake-1.13.3
-./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.13.3
+echo "# 6.40. Automake-1.14"
+tar -Jxf automake-1.14.tar.xz
+cd automake-1.14
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.14
 make
 make install
 cd /sources
-rm -rf automake-1.13.3
+rm -rf automake-1.14
 
 echo "# 6.41. Diffutils-3.3"
 tar -Jxf diffutils-3.3.tar.xz
@@ -750,15 +749,15 @@ chmod -v 755 /usr/bin/lex
 cd /sources
 rm -rf flex-2.5.37
 
-echo "# 6.45. Gettext-0.18.2.1"
-tar -zxf gettext-0.18.2.1.tar.gz
-cd gettext-0.18.2.1
+echo "# 6.45. Gettext-0.18.3"
+tar -zxf gettext-0.18.3.tar.gz
+cd gettext-0.18.3
 ./configure --prefix=/usr \
-            --docdir=/usr/share/doc/gettext-0.18.2.1
+            --docdir=/usr/share/doc/gettext-0.18.3
 make
 make install
 cd /sources
-rm -rf gettext-0.18.2.1
+rm -rf gettext-0.18.3
 
 echo "# 6.46. Groff-1.22.2"
 tar -zxf groff-1.22.2.tar.gz
@@ -772,14 +771,14 @@ ln -sv tbl /usr/bin/gtbl
 cd /sources
 rm -rf groff-1.22.2
 
-echo "# 6.47. Xz-5.0.4"
-tar -Jxf xz-5.0.4.tar.xz
-cd xz-5.0.4
-./configure --prefix=/usr --libdir=/lib --docdir=/usr/share/doc/xz-5.0.4
+echo "# 6.47. Xz-5.0.5"
+tar -Jxf xz-5.0.5.tar.xz
+cd xz-5.0.5
+./configure --prefix=/usr --libdir=/lib --docdir=/usr/share/doc/xz-5.0.5
 make
 make pkgconfigdir=/usr/lib/pkgconfig install
 cd /sources
-rm -rf xz-5.0.4
+rm -rf xz-5.0.5
 
 # 6.48. GRUB-2.00
 # We don't use GRUB on ARM
@@ -793,16 +792,16 @@ make install
 cd /sources
 rm -rf less-458
 
-echo "# 6.50. Gzip-1.5"
-tar -Jxf gzip-1.5.tar.xz
-cd gzip-1.5
+echo "# 6.50. Gzip-1.6"
+tar -Jxf gzip-1.6.tar.xz
+cd gzip-1.6
 ./configure --prefix=/usr --bindir=/bin
 make
 make install
 mv -v /bin/{gzexe,uncompress,zcmp,zdiff,zegrep} /usr/bin
 mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
-rm -rf gzip-1.5
+rm -rf gzip-1.6
 
 echo "# 6.51. IPRoute2-3.9.0"
 tar -Jxf iproute2-3.9.0.tar.xz
@@ -835,10 +834,9 @@ fi
 cd /sources
 rm -rf kbd-1.15.5
 
-echo "# 6.53. Kmod-13"
-tar -Jxf kmod-13.tar.xz
-cd kmod-13
-patch -Np1 -i ../kmod-13-arm-finit-fix.patch
+echo "# 6.53. Kmod-14"
+tar -Jxf kmod-14.tar.xz
+cd kmod-14
 ./configure --prefix=/usr       \
             --bindir=/bin       \
             --libdir=/lib       \
@@ -853,16 +851,16 @@ for target in depmod insmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-13
+rm -rf kmod-14
 
-echo "# 6.54. Libpipeline-1.2.3"
-tar -zxf libpipeline-1.2.3.tar.gz
-cd libpipeline-1.2.3
+echo "# 6.54. Libpipeline-1.2.4"
+tar -zxf libpipeline-1.2.4.tar.gz
+cd libpipeline-1.2.4
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf libpipeline-1.2.3
+rm -rf libpipeline-1.2.4
 
 echo "# 6.55. Make-3.82"
 tar -jxf make-3.82.tar.bz2
@@ -874,12 +872,12 @@ make install
 cd /sources
 rm -rf make-3.82
 
-echo "# 6.56. Man-DB-2.6.3"
-tar -Jxf man-db-2.6.3.tar.xz
-cd man-db-2.6.3
+echo "# 6.56. Man-DB-2.6.5"
+tar -Jxf man-db-2.6.5.tar.xz
+cd man-db-2.6.5
 ./configure --prefix=/usr                        \
             --libexecdir=/usr/lib                \
-            --docdir=/usr/share/doc/man-db-2.6.3 \
+            --docdir=/usr/share/doc/man-db-2.6.5 \
             --sysconfdir=/etc                    \
             --disable-setuid                     \
             --with-browser=/usr/bin/lynx         \
@@ -888,7 +886,7 @@ cd man-db-2.6.3
 make
 make install
 cd /sources
-rm -rf man-db-2.6.3
+rm -rf man-db-2.6.5
 
 echo "# 6.57. Patch-2.7.1"
 tar -Jxf patch-2.7.1.tar.xz
@@ -958,16 +956,16 @@ make install
 cd /sources
 rm -rf texinfo-5.1
 
-echo "# 6.62. Udev-204 (Extracted from systemd-204)"
-tar -Jxf systemd-204.tar.xz
-cd systemd-204
-tar -jxf ../udev-lfs-204-1.tar.bz2
-make -f udev-lfs-204-1/Makefile.lfs
-make -f udev-lfs-204-1/Makefile.lfs install
+echo "# 6.62. Udev-205 (Extracted from systemd-205)"
+tar -Jxf systemd-205.tar.xz
+cd systemd-205
+tar -jxf ../udev-lfs-205-1.tar.bz2
+make -f udev-lfs-205-1/Makefile.lfs
+make -f udev-lfs-205-1/Makefile.lfs install
 build/udevadm hwdb --update
-bash udev-lfs-204-1/init-net-rules.sh
+bash udev-lfs-205-1/init-net-rules.sh
 cd /sources
-rm -rf systemd-204
+rm -rf systemd-205
 
 echo "# 6.63. Vim-7.3"
 tar -jxf vim-7.3.tar.bz2

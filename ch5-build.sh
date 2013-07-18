@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130605 v1.0
+# PiLFS Build Script SVN-20130711 v1.0
 # Builds chapters 5.4 - Binutils to 5.33 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -80,9 +80,9 @@ diffutils-3.3.tar.xz
 file-5.14.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.0.tar.xz
-gettext-0.18.2.1.tar.gz
+gettext-0.18.3.tar.gz
 grep-2.14.tar.xz
-gzip-1.5.tar.xz
+gzip-1.6.tar.xz
 m4-1.4.16.tar.bz2
 make-3.82.tar.bz2
 patch-2.7.1.tar.xz
@@ -91,7 +91,7 @@ perl-5.18.0-libc-1.patch
 sed-4.2.2.tar.bz2
 tar-1.26.tar.bz2
 texinfo-5.1.tar.xz
-xz-5.0.4.tar.xz
+xz-5.0.5.tar.xz
 "
 
 for tarball in $LIST_OF_TARBALLS ; do
@@ -249,7 +249,7 @@ cd ../glibc-build
       --host=$LFS_TGT                               \
       --build=$(../glibc-2.17/scripts/config.guess) \
       --disable-profile                             \
-      --enable-kernel=2.6.25                        \
+      --enable-kernel=2.6.34                        \
       --with-headers=/tools/include                 \
       libc_cv_forced_unwind=yes                     \
       libc_cv_ctors_header=yes                      \
@@ -476,16 +476,16 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.0
 
-echo "# 5.23. Gettext-0.18.2.1"
-tar -zxf gettext-0.18.2.1.tar.gz
-cd gettext-0.18.2.1
+echo "# 5.23. Gettext-0.18.3"
+tar -zxf gettext-0.18.3.tar.gz
+cd gettext-0.18.3
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
 make -C src msgfmt
 cp -v src/msgfmt /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.18.2.1
+rm -rf gettext-0.18.3
 
 echo "# 5.24. Grep-2.14"
 tar -Jxf grep-2.14.tar.xz
@@ -496,14 +496,14 @@ make install
 cd $LFS/sources
 rm -rf grep-2.14
 
-echo "# 5.25. Gzip-1.5"
-tar -Jxf gzip-1.5.tar.xz
-cd gzip-1.5
+echo "# 5.25. Gzip-1.6"
+tar -Jxf gzip-1.6.tar.xz
+cd gzip-1.6
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf gzip-1.5
+rm -rf gzip-1.6
 
 echo "# 5.26. M4-1.4.16"
 tar -jxf m4-1.4.16.tar.bz2
@@ -573,18 +573,18 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.1
 
-echo "# 5.33. Xz-5.0.4"
-tar -Jxf xz-5.0.4.tar.xz
-cd xz-5.0.4
+echo "# 5.33. Xz-5.0.5"
+tar -Jxf xz-5.0.5.tar.xz
+cd xz-5.0.5
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf xz-5.0.4
+rm -rf xz-5.0.5
 
 do_strip
 
 echo -e "----------------------------------------------------"
 echo -e "\nYou made it! This is the end of chapter 5!"
 printf 'Total script time: %s\n' $(timer $total_time)
-echo -e "Now continue reading from \"5.34. Changing Ownership\""
+echo -e "Now continue reading from \"5.35. Changing Ownership\""
