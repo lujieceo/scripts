@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130711 v1.0
+# PiLFS Build Script SVN-20130815 v1.0
 # Builds chapters 5.4 - Binutils to 5.33 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -13,7 +13,7 @@ STRIP_AND_DELETE_DOCS=1     # Strip binaries and delete manpages to save space a
 set -o nounset
 set -o errexit
 
-function prebuild_sanity_check() {
+function prebuild_sanity_check {
     if [[ $(whoami) != "lfs" ]] ; then
         echo "Not running as user lfs, you should be!"
         exit 1
@@ -55,7 +55,7 @@ function prebuild_sanity_check() {
     fi
 }
 
-function check_tarballs() {
+function check_tarballs {
 LIST_OF_TARBALLS="
 binutils-2.23.2.tar.bz2
 binutils-2.23.2-gas-whitespace-fix.patch
@@ -65,8 +65,7 @@ mpfr-3.1.2.tar.xz
 gmp-5.1.2.tar.xz
 mpc-1.0.1.tar.gz
 rpi-3.6.y.tar.gz
-glibc-2.17.tar.xz
-glibc-2.17-arm-ld-cache-fix.patch
+glibc-2.18.tar.xz
 tcl8.6.0-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.1.tar.gz
@@ -86,8 +85,8 @@ gzip-1.6.tar.xz
 m4-1.4.16.tar.bz2
 make-3.82.tar.bz2
 patch-2.7.1.tar.xz
-perl-5.18.0.tar.bz2
-perl-5.18.0-libc-1.patch
+perl-5.18.1.tar.bz2
+perl-5.18.1-libc-1.patch
 sed-4.2.2.tar.bz2
 tar-1.26.tar.bz2
 texinfo-5.1.tar.xz
@@ -234,20 +233,19 @@ make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-echo "# 5.7. Glibc-2.17"
-tar -Jxf glibc-2.17.tar.xz
-cd glibc-2.17
-patch -Np1 -i ../glibc-2.17-arm-ld-cache-fix.patch
+echo "# 5.7. Glibc-2.18"
+tar -Jxf glibc-2.18.tar.xz
+cd glibc-2.18
 if [ ! -r /usr/include/rpc/types.h ]; then
   su -c 'mkdir -p /usr/include/rpc'
   su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
 fi
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.17/configure                             \
+../glibc-2.18/configure                             \
       --prefix=/tools                               \
       --host=$LFS_TGT                               \
-      --build=$(../glibc-2.17/scripts/config.guess) \
+      --build=$(../glibc-2.18/scripts/config.guess) \
       --disable-profile                             \
       --enable-kernel=2.6.34                        \
       --with-headers=/tools/include                 \
@@ -257,9 +255,9 @@ cd ../glibc-build
 make
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.17.so $LFS/tools/lib/ld-linux.so.3
+ln -sv ld-2.18.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-build glibc-2.17
+rm -rf glibc-build glibc-2.18
 
 echo "# 5.8. Libstdc++-4.8.1"
 tar -jxf gcc-4.8.1.tar.bz2
@@ -533,17 +531,17 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.1
 
-echo "# 5.29. Perl-5.18.0"
-tar -jxf perl-5.18.0.tar.bz2
-cd perl-5.18.0
-patch -Np1 -i ../perl-5.18.0-libc-1.patch
+echo "# 5.29. Perl-5.18.1"
+tar -jxf perl-5.18.1.tar.bz2
+cd perl-5.18.1
+patch -Np1 -i ../perl-5.18.1-libc-1.patch
 sh Configure -des -Dprefix=/tools
 make
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.18.0
-cp -Rv lib/* /tools/lib/perl5/5.18.0
+mkdir -pv /tools/lib/perl5/5.18.1
+cp -Rv lib/* /tools/lib/perl5/5.18.1
 cd $LFS/sources
-rm -rf perl-5.18.0
+rm -rf perl-5.18.1
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2

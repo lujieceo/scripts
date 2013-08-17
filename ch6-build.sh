@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130711 v1.0
+# PiLFS Build Script SVN-20130815 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.63 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -16,7 +16,7 @@ INSTALL_ALL_LOCALES=0           # Install all glibc locales? By default only en_
 set -o nounset
 set -o errexit
 
-function prebuild_sanity_check() {
+function prebuild_sanity_check {
     if [[ $(whoami) != "root" ]] ; then
         echo "You should be running as root for chapter 6!"
         exit 1
@@ -33,12 +33,11 @@ function prebuild_sanity_check() {
     fi
 }
 
-function check_tarballs() {
+function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.6.y.tar.gz
-man-pages-3.52.tar.xz
-glibc-2.17.tar.xz
-glibc-2.17-arm-ld-cache-fix.patch
+man-pages-3.53.tar.xz
+glibc-2.18.tar.xz
 tzdata2013d.tar.gz
 zlib-1.2.8.tar.xz
 file-5.14.tar.gz
@@ -55,7 +54,7 @@ bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
 ncurses-5.9.tar.gz
 shadow-4.1.5.1.tar.bz2
-util-linux-2.23.1.tar.xz
+util-linux-2.23.2.tar.xz
 psmisc-22.20.tar.gz
 procps-ng-3.3.8.tar.xz
 e2fsprogs-1.42.8.tar.gz
@@ -63,7 +62,7 @@ coreutils-8.21.tar.xz
 coreutils-8.21-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.16.tar.bz2
-bison-2.7.1.tar.xz
+bison-3.0.tar.xz
 grep-2.14.tar.xz
 readline-6.2.tar.gz
 readline-6.2-fixes-1.patch
@@ -73,7 +72,7 @@ bc-1.06.95.tar.bz2
 libtool-2.4.2.tar.gz
 gdbm-1.10.tar.gz
 inetutils-1.9.1.tar.gz
-perl-5.18.0.tar.bz2
+perl-5.18.1.tar.bz2
 autoconf-2.69.tar.xz
 automake-1.14.tar.xz
 diffutils-3.3.tar.xz
@@ -86,7 +85,7 @@ groff-1.22.2.tar.gz
 xz-5.0.5.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
-iproute2-3.9.0.tar.xz
+iproute2-3.10.0.tar.xz
 kbd-1.15.5.tar.gz
 kbd-1.15.5-backspace-1.patch
 kmod-14.tar.xz
@@ -99,9 +98,9 @@ sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
 texinfo-5.1.tar.xz
-systemd-205.tar.xz
-udev-lfs-205-1.tar.bz2
-vim-7.3.tar.bz2
+systemd-206.tar.xz
+udev-lfs-206-1.tar.bz2
+vim-7.4.tar.bz2
 master.tar.gz
 "
 
@@ -155,20 +154,19 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.52"
-tar -Jxf man-pages-3.52.tar.xz
-cd man-pages-3.52
+echo "# 6.8. Man-pages-3.53"
+tar -Jxf man-pages-3.53.tar.xz
+cd man-pages-3.53
 make install
 cd /sources
-rm -rf man-pages-3.52
+rm -rf man-pages-3.53
 
-echo "# 6.9. Glibc-2.17"
-tar -Jxf glibc-2.17.tar.xz
-cd glibc-2.17
-patch -Np1 -i ../glibc-2.17-arm-ld-cache-fix.patch
+echo "# 6.9. Glibc-2.18"
+tar -Jxf glibc-2.18.tar.xz
+cd glibc-2.18
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.17/configure    \
+../glibc-2.18/configure    \
     --prefix=/usr          \
     --disable-profile      \
     --enable-kernel=2.6.34 \
@@ -176,9 +174,9 @@ cd ../glibc-build
 make
 touch /etc/ld.so.conf
 make install
-cp -v ../glibc-2.17/sunrpc/rpc/*.h /usr/include/rpc
-cp -v ../glibc-2.17/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
-cp -v ../glibc-2.17/nis/rpcsvc/*.h /usr/include/rpcsvc
+cp -v ../glibc-2.18/sunrpc/rpc/*.h /usr/include/rpc
+cp -v ../glibc-2.18/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
+cp -v ../glibc-2.18/nis/rpcsvc/*.h /usr/include/rpcsvc
 if [[ $INSTALL_ALL_LOCALES = 1 ]] ; then
     make localedata/install-locales
 else
@@ -235,9 +233,9 @@ include /etc/ld.so.conf.d/*.conf
 EOF
 mkdir -pv /etc/ld.so.conf.d
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.17.so /lib/ld-linux.so.3
+ln -sv ld-2.18.so /lib/ld-linux.so.3
 cd /sources
-rm -rf glibc-build glibc-2.17
+rm -rf glibc-build glibc-2.18
 
 echo "# 6.10. Adjusting the Toolchain"
 mv -v /tools/bin/{ld,ld-old}
@@ -448,9 +446,9 @@ sed -i 's/yes/no/' /etc/default/useradd
 cd /sources
 rm -rf shadow-4.1.5.1
 
-echo "# 6.23. Util-linux-2.23.1"
-tar -Jxf util-linux-2.23.1.tar.xz
-cd util-linux-2.23.1
+echo "# 6.23. Util-linux-2.23.2"
+tar -Jxf util-linux-2.23.2.tar.xz
+cd util-linux-2.23.2
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
      $(grep -rl '/etc/adjtime' .)
 mkdir -pv /var/lib/hwclock
@@ -458,7 +456,7 @@ mkdir -pv /var/lib/hwclock
 make
 make install
 cd /sources
-rm -rf util-linux-2.23.1
+rm -rf util-linux-2.23.2
 
 echo "# 6.24. Psmisc-22.20"
 tar -zxf psmisc-22.20.tar.gz
@@ -555,15 +553,15 @@ make install
 cd /sources
 rm -rf m4-1.4.16
 
-echo "# 6.30. Bison-2.7.1"
-tar -Jxf bison-2.7.1.tar.xz
-cd bison-2.7.1
+echo "# 6.30. Bison-3.0"
+tar -Jxf bison-3.0.tar.xz
+cd bison-3.0
 ./configure --prefix=/usr
 echo '#define YYENABLE_NLS 1' >> lib/config.h
 make
 make install
 cd /sources
-rm -rf bison-2.7.1
+rm -rf bison-3.0
 
 echo "# 6.31. Grep-2.14"
 tar -Jxf grep-2.14.tar.xz
@@ -656,9 +654,9 @@ mv -v /usr/bin/{hostname,ping,ping6,traceroute} /bin
 cd /sources
 rm -rf inetutils-1.9.1
 
-echo "# 6.38. Perl-5.18.0"
-tar -jxf perl-5.18.0.tar.bz2
-cd perl-5.18.0
+echo "# 6.38. Perl-5.18.1"
+tar -jxf perl-5.18.1.tar.bz2
+cd perl-5.18.1
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
        -e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
@@ -673,7 +671,7 @@ sh Configure -des -Dprefix=/usr                 \
 make
 make install
 cd /sources
-rm -rf perl-5.18.0
+rm -rf perl-5.18.1
 
 echo "# 6.39. Autoconf-2.69"
 tar -Jxf autoconf-2.69.tar.xz
@@ -803,19 +801,18 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.6
 
-echo "# 6.51. IPRoute2-3.9.0"
-tar -Jxf iproute2-3.9.0.tar.xz
-cd iproute2-3.9.0
+echo "# 6.51. IPRoute2-3.10.0"
+tar -Jxf iproute2-3.10.0.tar.xz
+cd iproute2-3.10.0
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
-sed -i 's/-Werror//' Makefile
 make DESTDIR=
 make DESTDIR=              \
      MANDIR=/usr/share/man \
-     DOCDIR=/usr/share/doc/iproute2-3.8.0 install
+     DOCDIR=/usr/share/doc/iproute2-3.10.0 install
 cd /sources
-rm -rf iproute2-3.9.0
+rm -rf iproute2-3.10.0
 
 echo "# 6.52. Kbd-1.15.5"
 tar -zxf kbd-1.15.5.tar.gz
@@ -956,20 +953,20 @@ make install
 cd /sources
 rm -rf texinfo-5.1
 
-echo "# 6.62. Udev-205 (Extracted from systemd-205)"
-tar -Jxf systemd-205.tar.xz
-cd systemd-205
-tar -jxf ../udev-lfs-205-1.tar.bz2
-make -f udev-lfs-205-1/Makefile.lfs
-make -f udev-lfs-205-1/Makefile.lfs install
+echo "# 6.62. Udev-206 (Extracted from systemd-206)"
+tar -Jxf systemd-206.tar.xz
+cd systemd-206
+tar -jxf ../udev-lfs-206-1.tar.bz2
+make -f udev-lfs-206-1/Makefile.lfs
+make -f udev-lfs-206-1/Makefile.lfs install
 build/udevadm hwdb --update
-bash udev-lfs-205-1/init-net-rules.sh
+bash udev-lfs-206-1/init-net-rules.sh
 cd /sources
-rm -rf systemd-205
+rm -rf systemd-206
 
-echo "# 6.63. Vim-7.3"
-tar -jxf vim-7.3.tar.bz2
-cd vim73
+echo "# 6.63. Vim-7.4"
+tar -jxf vim-7.4.tar.bz2
+cd vim74
 echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
 ./configure --prefix=/usr --enable-multibyte
 make
@@ -978,7 +975,7 @@ ln -sv vim /usr/bin/vi
 for L in /usr/share/man/{,*/}man1/vim.1; do
     ln -sv vim.1 $(dirname $L)/vi.1
 done
-ln -sv ../vim/vim73/doc /usr/share/doc/vim-7.3
+ln -sv ../vim/vim74/doc /usr/share/doc/vim-7.4
 cat > /etc/vimrc << "EOF"
 " Begin /etc/vimrc
 
@@ -992,7 +989,7 @@ endif
 " End /etc/vimrc
 EOF
 cd /sources
-rm -rf vim73
+rm -rf vim74
 
 echo -e "--------------------------------------------------------------------"
 echo -e "\nYou made it! Now there are just a few things left to take care of..."
