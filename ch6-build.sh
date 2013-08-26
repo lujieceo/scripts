@@ -79,7 +79,6 @@ diffutils-3.3.tar.xz
 gawk-4.1.0.tar.xz
 findutils-4.4.2.tar.gz
 flex-2.5.37.tar.bz2
-flex-2.5.37-bison-2.6.1-1.patch
 gettext-0.18.3.tar.gz
 groff-1.22.2.tar.gz
 xz-5.0.5.tar.xz
@@ -729,7 +728,7 @@ rm -rf findutils-4.4.2
 echo "# 6.44. Flex-2.5.37"
 tar -jxf flex-2.5.37.tar.bz2
 cd flex-2.5.37
-patch -Np1 -i ../flex-2.5.37-bison-2.6.1-1.patch
+sed -i -e '/test-bison/d' tests/Makefile.in
 ./configure --prefix=/usr             \
             --docdir=/usr/share/doc/flex-2.5.37
 make

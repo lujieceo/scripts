@@ -62,7 +62,6 @@ http://www.zlib.net/zlib-1.2.8.tar.xz
 http://www.linuxfromscratch.org/patches/lfs/development/bash-4.2-fixes-12.patch
 http://www.linuxfromscratch.org/patches/lfs/development/bzip2-1.0.6-install_docs-1.patch
 http://www.linuxfromscratch.org/patches/lfs/development/coreutils-8.21-i18n-1.patch
-http://www.linuxfromscratch.org/patches/lfs/development/flex-2.5.37-bison-2.6.1-1.patch
 http://www.linuxfromscratch.org/patches/lfs/development/kbd-1.15.5-backspace-1.patch
 http://www.linuxfromscratch.org/patches/lfs/development/make-3.82-upstream_fixes-3.patch
 http://www.linuxfromscratch.org/patches/lfs/development/perl-5.18.1-libc-1.patch
