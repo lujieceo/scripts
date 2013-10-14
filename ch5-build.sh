@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130815 v1.0
+# PiLFS Build Script SVN-20130915 v1.0
 # Builds chapters 5.4 - Binutils to 5.33 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -79,7 +79,7 @@ diffutils-3.3.tar.xz
 file-5.14.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.0.tar.xz
-gettext-0.18.3.tar.gz
+gettext-0.18.3.1.tar.gz
 grep-2.14.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.16.tar.bz2
@@ -240,6 +240,7 @@ if [ ! -r /usr/include/rpc/types.h ]; then
   su -c 'mkdir -p /usr/include/rpc'
   su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
 fi
+sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.18/configure                             \
@@ -247,7 +248,7 @@ cd ../glibc-build
       --host=$LFS_TGT                               \
       --build=$(../glibc-2.18/scripts/config.guess) \
       --disable-profile                             \
-      --enable-kernel=2.6.34                        \
+      --enable-kernel=2.6.32                        \
       --with-headers=/tools/include                 \
       libc_cv_forced_unwind=yes                     \
       libc_cv_ctors_header=yes                      \
@@ -474,16 +475,16 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.0
 
-echo "# 5.23. Gettext-0.18.3"
-tar -zxf gettext-0.18.3.tar.gz
-cd gettext-0.18.3
+echo "# 5.23. Gettext-0.18.3.1"
+tar -zxf gettext-0.18.3.1.tar.gz
+cd gettext-0.18.3.1
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
 make -C src msgfmt
 cp -v src/msgfmt /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.18.3
+rm -rf gettext-0.18.3.1
 
 echo "# 5.24. Grep-2.14"
 tar -Jxf grep-2.14.tar.xz

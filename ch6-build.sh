@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130815 v1.0
+# PiLFS Build Script SVN-20130915 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.63 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -62,6 +62,7 @@ coreutils-8.21.tar.xz
 coreutils-8.21-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.16.tar.bz2
+flex-2.5.37.tar.bz2
 bison-3.0.tar.xz
 grep-2.14.tar.xz
 readline-6.2.tar.gz
@@ -75,19 +76,19 @@ inetutils-1.9.1.tar.gz
 perl-5.18.1.tar.bz2
 autoconf-2.69.tar.xz
 automake-1.14.tar.xz
+automake-1.14-test-1.patch
 diffutils-3.3.tar.xz
 gawk-4.1.0.tar.xz
 findutils-4.4.2.tar.gz
-flex-2.5.37.tar.bz2
-gettext-0.18.3.tar.gz
+gettext-0.18.3.1.tar.gz
 groff-1.22.2.tar.gz
 xz-5.0.5.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
-iproute2-3.10.0.tar.xz
-kbd-1.15.5.tar.gz
-kbd-1.15.5-backspace-1.patch
-kmod-14.tar.xz
+iproute2-3.11.0.tar.xz
+kbd-2.0.0.tar.gz
+kbd-2.0.0-backspace-1.patch
+kmod-15.tar.xz
 libpipeline-1.2.4.tar.gz
 make-3.82.tar.bz2
 make-3.82-upstream_fixes-3.patch
@@ -96,9 +97,11 @@ patch-2.7.1.tar.xz
 sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
 tar-1.26.tar.bz2
+tar-1.26-manpage-1.patch
 texinfo-5.1.tar.xz
-systemd-206.tar.xz
-udev-lfs-206-1.tar.bz2
+texinfo-5.1-test-1.patch
+systemd-207.tar.xz
+udev-lfs-207-1.tar.bz2
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -163,12 +166,13 @@ rm -rf man-pages-3.53
 echo "# 6.9. Glibc-2.18"
 tar -Jxf glibc-2.18.tar.xz
 cd glibc-2.18
+sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.18/configure    \
     --prefix=/usr          \
     --disable-profile      \
-    --enable-kernel=2.6.34 \
+    --enable-kernel=2.6.32 \
     --libexecdir=/usr/lib/glibc
 make
 touch /etc/ld.so.conf
@@ -488,6 +492,7 @@ rm -rf procps-ng-3.3.8
 echo "# 6.26. E2fsprogs-1.42.8"
 tar -zxf e2fsprogs-1.42.8.tar.gz
 cd e2fsprogs-1.42.8
+sed -i -e 's/mke2fs/$MKE2FS/' -e 's/debugfs/$DEBUGFS/' tests/f_extent_oobounds/script
 mkdir -v build
 cd build
 ../configure --prefix=/usr         \
@@ -552,180 +557,7 @@ make install
 cd /sources
 rm -rf m4-1.4.16
 
-echo "# 6.30. Bison-3.0"
-tar -Jxf bison-3.0.tar.xz
-cd bison-3.0
-./configure --prefix=/usr
-echo '#define YYENABLE_NLS 1' >> lib/config.h
-make
-make install
-cd /sources
-rm -rf bison-3.0
-
-echo "# 6.31. Grep-2.14"
-tar -Jxf grep-2.14.tar.xz
-cd grep-2.14
-./configure --prefix=/usr --bindir=/bin
-make
-make install
-cd /sources
-rm -rf grep-2.14
-
-echo "# 6.32. Readline-6.2"
-tar -zxf readline-6.2.tar.gz
-cd readline-6.2
-sed -i '/MV.*old/d' Makefile.in
-sed -i '/{OLDSUFF}/c:' support/shlib-install
-patch -Np1 -i ../readline-6.2-fixes-1.patch
-./configure --prefix=/usr --libdir=/lib
-make SHLIB_LIBS=-lncurses
-make install
-mv -v /lib/lib{readline,history}.a /usr/lib
-rm -v /lib/lib{readline,history}.so
-ln -sfv ../../lib/libreadline.so.6 /usr/lib/libreadline.so
-ln -sfv ../../lib/libhistory.so.6 /usr/lib/libhistory.so
-if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir   -v       /usr/share/doc/readline-6.2
-    install -v -m644 doc/*.{ps,pdf,html,dvi} \
-                     /usr/share/doc/readline-6.2
-fi
-cd /sources
-rm -rf readline-6.2
-
-echo "# 6.33. Bash-4.2"
-tar -zxf bash-4.2.tar.gz
-cd bash-4.2
-patch -Np1 -i ../bash-4.2-fixes-12.patch
-./configure --prefix=/usr                     \
-            --bindir=/bin                     \
-            --htmldir=/usr/share/doc/bash-4.2 \
-            --without-bash-malloc             \
-            --with-installed-readline
-make
-make install
-# exec /bin/bash --login +h
-# Don't know of a good way to keep running the script after entering bash here.
-cd /sources
-rm -rf bash-4.2
-
-echo "# 6.34. Bc-1.06.95"
-tar -jxf bc-1.06.95.tar.bz2
-cd bc-1.06.95
-./configure --prefix=/usr --with-readline
-make
-make install
-cd /sources
-rm -rf bc-1.06.95
-
-echo "# 6.35. Libtool-2.4.2"
-tar -zxf libtool-2.4.2.tar.gz
-cd libtool-2.4.2
-./configure --prefix=/usr
-make
-make install
-cd /sources
-rm -rf libtool-2.4.2
-
-echo "# 6.36. GDBM-1.10"
-tar -zxf gdbm-1.10.tar.gz
-cd gdbm-1.10
-./configure --prefix=/usr --enable-libgdbm-compat
-make
-make install
-cd /sources
-rm -rf gdbm-1.10
-
-echo "# 6.37. Inetutils-1.9.1"
-tar -zxf inetutils-1.9.1.tar.gz
-cd inetutils-1.9.1
-sed -i -e '/gets is a/d' lib/stdio.in.h
-./configure --prefix=/usr  \
-    --libexecdir=/usr/sbin \
-    --localstatedir=/var   \
-    --disable-ifconfig     \
-    --disable-logger       \
-    --disable-syslogd      \
-    --disable-whois        \
-    --disable-servers
-make
-make install
-mv -v /usr/bin/{hostname,ping,ping6,traceroute} /bin
-cd /sources
-rm -rf inetutils-1.9.1
-
-echo "# 6.38. Perl-5.18.1"
-tar -jxf perl-5.18.1.tar.bz2
-cd perl-5.18.1
-echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
-sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
-       -e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
-       -e "s|LIB\s*= ./zlib-src|LIB        = /usr/lib|"         \
-    cpan/Compress-Raw-Zlib/config.in
-sh Configure -des -Dprefix=/usr                 \
-                  -Dvendorprefix=/usr           \
-                  -Dman1dir=/usr/share/man/man1 \
-                  -Dman3dir=/usr/share/man/man3 \
-                  -Dpager="/usr/bin/less -isR"  \
-                  -Duseshrplib
-make
-make install
-cd /sources
-rm -rf perl-5.18.1
-
-echo "# 6.39. Autoconf-2.69"
-tar -Jxf autoconf-2.69.tar.xz
-cd autoconf-2.69
-./configure --prefix=/usr
-make
-make install
-cd /sources
-rm -rf autoconf-2.69
-
-echo "# 6.40. Automake-1.14"
-tar -Jxf automake-1.14.tar.xz
-cd automake-1.14
-./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.14
-make
-make install
-cd /sources
-rm -rf automake-1.14
-
-echo "# 6.41. Diffutils-3.3"
-tar -Jxf diffutils-3.3.tar.xz
-cd diffutils-3.3
-./configure --prefix=/usr
-make
-make install
-cd /sources
-rm -rf diffutils-3.3
-
-echo "# 6.42. Gawk-4.1.0"
-tar -Jxf gawk-4.1.0.tar.xz
-cd gawk-4.1.0
-./configure --prefix=/usr --libexecdir=/usr/lib
-make
-make install
-if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/gawk-4.1.0
-    cp    -v doc/{awkforai.txt,*.{eps,pdf,jpg}} /usr/share/doc/gawk-4.1.0
-fi
-cd /sources
-rm -rf gawk-4.1.0
-
-echo "# 6.43. Findutils-4.4.2"
-tar -zxf findutils-4.4.2.tar.gz
-cd findutils-4.4.2
-./configure --prefix=/usr                   \
-            --libexecdir=/usr/lib/findutils \
-            --localstatedir=/var/lib/locate
-make
-make install
-mv -v /usr/bin/find /bin
-sed -i 's/find:=${BINDIR}/find:=\/bin/' /usr/bin/updatedb
-cd /sources
-rm -rf findutils-4.4.2
-
-echo "# 6.44. Flex-2.5.37"
+echo "# 6.30. Flex-2.5.37"
 tar -jxf flex-2.5.37.tar.bz2
 cd flex-2.5.37
 sed -i -e '/test-bison/d' tests/Makefile.in
@@ -746,15 +578,188 @@ chmod -v 755 /usr/bin/lex
 cd /sources
 rm -rf flex-2.5.37
 
-echo "# 6.45. Gettext-0.18.3"
-tar -zxf gettext-0.18.3.tar.gz
-cd gettext-0.18.3
-./configure --prefix=/usr \
-            --docdir=/usr/share/doc/gettext-0.18.3
+echo "# 6.31. Bison-3.0"
+tar -Jxf bison-3.0.tar.xz
+cd bison-3.0
+./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf gettext-0.18.3
+rm -rf bison-3.0
+
+echo "# 6.32. Grep-2.14"
+tar -Jxf grep-2.14.tar.xz
+cd grep-2.14
+./configure --prefix=/usr --bindir=/bin
+make
+make install
+cd /sources
+rm -rf grep-2.14
+
+echo "# 6.33. Readline-6.2"
+tar -zxf readline-6.2.tar.gz
+cd readline-6.2
+sed -i '/MV.*old/d' Makefile.in
+sed -i '/{OLDSUFF}/c:' support/shlib-install
+patch -Np1 -i ../readline-6.2-fixes-1.patch
+./configure --prefix=/usr --libdir=/lib
+make SHLIB_LIBS=-lncurses
+make install
+mv -v /lib/lib{readline,history}.a /usr/lib
+rm -v /lib/lib{readline,history}.so
+ln -sfv ../../lib/libreadline.so.6 /usr/lib/libreadline.so
+ln -sfv ../../lib/libhistory.so.6 /usr/lib/libhistory.so
+if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
+    mkdir   -v       /usr/share/doc/readline-6.2
+    install -v -m644 doc/*.{ps,pdf,html,dvi} \
+                     /usr/share/doc/readline-6.2
+fi
+cd /sources
+rm -rf readline-6.2
+
+echo "# 6.34. Bash-4.2"
+tar -zxf bash-4.2.tar.gz
+cd bash-4.2
+patch -Np1 -i ../bash-4.2-fixes-12.patch
+./configure --prefix=/usr                     \
+            --bindir=/bin                     \
+            --htmldir=/usr/share/doc/bash-4.2 \
+            --without-bash-malloc             \
+            --with-installed-readline
+make
+make install
+# exec /bin/bash --login +h
+# Don't know of a good way to keep running the script after entering bash here.
+cd /sources
+rm -rf bash-4.2
+
+echo "# 6.35. Bc-1.06.95"
+tar -jxf bc-1.06.95.tar.bz2
+cd bc-1.06.95
+./configure --prefix=/usr --with-readline
+make
+make install
+cd /sources
+rm -rf bc-1.06.95
+
+echo "# 6.36. Libtool-2.4.2"
+tar -zxf libtool-2.4.2.tar.gz
+cd libtool-2.4.2
+./configure --prefix=/usr
+make
+make install
+cd /sources
+rm -rf libtool-2.4.2
+
+echo "# 6.37. GDBM-1.10"
+tar -zxf gdbm-1.10.tar.gz
+cd gdbm-1.10
+./configure --prefix=/usr --enable-libgdbm-compat
+make
+make install
+cd /sources
+rm -rf gdbm-1.10
+
+echo "# 6.38. Inetutils-1.9.1"
+tar -zxf inetutils-1.9.1.tar.gz
+cd inetutils-1.9.1
+sed -i -e '/gets is a/d' lib/stdio.in.h
+./configure --prefix=/usr  \
+    --libexecdir=/usr/sbin \
+    --localstatedir=/var   \
+    --disable-ifconfig     \
+    --disable-logger       \
+    --disable-syslogd      \
+    --disable-whois        \
+    --disable-servers
+make
+make install
+mv -v /usr/bin/{hostname,ping,ping6,traceroute} /bin
+cd /sources
+rm -rf inetutils-1.9.1
+
+echo "# 6.39. Perl-5.18.1"
+tar -jxf perl-5.18.1.tar.bz2
+cd perl-5.18.1
+echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
+sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
+       -e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
+       -e "s|LIB\s*= ./zlib-src|LIB        = /usr/lib|"         \
+    cpan/Compress-Raw-Zlib/config.in
+sh Configure -des -Dprefix=/usr                 \
+                  -Dvendorprefix=/usr           \
+                  -Dman1dir=/usr/share/man/man1 \
+                  -Dman3dir=/usr/share/man/man3 \
+                  -Dpager="/usr/bin/less -isR"  \
+                  -Duseshrplib
+make
+make install
+cd /sources
+rm -rf perl-5.18.1
+
+echo "# 6.40. Autoconf-2.69"
+tar -Jxf autoconf-2.69.tar.xz
+cd autoconf-2.69
+./configure --prefix=/usr
+make
+make install
+cd /sources
+rm -rf autoconf-2.69
+
+echo "# 6.41. Automake-1.14"
+tar -Jxf automake-1.14.tar.xz
+cd automake-1.14
+patch -Np1 -i ../automake-1.14-test-1.patch
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.14
+make
+make install
+cd /sources
+rm -rf automake-1.14
+
+echo "# 6.42. Diffutils-3.3"
+tar -Jxf diffutils-3.3.tar.xz
+cd diffutils-3.3
+./configure --prefix=/usr
+make
+make install
+cd /sources
+rm -rf diffutils-3.3
+
+echo "# 6.43. Gawk-4.1.0"
+tar -Jxf gawk-4.1.0.tar.xz
+cd gawk-4.1.0
+./configure --prefix=/usr --libexecdir=/usr/lib
+make
+make install
+if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
+    mkdir -v /usr/share/doc/gawk-4.1.0
+    cp    -v doc/{awkforai.txt,*.{eps,pdf,jpg}} /usr/share/doc/gawk-4.1.0
+fi
+cd /sources
+rm -rf gawk-4.1.0
+
+echo "# 6.44. Findutils-4.4.2"
+tar -zxf findutils-4.4.2.tar.gz
+cd findutils-4.4.2
+./configure --prefix=/usr                   \
+            --libexecdir=/usr/lib/findutils \
+            --localstatedir=/var/lib/locate
+make
+make install
+mv -v /usr/bin/find /bin
+sed -i 's/find:=${BINDIR}/find:=\/bin/' /usr/bin/updatedb
+cd /sources
+rm -rf findutils-4.4.2
+
+echo "# 6.45. Gettext-0.18.3.1"
+tar -zxf gettext-0.18.3.1.tar.gz
+cd gettext-0.18.3.1
+./configure --prefix=/usr \
+            --docdir=/usr/share/doc/gettext-0.18.3.1
+make
+make install
+cd /sources
+rm -rf gettext-0.18.3.1
 
 echo "# 6.46. Groff-1.22.2"
 tar -zxf groff-1.22.2.tar.gz
@@ -800,39 +805,38 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.6
 
-echo "# 6.51. IPRoute2-3.10.0"
-tar -Jxf iproute2-3.10.0.tar.xz
-cd iproute2-3.10.0
+echo "# 6.51. IPRoute2-3.11.0"
+tar -Jxf iproute2-3.11.0.tar.xz
+cd iproute2-3.11.0
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make DESTDIR=
 make DESTDIR=              \
      MANDIR=/usr/share/man \
-     DOCDIR=/usr/share/doc/iproute2-3.10.0 install
+     DOCDIR=/usr/share/doc/iproute2-3.11.0 install
 cd /sources
-rm -rf iproute2-3.10.0
+rm -rf iproute2-3.11.0
 
-echo "# 6.52. Kbd-1.15.5"
-tar -zxf kbd-1.15.5.tar.gz
-cd kbd-1.15.5
-patch -Np1 -i ../kbd-1.15.5-backspace-1.patch
-sed -i -e '326 s/if/while/' src/loadkeys.analyze.l
+echo "# 6.52. Kbd-2.0.0"
+tar -zxf kbd-2.0.0.tar.gz
+cd kbd-2.0.0
+patch -Np1 -i ../kbd-2.0.0-backspace-1.patch
 sed -i 's/\(RESIZECONS_PROGS=\)yes/\1no/g' configure
-sed -i 's/resizecons.8 //' man/man8/Makefile.in
-./configure --prefix=/usr --disable-vlock
+sed -i 's/resizecons.8 //' docs/man/man8/Makefile.in
+PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr --disable-vlock
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v       /usr/share/doc/kbd-1.15.5
-    cp -R -v doc/* /usr/share/doc/kbd-1.15.5
+    mkdir -v       /usr/share/doc/kbd-2.0.0
+    cp -R -v docs/doc/* /usr/share/doc/kbd-2.0.0
 fi
 cd /sources
-rm -rf kbd-1.15.5
+rm -rf kbd-2.0.0
 
-echo "# 6.53. Kmod-14"
-tar -Jxf kmod-14.tar.xz
-cd kmod-14
+echo "# 6.53. Kmod-15"
+tar -Jxf kmod-15.tar.xz
+cd kmod-15
 ./configure --prefix=/usr       \
             --bindir=/bin       \
             --libdir=/lib       \
@@ -847,7 +851,7 @@ for target in depmod insmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-14
+rm -rf kmod-15
 
 echo "# 6.54. Libpipeline-1.2.4"
 tar -zxf libpipeline-1.2.4.tar.gz
@@ -928,6 +932,7 @@ rm -rf sysvinit-2.88dsf
 echo "# 6.60. Tar-1.26"
 tar -jxf tar-1.26.tar.bz2
 cd tar-1.26
+patch -Np1 -i ../tar-1.26-manpage-1.patch
 sed -i -e '/gets is a/d' gnu/stdio.in.h
 FORCE_UNSAFE_CONFIGURE=1  \
 ./configure --prefix=/usr \
@@ -938,12 +943,14 @@ make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     make -C doc install-html docdir=/usr/share/doc/tar-1.26
 fi
+perl tarman > /usr/share/man/man1/tar.1
 cd /sources
 rm -rf tar-1.26
 
 echo "# 6.61. Texinfo-5.1"
 tar -Jxf texinfo-5.1.tar.xz
 cd texinfo-5.1
+patch -Np1 -i ../texinfo-5.1-test-1.patch
 ./configure --prefix=/usr
 make
 make install
@@ -952,16 +959,16 @@ make install
 cd /sources
 rm -rf texinfo-5.1
 
-echo "# 6.62. Udev-206 (Extracted from systemd-206)"
-tar -Jxf systemd-206.tar.xz
-cd systemd-206
-tar -jxf ../udev-lfs-206-1.tar.bz2
-make -f udev-lfs-206-1/Makefile.lfs
-make -f udev-lfs-206-1/Makefile.lfs install
+echo "# 6.62. Udev-207 (Extracted from systemd-207)"
+tar -Jxf systemd-207.tar.xz
+cd systemd-207
+tar -jxf ../udev-lfs-207-1.tar.bz2
+make -f udev-lfs-207-1/Makefile.lfs
+make -f udev-lfs-207-1/Makefile.lfs install
 build/udevadm hwdb --update
-bash udev-lfs-206-1/init-net-rules.sh
+bash udev-lfs-207-1/init-net-rules.sh
 cd /sources
-rm -rf systemd-206
+rm -rf systemd-207
 
 echo "# 6.63. Vim-7.4"
 tar -jxf vim-7.4.tar.bz2
