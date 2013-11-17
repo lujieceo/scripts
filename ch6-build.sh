@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20130915 v1.0
+# PiLFS Build Script SVN-20131105 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.63 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -35,18 +35,18 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-rpi-3.6.y.tar.gz
-man-pages-3.53.tar.xz
+rpi-3.10.y.tar.gz
+man-pages-3.54.tar.xz
 glibc-2.18.tar.xz
-tzdata2013d.tar.gz
+tzdata2013h.tar.gz
 zlib-1.2.8.tar.xz
-file-5.14.tar.gz
+file-5.15.tar.gz
 binutils-2.23.2.tar.bz2
 binutils-2.23.2-gas-whitespace-fix.patch
-gmp-5.1.2.tar.xz
+gmp-5.1.3.tar.xz
 mpfr-3.1.2.tar.xz
 mpc-1.0.1.tar.gz
-gcc-4.8.1.tar.bz2
+gcc-4.8.2.tar.bz2
 gcc-4.8.0-pi-cpu-default.patch
 sed-4.2.2.tar.bz2
 bzip2-1.0.6.tar.gz
@@ -54,14 +54,14 @@ bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
 ncurses-5.9.tar.gz
 shadow-4.1.5.1.tar.bz2
-util-linux-2.23.2.tar.xz
+util-linux-2.24.tar.xz
 psmisc-22.20.tar.gz
 procps-ng-3.3.8.tar.xz
 e2fsprogs-1.42.8.tar.gz
 coreutils-8.21.tar.xz
 coreutils-8.21-i18n-1.patch
 iana-etc-2.30.tar.bz2
-m4-1.4.16.tar.bz2
+m4-1.4.17.tar.xz
 flex-2.5.37.tar.bz2
 bison-3.0.tar.xz
 grep-2.14.tar.xz
@@ -86,22 +86,20 @@ xz-5.0.5.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
 iproute2-3.11.0.tar.xz
-kbd-2.0.0.tar.gz
-kbd-2.0.0-backspace-1.patch
+kbd-2.0.1.tar.gz
+kbd-2.0.1-backspace-1.patch
 kmod-15.tar.xz
 libpipeline-1.2.4.tar.gz
-make-3.82.tar.bz2
-make-3.82-upstream_fixes-3.patch
+make-4.0.tar.bz2
 man-db-2.6.5.tar.xz
 patch-2.7.1.tar.xz
 sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
-tar-1.26.tar.bz2
-tar-1.26-manpage-1.patch
-texinfo-5.1.tar.xz
-texinfo-5.1-test-1.patch
-systemd-207.tar.xz
-udev-lfs-207-1.tar.bz2
+tar-1.27.tar.xz
+tar-1.27-manpage-1.patch
+texinfo-5.2.tar.xz
+systemd-208.tar.xz
+udev-lfs-208-1.tar.bz2
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -145,10 +143,10 @@ total_time=$(timer)
 
 echo "# 6.7. Raspberry Pi Linux API Headers"
 cd /sources
-if ! [[ -d /sources/linux-rpi-3.6.y ]] ; then
-    tar -zxf rpi-3.6.y.tar.gz
+if ! [[ -d /sources/linux-rpi-3.10.y ]] ; then
+    tar -zxf rpi-3.10.y.tar.gz
 fi
-cd linux-rpi-3.6.y
+cd linux-rpi-3.10.y
 make mrproper
 make headers_check
 make INSTALL_HDR_PATH=dest headers_install
@@ -156,17 +154,18 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.53"
-tar -Jxf man-pages-3.53.tar.xz
-cd man-pages-3.53
+echo "# 6.8. Man-pages-3.54"
+tar -Jxf man-pages-3.54.tar.xz
+cd man-pages-3.54
 make install
 cd /sources
-rm -rf man-pages-3.53
+rm -rf man-pages-3.54
 
 echo "# 6.9. Glibc-2.18"
 tar -Jxf glibc-2.18.tar.xz
 cd glibc-2.18
 sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
+sed -r -i 's/(3..89..)/\1 | 4.*/' configure
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.18/configure    \
@@ -204,7 +203,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2013d.tar.gz
+tar -zxf ../tzdata2013h.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -261,14 +260,14 @@ ln -sfv ../../lib/libz.so.1.2.8 /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.14"
-tar -zxf file-5.14.tar.gz
-cd file-5.14
+echo "# 6.12. File-5.15"
+tar -zxf file-5.15.tar.gz
+cd file-5.15
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf file-5.14
+rm -rf file-5.15
 
 echo "# 6.13. Binutils-2.23.2"
 tar -jxf binutils-2.23.2.tar.bz2
@@ -287,19 +286,19 @@ cp -v ../binutils-2.23.2/include/libiberty.h /usr/include
 cd /sources
 rm -rf binutils-build binutils-2.23.2
 
-echo "# 6.14. GMP-5.1.2"
-tar -Jxf gmp-5.1.2.tar.xz
-cd gmp-5.1.2
+echo "# 6.14. GMP-5.1.3"
+tar -Jxf gmp-5.1.3.tar.xz
+cd gmp-5.1.3
 ./configure --prefix=/usr --enable-cxx
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/gmp-5.1.2
+    mkdir -v /usr/share/doc/gmp-5.1.3
     cp    -v doc/{isa_abi_headache,configuration} doc/*.html \
-             /usr/share/doc/gmp-5.1.2
+             /usr/share/doc/gmp-5.1.3
 fi
 cd /sources
-rm -rf gmp-5.1.2
+rm -rf gmp-5.1.3
 
 echo "# 6.15. MPFR-3.1.2"
 tar -Jxf mpfr-3.1.2.tar.xz
@@ -325,16 +324,17 @@ make install
 cd /sources
 rm -rf mpc-1.0.1
 
-echo "# 6.17. GCC-4.8.1"
-tar -jxf gcc-4.8.1.tar.bz2
-cd gcc-4.8.1
+echo "# 6.17. GCC-4.8.2"
+tar -jxf gcc-4.8.2.tar.bz2
+cd gcc-4.8.2
 patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
+sed -i 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in
 sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
 sed -i -e /autogen/d -e /check.sh/d fixincludes/Makefile.in
 mv -v libmudflap/testsuite/libmudflap.c++/pass41-frag.cxx{,.disable}
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.8.1/configure --prefix=/usr               \
+../gcc-4.8.2/configure --prefix=/usr               \
                        --libexecdir=/usr/lib       \
                        --enable-shared             \
                        --enable-threads=posix      \
@@ -352,7 +352,7 @@ ln -sv gcc /usr/bin/cc
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-build gcc-4.8.1
+rm -rf gcc-build gcc-4.8.2
 
 echo "# 6.18. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -449,9 +449,9 @@ sed -i 's/yes/no/' /etc/default/useradd
 cd /sources
 rm -rf shadow-4.1.5.1
 
-echo "# 6.23. Util-linux-2.23.2"
-tar -Jxf util-linux-2.23.2.tar.xz
-cd util-linux-2.23.2
+echo "# 6.23. Util-linux-2.24"
+tar -Jxf util-linux-2.24.tar.xz
+cd util-linux-2.24
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
      $(grep -rl '/etc/adjtime' .)
 mkdir -pv /var/lib/hwclock
@@ -459,7 +459,7 @@ mkdir -pv /var/lib/hwclock
 make
 make install
 cd /sources
-rm -rf util-linux-2.23.2
+rm -rf util-linux-2.24
 
 echo "# 6.24. Psmisc-22.20"
 tar -zxf psmisc-22.20.tar.gz
@@ -547,15 +547,14 @@ make install
 cd /sources
 rm -rf iana-etc-2.30
 
-echo "# 6.29. M4-1.4.16"
-tar -jxf m4-1.4.16.tar.bz2
-cd m4-1.4.16
-sed -i -e '/gets is a/d' lib/stdio.in.h
+echo "# 6.29. M4-1.4.17"
+tar -Jxf m4-1.4.17.tar.xz
+cd m4-1.4.17
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf m4-1.4.16
+rm -rf m4-1.4.17
 
 echo "# 6.30. Flex-2.5.37"
 tar -jxf flex-2.5.37.tar.bz2
@@ -818,21 +817,21 @@ make DESTDIR=              \
 cd /sources
 rm -rf iproute2-3.11.0
 
-echo "# 6.52. Kbd-2.0.0"
-tar -zxf kbd-2.0.0.tar.gz
-cd kbd-2.0.0
-patch -Np1 -i ../kbd-2.0.0-backspace-1.patch
+echo "# 6.52. Kbd-2.0.1"
+tar -zxf kbd-2.0.1.tar.gz
+cd kbd-2.0.1
+patch -Np1 -i ../kbd-2.0.1-backspace-1.patch
 sed -i 's/\(RESIZECONS_PROGS=\)yes/\1no/g' configure
 sed -i 's/resizecons.8 //' docs/man/man8/Makefile.in
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr --disable-vlock
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v       /usr/share/doc/kbd-2.0.0
-    cp -R -v docs/doc/* /usr/share/doc/kbd-2.0.0
+    mkdir -v       /usr/share/doc/kbd-2.0.1
+    cp -R -v docs/doc/* /usr/share/doc/kbd-2.0.1
 fi
 cd /sources
-rm -rf kbd-2.0.0
+rm -rf kbd-2.0.1
 
 echo "# 6.53. Kmod-15"
 tar -Jxf kmod-15.tar.xz
@@ -862,15 +861,14 @@ make install
 cd /sources
 rm -rf libpipeline-1.2.4
 
-echo "# 6.55. Make-3.82"
-tar -jxf make-3.82.tar.bz2
-cd make-3.82
-patch -Np1 -i ../make-3.82-upstream_fixes-3.patch
+echo "# 6.55. Make-4.0"
+tar -jxf make-4.0.tar.bz2
+cd make-4.0
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf make-3.82
+rm -rf make-4.0
 
 echo "# 6.56. Man-DB-2.6.5"
 tar -Jxf man-db-2.6.5.tar.xz
@@ -929,11 +927,10 @@ make -C src install
 cd /sources
 rm -rf sysvinit-2.88dsf
 
-echo "# 6.60. Tar-1.26"
-tar -jxf tar-1.26.tar.bz2
-cd tar-1.26
-patch -Np1 -i ../tar-1.26-manpage-1.patch
-sed -i -e '/gets is a/d' gnu/stdio.in.h
+echo "# 6.60. Tar-1.27"
+tar -Jxf tar-1.27.tar.xz
+cd tar-1.27
+patch -Np1 -i ../tar-1.27-manpage-1.patch
 FORCE_UNSAFE_CONFIGURE=1  \
 ./configure --prefix=/usr \
             --bindir=/bin \
@@ -941,34 +938,33 @@ FORCE_UNSAFE_CONFIGURE=1  \
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    make -C doc install-html docdir=/usr/share/doc/tar-1.26
+    make -C doc install-html docdir=/usr/share/doc/tar-1.27
 fi
 perl tarman > /usr/share/man/man1/tar.1
 cd /sources
-rm -rf tar-1.26
+rm -rf tar-1.27
 
-echo "# 6.61. Texinfo-5.1"
-tar -Jxf texinfo-5.1.tar.xz
-cd texinfo-5.1
-patch -Np1 -i ../texinfo-5.1-test-1.patch
+echo "# 6.61. Texinfo-5.2"
+tar -Jxf texinfo-5.2.tar.xz
+cd texinfo-5.2
 ./configure --prefix=/usr
 make
 make install
 # I don't know anybody who wants this... prove me wrong!
 # make TEXMF=/usr/share/texmf install-tex
 cd /sources
-rm -rf texinfo-5.1
+rm -rf texinfo-5.2
 
-echo "# 6.62. Udev-207 (Extracted from systemd-207)"
-tar -Jxf systemd-207.tar.xz
-cd systemd-207
-tar -jxf ../udev-lfs-207-1.tar.bz2
-make -f udev-lfs-207-1/Makefile.lfs
-make -f udev-lfs-207-1/Makefile.lfs install
+echo "# 6.62. Udev-208 (Extracted from systemd-208)"
+tar -Jxf systemd-208.tar.xz
+cd systemd-208
+tar -jxf ../udev-lfs-208-1.tar.bz2
+make -f udev-lfs-208-1/Makefile.lfs
+make -f udev-lfs-208-1/Makefile.lfs install
 build/udevadm hwdb --update
-bash udev-lfs-207-1/init-net-rules.sh
+bash udev-lfs-208-1/init-net-rules.sh
 cd /sources
-rm -rf systemd-207
+rm -rf systemd-208
 
 echo "# 6.63. Vim-7.4"
 tar -jxf vim-7.4.tar.bz2
