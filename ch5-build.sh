@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20131105 v1.0
+# PiLFS Build Script SVN-20140102 v1.0
 # Builds chapters 5.4 - Binutils to 5.33 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -57,8 +57,7 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-binutils-2.23.2.tar.bz2
-binutils-2.23.2-gas-whitespace-fix.patch
+binutils-2.24.tar.bz2
 gcc-4.8.2.tar.bz2
 gcc-4.8.0-pi-cpu-default.patch
 mpfr-3.1.2.tar.xz
@@ -69,18 +68,18 @@ glibc-2.18.tar.xz
 tcl8.6.1-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.1.tar.gz
-check-0.9.10.tar.gz
+check-0.9.11.tar.gz
 ncurses-5.9.tar.gz
 bash-4.2.tar.gz
 bash-4.2-fixes-12.patch
 bzip2-1.0.6.tar.gz
-coreutils-8.21.tar.xz
+coreutils-8.22.tar.xz
 diffutils-3.3.tar.xz
-file-5.15.tar.gz
+file-5.16.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.0.tar.xz
 gettext-0.18.3.1.tar.gz
-grep-2.14.tar.xz
+grep-2.16.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.0.tar.bz2
@@ -88,7 +87,7 @@ patch-2.7.1.tar.xz
 perl-5.18.1.tar.bz2
 perl-5.18.1-libc-1.patch
 sed-4.2.2.tar.bz2
-tar-1.27.tar.xz
+tar-1.27.1.tar.xz
 texinfo-5.2.tar.xz
 xz-5.0.5.tar.xz
 "
@@ -140,16 +139,13 @@ done
 total_time=$(timer)
 sbu_time=$(timer)
 
-echo "# 5.4. Binutils-2.23.2 - Pass 1"
+echo "# 5.4. Binutils-2.24 - Pass 1"
 cd $LFS/sources
-tar -jxf binutils-2.23.2.tar.bz2
-cd binutils-2.23.2
-patch -Np1 -i ../binutils-2.23.2-gas-whitespace-fix.patch
-sed -i -e 's/@colophon/@@colophon/' \
-       -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
+tar -jxf binutils-2.24.tar.bz2
+cd binutils-2.24
 mkdir -v ../binutils-build
 cd ../binutils-build
-../binutils-2.23.2/configure   \
+../binutils-2.24/configure     \
     --prefix=/tools            \
     --with-sysroot=$LFS        \
     --with-lib-path=/tools/lib \
@@ -159,7 +155,7 @@ cd ../binutils-build
 make
 make install
 cd $LFS/sources
-rm -rf binutils-build binutils-2.23.2
+rm -rf binutils-build binutils-2.24
 
 echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
@@ -280,18 +276,15 @@ make install
 cd $LFS/sources
 rm -rf gcc-build gcc-4.8.2
 
-echo "# 5.9. Binutils-2.23.2 - Pass 2"
-tar -jxf binutils-2.23.2.tar.bz2
-cd binutils-2.23.2
-patch -Np1 -i ../binutils-2.23.2-gas-whitespace-fix.patch
-sed -i -e 's/@colophon/@@colophon/' \
-       -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
+echo "# 5.9. Binutils-2.24 - Pass 2"
+tar -jxf binutils-2.24.tar.bz2
+cd binutils-2.24
 mkdir -v ../binutils-build
 cd ../binutils-build
 CC=$LFS_TGT-gcc                \
 AR=$LFS_TGT-ar                 \
 RANLIB=$LFS_TGT-ranlib         \
-../binutils-2.23.2/configure   \
+../binutils-2.24/configure     \
     --prefix=/tools            \
     --disable-nls              \
     --with-lib-path=/tools/lib \
@@ -302,7 +295,7 @@ make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
 cp -v ld/ld-new /tools/bin
 cd $LFS/sources
-rm -rf binutils-build binutils-2.23.2
+rm -rf binutils-build binutils-2.24
 
 echo "# 5.10. gcc-4.8.2 - Pass 2"
 tar -jxf gcc-4.8.2.tar.bz2
@@ -395,14 +388,14 @@ make install
 cd $LFS/sources
 rm -rf dejagnu-1.5.1
 
-echo "# 5.14. Check-0.9.10"
-tar -zxf check-0.9.10.tar.gz
-cd check-0.9.10
+echo "# 5.14. Check-0.9.11"
+tar -zxf check-0.9.11.tar.gz
+cd check-0.9.11
 PKG_CONFIG= ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf check-0.9.10
+rm -rf check-0.9.11
 
 echo "# 5.15. Ncurses-5.9"
 tar -zxf ncurses-5.9.tar.gz
@@ -433,14 +426,14 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-echo "# 5.18. Coreutils-8.21"
-tar -Jxf coreutils-8.21.tar.xz
-cd coreutils-8.21
+echo "# 5.18. Coreutils-8.22"
+tar -Jxf coreutils-8.22.tar.xz
+cd coreutils-8.22
 ./configure --prefix=/tools --enable-install-program=hostname
 make
 make install
 cd $LFS/sources
-rm -rf coreutils-8.21
+rm -rf coreutils-8.22
 
 echo "# 5.19. Diffutils-3.3"
 tar -Jxf diffutils-3.3.tar.xz
@@ -451,14 +444,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.15"
-tar -zxf file-5.15.tar.gz
-cd file-5.15
+echo "# 5.20. File-5.16"
+tar -zxf file-5.16.tar.gz
+cd file-5.16
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf file-5.15
+rm -rf file-5.16
 
 echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
@@ -489,14 +482,14 @@ cp -v src/msgfmt /tools/bin
 cd $LFS/sources
 rm -rf gettext-0.18.3.1
 
-echo "# 5.24. Grep-2.14"
-tar -Jxf grep-2.14.tar.xz
-cd grep-2.14
+echo "# 5.24. Grep-2.16"
+tar -Jxf grep-2.16.tar.xz
+cd grep-2.16
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf grep-2.14
+rm -rf grep-2.16
 
 echo "# 5.25. Gzip-1.6"
 tar -Jxf gzip-1.6.tar.xz
@@ -555,14 +548,14 @@ make install
 cd $LFS/sources
 rm -rf sed-4.2.2
 
-echo "# 5.31. Tar-1.27"
-tar -Jxf tar-1.27.tar.xz
-cd tar-1.27
+echo "# 5.31. Tar-1.27.1"
+tar -Jxf tar-1.27.1.tar.xz
+cd tar-1.27.1
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf tar-1.27
+rm -rf tar-1.27.1
 
 echo "# 5.32. Texinfo-5.2"
 tar -Jxf texinfo-5.2.tar.xz
