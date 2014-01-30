@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140102 v1.0
-# Builds chapters 5.4 - Binutils to 5.33 - Xz
+# PiLFS Build Script SVN-20140125 v1.0
+# Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
@@ -62,13 +62,13 @@ gcc-4.8.2.tar.bz2
 gcc-4.8.0-pi-cpu-default.patch
 mpfr-3.1.2.tar.xz
 gmp-5.1.3.tar.xz
-mpc-1.0.1.tar.gz
+mpc-1.0.2.tar.gz
 rpi-3.10.y.tar.gz
 glibc-2.18.tar.xz
 tcl8.6.1-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.1.tar.gz
-check-0.9.11.tar.gz
+check-0.9.12.tar.gz
 ncurses-5.9.tar.gz
 bash-4.2.tar.gz
 bash-4.2-fixes-12.patch
@@ -78,17 +78,18 @@ diffutils-3.3.tar.xz
 file-5.16.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.0.tar.xz
-gettext-0.18.3.1.tar.gz
+gettext-0.18.3.2.tar.gz
 grep-2.16.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.0.tar.bz2
 patch-2.7.1.tar.xz
-perl-5.18.1.tar.bz2
-perl-5.18.1-libc-1.patch
+perl-5.18.2.tar.bz2
+perl-5.18.2-libc-1.patch
 sed-4.2.2.tar.bz2
 tar-1.27.1.tar.xz
 texinfo-5.2.tar.xz
+util-linux-2.24.1.tar.xz
 xz-5.0.5.tar.xz
 "
 
@@ -169,8 +170,8 @@ tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
 tar -Jxf ../gmp-5.1.3.tar.xz
 mv -v gmp-5.1.3 gmp
-tar -zxf ../mpc-1.0.1.tar.gz
-mv -v mpc-1.0.1 mpc
+tar -zxf ../mpc-1.0.2.tar.gz
+mv -v mpc-1.0.2 mpc
 for file in \
  $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
 do
@@ -323,8 +324,8 @@ tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
 tar -Jxf ../gmp-5.1.3.tar.xz
 mv -v gmp-5.1.3 gmp
-tar -zxf ../mpc-1.0.1.tar.gz
-mv -v mpc-1.0.1 mpc
+tar -zxf ../mpc-1.0.2.tar.gz
+mv -v mpc-1.0.2 mpc
 mkdir -v ../gcc-build
 cd ../gcc-build
 CC=$LFS_TGT-gcc                                      \
@@ -388,20 +389,24 @@ make install
 cd $LFS/sources
 rm -rf dejagnu-1.5.1
 
-echo "# 5.14. Check-0.9.11"
-tar -zxf check-0.9.11.tar.gz
-cd check-0.9.11
+echo "# 5.14. Check-0.9.12"
+tar -zxf check-0.9.12.tar.gz
+cd check-0.9.12
 PKG_CONFIG= ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf check-0.9.11
+rm -rf check-0.9.12
 
 echo "# 5.15. Ncurses-5.9"
 tar -zxf ncurses-5.9.tar.gz
 cd ncurses-5.9
-./configure --prefix=/tools --with-shared \
-    --without-debug --without-ada --enable-overwrite
+./configure --prefix=/tools \
+            --with-shared   \
+            --without-debug \
+            --without-ada   \
+            --enable-widec  \
+            --enable-overwrite
 make
 make install
 cd $LFS/sources
@@ -471,16 +476,16 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.0
 
-echo "# 5.23. Gettext-0.18.3.1"
-tar -zxf gettext-0.18.3.1.tar.gz
-cd gettext-0.18.3.1
+echo "# 5.23. Gettext-0.18.3.2"
+tar -zxf gettext-0.18.3.2.tar.gz
+cd gettext-0.18.3.2
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
 make -C src msgfmt
 cp -v src/msgfmt /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.18.3.1
+rm -rf gettext-0.18.3.2
 
 echo "# 5.24. Grep-2.16"
 tar -Jxf grep-2.16.tar.xz
@@ -527,17 +532,17 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.1
 
-echo "# 5.29. Perl-5.18.1"
-tar -jxf perl-5.18.1.tar.bz2
-cd perl-5.18.1
-patch -Np1 -i ../perl-5.18.1-libc-1.patch
+echo "# 5.29. Perl-5.18.2"
+tar -jxf perl-5.18.2.tar.bz2
+cd perl-5.18.2
+patch -Np1 -i ../perl-5.18.2-libc-1.patch
 sh Configure -des -Dprefix=/tools
 make
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.18.1
-cp -Rv lib/* /tools/lib/perl5/5.18.1
+mkdir -pv /tools/lib/perl5/5.18.2
+cp -Rv lib/* /tools/lib/perl5/5.18.2
 cd $LFS/sources
-rm -rf perl-5.18.1
+rm -rf perl-5.18.2
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -566,7 +571,18 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Xz-5.0.5"
+echo "# 5.33. Util-linux-2.24.1"
+tar -Jxf util-linux-2.24.1.tar.xz
+cd util-linux-2.24.1
+./configure --prefix=/tools             \
+            --disable-makeinstall-chown \
+            --without-systemdsystemunitdir
+make
+make install
+cd $LFS/sources
+rm -rf util-linux-2.24.1
+
+echo "# 5.34. Xz-5.0.5"
 tar -Jxf xz-5.0.5.tar.xz
 cd xz-5.0.5
 ./configure --prefix=/tools
@@ -580,4 +596,4 @@ do_strip
 echo -e "----------------------------------------------------"
 echo -e "\nYou made it! This is the end of chapter 5!"
 printf 'Total script time: %s\n' $(timer $total_time)
-echo -e "Now continue reading from \"5.35. Changing Ownership\""
+echo -e "Now continue reading from \"5.36. Changing Ownership\""
