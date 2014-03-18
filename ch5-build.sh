@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140125 v1.0
+# PiLFS Build Script SVN-20140312 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -64,22 +64,21 @@ mpfr-3.1.2.tar.xz
 gmp-5.1.3.tar.xz
 mpc-1.0.2.tar.gz
 rpi-3.10.y.tar.gz
-glibc-2.18.tar.xz
+glibc-2.19.tar.xz
 tcl8.6.1-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.1.tar.gz
 check-0.9.12.tar.gz
 ncurses-5.9.tar.gz
-bash-4.2.tar.gz
-bash-4.2-fixes-12.patch
+bash-4.3.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.22.tar.xz
 diffutils-3.3.tar.xz
-file-5.16.tar.gz
+file-5.17.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.0.tar.xz
 gettext-0.18.3.2.tar.gz
-grep-2.16.tar.xz
+grep-2.18.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.0.tar.bz2
@@ -105,7 +104,7 @@ function do_strip {
     set +o errexit
     if [[ $STRIP_AND_DELETE_DOCS = 1 ]] ; then
         strip --strip-debug /tools/lib/*
-        strip --strip-unneeded /tools/{,s}bin/*
+        /usr/bin/strip --strip-unneeded /tools/{,s}bin/*
         rm -rf /tools/{,share}/{info,man,doc}
     fi
 }
@@ -230,21 +229,19 @@ make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-echo "# 5.7. Glibc-2.18"
-tar -Jxf glibc-2.18.tar.xz
-cd glibc-2.18
+echo "# 5.7. Glibc-2.19"
+tar -Jxf glibc-2.19.tar.xz
+cd glibc-2.19
 if [ ! -r /usr/include/rpc/types.h ]; then
   su -c 'mkdir -p /usr/include/rpc'
   su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
 fi
-sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
-sed -r -i 's/(3..89..)/\1 | 4.*/' configure
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.18/configure                             \
+../glibc-2.19/configure                             \
       --prefix=/tools                               \
       --host=$LFS_TGT                               \
-      --build=$(../glibc-2.18/scripts/config.guess) \
+      --build=$(../glibc-2.19/scripts/config.guess) \
       --disable-profile                             \
       --enable-kernel=2.6.32                        \
       --with-headers=/tools/include                 \
@@ -254,9 +251,9 @@ cd ../glibc-build
 make
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.18.so $LFS/tools/lib/ld-linux.so.3
+ln -sv ld-2.19.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-build glibc-2.18
+rm -rf glibc-build glibc-2.19
 
 echo "# 5.8. Libstdc++-4.8.2"
 tar -jxf gcc-4.8.2.tar.bz2
@@ -304,15 +301,13 @@ cd gcc-4.8.2
 patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
-cp -v gcc/Makefile.in{,.tmp}
-sed 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in.tmp \
-  > gcc/Makefile.in
+sed -i 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in
 for file in \
  $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
 do
   cp -uv $file{,.orig}
   sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' \
-  -e 's@/usr@/tools@g' $file.orig > $file
+      -e 's@/usr@/tools@g' $file.orig > $file
   echo '
 #undef STANDARD_STARTFILE_PREFIX_1
 #undef STANDARD_STARTFILE_PREFIX_2
@@ -374,8 +369,9 @@ tar -zxf expect5.45.tar.gz
 cd expect5.45
 cp -v configure{,.orig}
 sed 's:/usr/local/bin:/bin:' configure.orig > configure
-./configure --prefix=/tools --with-tcl=/tools/lib \
-  --with-tclinclude=/tools/include
+./configure --prefix=/tools       \
+            --with-tcl=/tools/lib \
+            --with-tclinclude=/tools/include
 make
 make SCRIPTS="" install
 cd $LFS/sources
@@ -412,16 +408,15 @@ make install
 cd $LFS/sources
 rm -rf ncurses-5.9
 
-echo "# 5.16. Bash-4.2"
-tar -zxf bash-4.2.tar.gz
-cd bash-4.2
-patch -Np1 -i ../bash-4.2-fixes-12.patch
+echo "# 5.16. Bash-4.3"
+tar -zxf bash-4.3.tar.gz
+cd bash-4.3
 ./configure --prefix=/tools --without-bash-malloc
 make
 make install
 ln -sv bash /tools/bin/sh
 cd $LFS/sources
-rm -rf bash-4.2
+rm -rf bash-4.3
 
 echo "# 5.17. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -449,14 +444,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.16"
-tar -zxf file-5.16.tar.gz
-cd file-5.16
+echo "# 5.20. File-5.17"
+tar -zxf file-5.17.tar.gz
+cd file-5.17
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf file-5.16
+rm -rf file-5.17
 
 echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
@@ -483,18 +478,20 @@ cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
 make -C src msgfmt
-cp -v src/msgfmt /tools/bin
+make -C src msgmerge
+make -C src xgettext
+cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
 rm -rf gettext-0.18.3.2
 
-echo "# 5.24. Grep-2.16"
-tar -Jxf grep-2.16.tar.xz
-cd grep-2.16
+echo "# 5.24. Grep-2.18"
+tar -Jxf grep-2.18.tar.xz
+cd grep-2.18
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf grep-2.16
+rm -rf grep-2.18
 
 echo "# 5.25. Gzip-1.6"
 tar -Jxf gzip-1.6.tar.xz
@@ -574,9 +571,10 @@ rm -rf texinfo-5.2
 echo "# 5.33. Util-linux-2.24.1"
 tar -Jxf util-linux-2.24.1.tar.xz
 cd util-linux-2.24.1
-./configure --prefix=/tools             \
-            --disable-makeinstall-chown \
-            --without-systemdsystemunitdir
+./configure --prefix=/tools                \
+            --disable-makeinstall-chown    \
+            --without-systemdsystemunitdir \
+            PKG_CONFIG=""
 make
 make install
 cd $LFS/sources

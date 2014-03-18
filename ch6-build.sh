@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140125 v1.0
+# PiLFS Build Script SVN-20140312 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.63 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -36,11 +36,12 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.10.y.tar.gz
-man-pages-3.56.tar.xz
-glibc-2.18.tar.xz
-tzdata2013i.tar.gz
+man-pages-3.62.tar.xz
+glibc-2.19.tar.xz
+glibc-2.19-fhs-1.patch
+tzdata2014a.tar.gz
 zlib-1.2.8.tar.xz
-file-5.16.tar.gz
+file-5.17.tar.gz
 binutils-2.24.tar.bz2
 gmp-5.1.3.tar.xz
 mpfr-3.1.2.tar.xz
@@ -53,20 +54,18 @@ bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
 ncurses-5.9.tar.gz
 shadow_4.1.5.1.orig.tar.gz
-psmisc-22.20.tar.gz
+psmisc-22.21.tar.gz
 procps-ng-3.3.9.tar.xz
 e2fsprogs-1.42.9.tar.gz
 coreutils-8.22.tar.xz
-coreutils-8.22-i18n-3.patch
+coreutils-8.22-i18n-4.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
-flex-2.5.37.tar.bz2
+flex-2.5.38.tar.bz2
 bison-3.0.2.tar.xz
-grep-2.16.tar.xz
-readline-6.2.tar.gz
-readline-6.2-fixes-2.patch
-bash-4.2.tar.gz
-bash-4.2-fixes-12.patch
+grep-2.18.tar.xz
+readline-6.3.tar.gz
+bash-4.3.tar.gz
 bc-1.06.95.tar.bz2
 libtool-2.4.2.tar.gz
 gdbm-1.11.tar.gz
@@ -88,7 +87,7 @@ kbd-2.0.1-backspace-1.patch
 kmod-16.tar.xz
 libpipeline-1.2.6.tar.gz
 make-4.0.tar.bz2
-man-db-2.6.5.tar.xz
+man-db-2.6.6.tar.xz
 patch-2.7.1.tar.xz
 sysklogd-1.5.tar.gz
 sysvinit-2.88dsf.tar.bz2
@@ -96,8 +95,8 @@ sysvinit-2.88dsf-consolidated-1.patch
 tar-1.27.1.tar.xz
 tar-1.27.1-manpage-1.patch
 texinfo-5.2.tar.xz
-systemd-208.tar.xz
-udev-lfs-208-2.tar.bz2
+eudev-1.5.1.tar.gz
+eudev-1.5.1-manpages.tar.bz2
 util-linux-2.24.1.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
@@ -147,37 +146,35 @@ if ! [[ -d /sources/linux-rpi-3.10.y ]] ; then
 fi
 cd linux-rpi-3.10.y
 make mrproper
-make headers_check
 make INSTALL_HDR_PATH=dest headers_install
 find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.56"
-tar -Jxf man-pages-3.56.tar.xz
-cd man-pages-3.56
+echo "# 6.8. Man-pages-3.62"
+tar -Jxf man-pages-3.62.tar.xz
+cd man-pages-3.62
 make install
 cd /sources
-rm -rf man-pages-3.56
+rm -rf man-pages-3.62
 
-echo "# 6.9. Glibc-2.18"
-tar -Jxf glibc-2.18.tar.xz
-cd glibc-2.18
-sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
-sed -r -i 's/(3..89..)/\1 | 4.*/' configure
+echo "# 6.9. Glibc-2.19"
+tar -Jxf glibc-2.19.tar.xz
+cd glibc-2.19
+sed -i 's/\\$$(pwd)/`pwd`/' timezone/Makefile
+patch -Np1 -i ../glibc-2.19-fhs-1.patch
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.18/configure    \
+../glibc-2.19/configure    \
     --prefix=/usr          \
     --disable-profile      \
     --enable-kernel=2.6.32 \
-    --libexecdir=/usr/lib/glibc
+    --enable-obsolete-rpc
 make
 touch /etc/ld.so.conf
 make install
-cp -v ../glibc-2.18/sunrpc/rpc/*.h /usr/include/rpc
-cp -v ../glibc-2.18/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
-cp -v ../glibc-2.18/nis/rpcsvc/*.h /usr/include/rpcsvc
+cp -v ../glibc-2.19/nscd/nscd.conf /etc/nscd.conf
+mkdir -pv /var/cache/nscd
 if [[ $INSTALL_ALL_LOCALES = 1 ]] ; then
     make localedata/install-locales
 else
@@ -202,7 +199,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2013i.tar.gz
+tar -zxf ../tzdata2014a.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -233,9 +230,9 @@ include /etc/ld.so.conf.d/*.conf
 EOF
 mkdir -pv /etc/ld.so.conf.d
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.18.so /lib/ld-linux.so.3
+ln -sv ld-2.19.so /lib/ld-linux.so.3
 cd /sources
-rm -rf glibc-build glibc-2.18
+rm -rf glibc-build glibc-2.19
 
 echo "# 6.10. Adjusting the Toolchain"
 mv -v /tools/bin/{ld,ld-old}
@@ -258,14 +255,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.16"
-tar -zxf file-5.16.tar.gz
-cd file-5.16
+echo "# 6.12. File-5.17"
+tar -zxf file-5.17.tar.gz
+cd file-5.17
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf file-5.16
+rm -rf file-5.17
 
 echo "# 6.13. Binutils-2.24"
 tar -jxf binutils-2.24.tar.bz2
@@ -327,17 +324,17 @@ sed -i -e /autogen/d -e /check.sh/d fixincludes/Makefile.in
 mv -v libmudflap/testsuite/libmudflap.c++/pass41-frag.cxx{,.disable}
 mkdir -v ../gcc-build
 cd ../gcc-build
-SED=sed                                            \
-../gcc-4.8.2/configure --prefix=/usr               \
-                       --libexecdir=/usr/lib       \
-                       --enable-shared             \
-                       --enable-threads=posix      \
-                       --enable-__cxa_atexit       \
-                       --enable-clocale=gnu        \
-                       --enable-languages=c,c++    \
-                       --disable-multilib          \
-                       --disable-bootstrap         \
-                       --with-system-zlib
+SED=sed                          \
+../gcc-4.8.2/configure           \
+     --prefix=/usr               \
+     --enable-shared             \
+     --enable-threads=posix      \
+     --enable-__cxa_atexit       \
+     --enable-clocale=gnu        \
+     --enable-languages=c,c++    \
+     --disable-multilib          \
+     --disable-bootstrap         \
+     --with-system-zlib
 make
 make install
 ln -sv ../usr/bin/cpp /lib
@@ -442,17 +439,16 @@ sed -i 's/yes/no/' /etc/default/useradd
 cd /sources
 rm -rf shadow-4.1.5.1
 
-
-echo "# 6.23. Psmisc-22.20"
-tar -zxf psmisc-22.20.tar.gz
-cd psmisc-22.20
+echo "# 6.23. Psmisc-22.21"
+tar -zxf psmisc-22.21.tar.gz
+cd psmisc-22.21
 ./configure --prefix=/usr
 make
 make install
 mv -v /usr/bin/fuser   /bin
 mv -v /usr/bin/killall /bin
 cd /sources
-rm -rf psmisc-22.20
+rm -rf psmisc-22.21
 
 echo "# 6.24. Procps-ng-3.3.9"
 tar -Jxf procps-ng-3.3.9.tar.xz
@@ -474,22 +470,22 @@ rm -rf procps-ng-3.3.9
 echo "# 6.25. E2fsprogs-1.42.9"
 tar -zxf e2fsprogs-1.42.9.tar.gz
 cd e2fsprogs-1.42.9
+sed -i -e 's|^LD_LIBRARY_PATH.*|&:/tools/lib|' tests/test_config
 mkdir -v build
 cd build
-export PKG_CONFIG_PATH=/tools/lib/pkgconfig 
-LIBS=-L/tools/lib                  \
-CFLAGS=-I/tools/include            \
-../configure --prefix=/usr         \
-             --with-root-prefix="" \
-             --enable-elf-shlibs   \
-             --disable-libblkid    \
-             --disable-libuuid     \
-             --disable-uuidd       \
+LIBS=-L/tools/lib                    \
+CFLAGS=-I/tools/include              \
+PKG_CONFIG_PATH=/tools/lib/pkgconfig \
+../configure --prefix=/usr           \
+             --with-root-prefix=""   \
+             --enable-elf-shlibs     \
+             --disable-libblkid      \
+             --disable-libuuid       \
+             --disable-uuidd         \
              --disable-fsck
 make
 make install
 make install-libs
-unset PKG_CONFIG_PATH
 chmod -v u+w /usr/lib/{libcom_err,libe2p,libext2fs,libss}.a
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     gunzip -v /usr/share/info/libext2fs.info.gz
@@ -504,10 +500,9 @@ rm -rf e2fsprogs-1.42.9
 echo "# 6.26. Coreutils-8.22"
 tar -Jxf coreutils-8.22.tar.xz
 cd coreutils-8.22
-patch -Np1 -i ../coreutils-8.22-i18n-3.patch
+patch -Np1 -i ../coreutils-8.22-i18n-4.patch
 FORCE_UNSAFE_CONFIGURE=1 ./configure \
             --prefix=/usr            \
-            --libexecdir=/usr/lib    \
             --enable-no-install-program=kill,uptime
 make
 make install
@@ -541,15 +536,13 @@ make install
 cd /sources
 rm -rf m4-1.4.17
 
-echo "# 6.29. Flex-2.5.37"
-tar -jxf flex-2.5.37.tar.bz2
-cd flex-2.5.37
+echo "# 6.29. Flex-2.5.38"
+tar -jxf flex-2.5.38.tar.bz2
+cd flex-2.5.38
 sed -i -e '/test-bison/d' tests/Makefile.in
-./configure --prefix=/usr             \
-            --docdir=/usr/share/doc/flex-2.5.37
+./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.5.38
 make
 make install
-ln -sv libfl.a /usr/lib/libl.a
 cat > /usr/bin/lex << "EOF"
 #!/bin/sh
 # Begin /usr/bin/lex
@@ -560,7 +553,7 @@ exec /usr/bin/flex -l "$@"
 EOF
 chmod -v 755 /usr/bin/lex
 cd /sources
-rm -rf flex-2.5.37
+rm -rf flex-2.5.38
 
 echo "# 6.30. Bison-3.0.2"
 tar -Jxf bison-3.0.2.tar.xz
@@ -571,42 +564,38 @@ make install
 cd /sources
 rm -rf bison-3.0.2
 
-echo "# 6.31. Grep-2.16"
-tar -Jxf grep-2.16.tar.xz
-cd grep-2.16
+echo "# 6.31. Grep-2.18"
+tar -Jxf grep-2.18.tar.xz
+cd grep-2.18
 ./configure --prefix=/usr --bindir=/bin
 make
 make install
 cd /sources
-rm -rf grep-2.16
+rm -rf grep-2.18
 
-echo "# 6.32. Readline-6.2"
-tar -zxf readline-6.2.tar.gz
-cd readline-6.2
+echo "# 6.32. Readline-6.3"
+tar -zxf readline-6.3.tar.gz
+cd readline-6.3
 sed -i '/MV.*old/d' Makefile.in
 sed -i '/{OLDSUFF}/c:' support/shlib-install
-patch -Np1 -i ../readline-6.2-fixes-2.patch
-./configure --prefix=/usr
+./configure --prefix=/usr --docdir=/usr/share/doc/readline-6.3 
 make SHLIB_LIBS=-lncurses
 make install
 mv -v /usr/lib/lib{readline,history}.so.* /lib
 ln -sfv ../../lib/$(readlink /usr/lib/libreadline.so) /usr/lib/libreadline.so
 ln -sfv ../../lib/$(readlink /usr/lib/libhistory.so ) /usr/lib/libhistory.so
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir   -v       /usr/share/doc/readline-6.2
-    install -v -m644 doc/*.{ps,pdf,html,dvi} \
-                     /usr/share/doc/readline-6.2
+    install -v -m644 doc/*.{ps,pdf,html,dvi} /usr/share/doc/readline-6.3
 fi
 cd /sources
-rm -rf readline-6.2
+rm -rf readline-6.3
 
-echo "# 6.33. Bash-4.2"
-tar -zxf bash-4.2.tar.gz
-cd bash-4.2
-patch -Np1 -i ../bash-4.2-fixes-12.patch
+echo "# 6.33. Bash-4.3"
+tar -zxf bash-4.3.tar.gz
+cd bash-4.3
 ./configure --prefix=/usr                     \
             --bindir=/bin                     \
-            --htmldir=/usr/share/doc/bash-4.2 \
+            --htmldir=/usr/share/doc/bash-4.3 \
             --without-bash-malloc             \
             --with-installed-readline
 make
@@ -614,7 +603,7 @@ make install
 # exec /bin/bash --login +h
 # Don't know of a good way to keep running the script after entering bash here.
 cd /sources
-rm -rf bash-4.2
+rm -rf bash-4.3
 
 echo "# 6.34. Bc-1.06.95"
 tar -jxf bc-1.06.95.tar.bz2
@@ -651,7 +640,6 @@ tar -zxf inetutils-1.9.2.tar.gz
 cd inetutils-1.9.2
 echo '#define PATH_PROCNET_DEV "/proc/net/dev"' >> ifconfig/system/linux.h 
 ./configure --prefix=/usr  \
-    --libexecdir=/usr/sbin \
     --localstatedir=/var   \
     --disable-logger       \
     --disable-syslogd      \
@@ -714,7 +702,7 @@ rm -rf diffutils-3.3
 echo "# 6.42. Gawk-4.1.0"
 tar -Jxf gawk-4.1.0.tar.xz
 cd gawk-4.1.0
-./configure --prefix=/usr --libexecdir=/usr/lib
+./configure --prefix=/usr
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -727,9 +715,7 @@ rm -rf gawk-4.1.0
 echo "# 6.43. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
 cd findutils-4.4.2
-./configure --prefix=/usr                   \
-            --libexecdir=/usr/lib/findutils \
-            --localstatedir=/var/lib/locate
+./configure --prefix=/usr --localstatedir=/var/lib/locate
 make
 make install
 mv -v /usr/bin/find /bin
@@ -740,8 +726,7 @@ rm -rf findutils-4.4.2
 echo "# 6.44. Gettext-0.18.3.2"
 tar -zxf gettext-0.18.3.2.tar.gz
 cd gettext-0.18.3.2
-./configure --prefix=/usr \
-            --docdir=/usr/share/doc/gettext-0.18.3.2
+./configure --prefix=/usr --docdir=/usr/share/doc/gettext-0.18.3.2
 make
 make install
 cd /sources
@@ -752,7 +737,6 @@ tar -zxf groff-1.22.2.tar.gz
 cd groff-1.22.2
 PAGE=$GROFF_PAPER_SIZE ./configure --prefix=/usr
 make
-mkdir -pv /usr/share/doc/groff-1.22/pdf
 make install
 ln -sv eqn /usr/bin/geqn
 ln -sv tbl /usr/bin/gtbl
@@ -762,8 +746,7 @@ rm -rf groff-1.22.2
 echo "# 6.46. Xz-5.0.5"
 tar -Jxf xz-5.0.5.tar.xz
 cd xz-5.0.5
-./configure --prefix=/usr \
-            --docdir=/usr/share/doc/xz-5.0.5
+./configure --prefix=/usr --docdir=/usr/share/doc/xz-5.0.5
 make
 make install
 mv -v /usr/bin/{lzma,unlzma,lzcat,xz,unxz,xzcat} /bin
@@ -832,10 +815,12 @@ cd kmod-16
             --sysconfdir=/etc      \
             --disable-manpages     \
             --with-rootlibdir=/lib \
+            --disable-manpages     \
             --with-xz              \
             --with-zlib
 make
 make install
+make -C man install
 for target in depmod insmod modinfo modprobe rmmod; do
   ln -sv ../bin/kmod /sbin/$target
 done
@@ -861,23 +846,7 @@ make install
 cd /sources
 rm -rf make-4.0
 
-echo "# 6.55. Man-DB-2.6.5"
-tar -Jxf man-db-2.6.5.tar.xz
-cd man-db-2.6.5
-./configure --prefix=/usr                        \
-            --libexecdir=/usr/lib                \
-            --docdir=/usr/share/doc/man-db-2.6.5 \
-            --sysconfdir=/etc                    \
-            --disable-setuid                     \
-            --with-browser=/usr/bin/lynx         \
-            --with-vgrind=/usr/bin/vgrind        \
-            --with-grap=/usr/bin/grap
-make
-make install
-cd /sources
-rm -rf man-db-2.6.5
-
-echo "# 6.56. Patch-2.7.1"
+echo "# 6.55. Patch-2.7.1"
 tar -Jxf patch-2.7.1.tar.xz
 cd patch-2.7.1
 ./configure --prefix=/usr
@@ -886,7 +855,7 @@ make install
 cd /sources
 rm -rf patch-2.7.1
 
-echo "# 6.57. Sysklogd-1.5"
+echo "# 6.56. Sysklogd-1.5"
 tar -zxf sysklogd-1.5.tar.gz
 cd sysklogd-1.5
 make
@@ -907,7 +876,7 @@ EOF
 cd /sources
 rm -rf sysklogd-1.5
 
-echo "# 6.58. Sysvinit-2.88dsf"
+echo "# 6.57. Sysvinit-2.88dsf"
 tar -jxf sysvinit-2.88dsf.tar.bz2
 cd sysvinit-2.88dsf
 patch -Np1 -i ../sysvinit-2.88dsf-consolidated-1.patch
@@ -916,14 +885,13 @@ make -C src install
 cd /sources
 rm -rf sysvinit-2.88dsf
 
-echo "# 6.59. Tar-1.27.1"
+echo "# 6.58. Tar-1.27.1"
 tar -Jxf tar-1.27.1.tar.xz
 cd tar-1.27.1
 patch -Np1 -i ../tar-1.27.1-manpage-1.patch
 FORCE_UNSAFE_CONFIGURE=1  \
 ./configure --prefix=/usr \
-            --bindir=/bin \
-            --libexecdir=/usr/sbin
+            --bindir=/bin
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -933,7 +901,7 @@ perl tarman > /usr/share/man/man1/tar.1
 cd /sources
 rm -rf tar-1.27.1
 
-echo "# 6.60. Texinfo-5.2"
+echo "# 6.59. Texinfo-5.2"
 tar -Jxf texinfo-5.2.tar.xz
 cd texinfo-5.2
 ./configure --prefix=/usr
@@ -944,33 +912,65 @@ make install
 cd /sources
 rm -rf texinfo-5.2
 
-echo "# 6.61. Udev-208 (Extracted from systemd-208)"
-tar -Jxf systemd-208.tar.xz
-cd systemd-208
-tar -jxf ../udev-lfs-208-2.tar.bz2
-ln -svf /tools/include/blkid /usr/include
-ln -svf /tools/include/uuid  /usr/include
-export LD_LIBRARY_PATH=/tools/lib
-make -f udev-lfs-208-2/Makefile.lfs
-make -f udev-lfs-208-2/Makefile.lfs install
-build/udevadm hwdb --update
-bash udev-lfs-208-2/init-net-rules.sh
-rm -fv /usr/include/{uuid,blkid}
-unset LD_LIBRARY_PATH
+echo "# 6.60. Eudev-1.5.1"
+tar -zxf eudev-1.5.1.tar.gz
+cd eudev-1.5.1
+sed -i '/struct ucred/i struct ucred;' src/libudev/util.h
+sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
+BLKID_CFLAGS=-I/tools/include       \
+BLKID_LIBS='-L/tools/lib -lblkid'   \
+./configure --prefix=/usr           \
+            --bindir=/sbin          \
+            --sbindir=/sbin         \
+            --libdir=/usr/lib       \
+            --sysconfdir=/etc       \
+            --libexecdir=/lib       \
+            --with-rootprefix=      \
+            --with-rootlibdir=/lib  \
+            --enable-split-usr      \
+            --enable-libkmod        \
+            --enable-rule_generator \
+            --disable-introspection \
+            --disable-keymap        \
+            --disable-gudev         \
+            --disable-gtk-doc-html  \
+            --with-firmware-path=/lib/firmware
+make
+mkdir -pv /lib/{firmware,udev/devices/pts}
+mkdir -pv /lib/firmware
+mkdir -pv /lib/udev/rules.d
+mkdir -pv /etc/udev/rules.d
+make install
+tar -jxf ../eudev-1.5.1-manpages.tar.bz2 -C /usr/share
 cd /sources
-rm -rf systemd-208
+rm -rf eudev-1.5.1
 
-echo "# 6.22. Util-linux-2.24.1"
+echo "# 6.61. Util-linux-2.24.1"
 tar -Jxf util-linux-2.24.1.tar.xz
 cd util-linux-2.24.1
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
-     $(grep -rl '/etc/adjtime' .)
+          $(grep -rl '/etc/adjtime' .)
 mkdir -pv /var/lib/hwclock
 ./configure
 make
 make install
 cd /sources
 rm -rf util-linux-2.24.1
+
+echo "# 6.62. Man-DB-2.6.6"
+tar -Jxf man-db-2.6.6.tar.xz
+cd man-db-2.6.6
+./configure --prefix=/usr                        \
+            --docdir=/usr/share/doc/man-db-2.6.6 \
+            --sysconfdir=/etc                    \
+            --disable-setuid                     \
+            --with-browser=/usr/bin/lynx         \
+            --with-vgrind=/usr/bin/vgrind        \
+            --with-grap=/usr/bin/grap
+make
+make install
+cd /sources
+rm -rf man-db-2.6.6
 
 echo "# 6.63. Vim-7.4"
 tar -jxf vim-7.4.tar.bz2
