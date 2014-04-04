@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140312 v1.0
+# PiLFS Build Script SVN-20140331 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -224,7 +224,6 @@ echo "# 5.6. Raspberry Pi Linux API Headers"
 tar -zxf rpi-3.10.y.tar.gz
 cd linux-rpi-3.10.y
 make mrproper
-make headers_check
 make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
