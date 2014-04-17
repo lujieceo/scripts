@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140331 v1.0
+# PiLFS Build Script SVN-20140408 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.71 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -36,14 +36,14 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.10.y.tar.gz
-man-pages-3.63.tar.xz
+man-pages-3.64.tar.xz
 glibc-2.19.tar.xz
 glibc-2.19-fhs-1.patch
-tzdata2014a.tar.gz
+tzdata2014b.tar.gz
 zlib-1.2.8.tar.xz
-file-5.17.tar.gz
+file-5.18.tar.gz
 binutils-2.24.tar.bz2
-gmp-5.1.3.tar.xz
+gmp-6.0.0a.tar.xz
 mpfr-3.1.2.tar.xz
 mpc-1.0.2.tar.gz
 gcc-4.8.2.tar.bz2
@@ -64,7 +64,7 @@ coreutils-8.22.tar.xz
 coreutils-8.22-i18n-4.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
-flex-2.5.38.tar.bz2
+flex-2.5.39.tar.bz2
 bison-3.0.2.tar.xz
 grep-2.18.tar.xz
 readline-6.3.tar.gz
@@ -91,8 +91,8 @@ gzip-1.6.tar.xz
 iproute2-3.12.0.tar.xz
 kbd-2.0.1.tar.gz
 kbd-2.0.1-backspace-1.patch
-kmod-16.tar.xz
-libpipeline-1.2.6.tar.gz
+kmod-17.tar.xz
+libpipeline-1.3.0.tar.gz
 make-4.0.tar.bz2
 man-db-2.6.6.tar.xz
 patch-2.7.1.tar.xz
@@ -104,6 +104,7 @@ tar-1.27.1-manpage-1.patch
 texinfo-5.2.tar.xz
 eudev-1.5.3.tar.gz
 eudev-1.5.3-manpages.tar.bz2
+dbus-1.8.0.tar.gz
 util-linux-2.24.1.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
@@ -158,12 +159,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.63"
-tar -Jxf man-pages-3.63.tar.xz
-cd man-pages-3.63
+echo "# 6.8. Man-pages-3.64"
+tar -Jxf man-pages-3.64.tar.xz
+cd man-pages-3.64
 make install
 cd /sources
-rm -rf man-pages-3.63
+rm -rf man-pages-3.64
 
 echo "# 6.9. Glibc-2.19"
 tar -Jxf glibc-2.19.tar.xz
@@ -206,7 +207,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2014a.tar.gz
+tar -zxf ../tzdata2014b.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -262,14 +263,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.17"
-tar -zxf file-5.17.tar.gz
-cd file-5.17
+echo "# 6.12. File-5.18"
+tar -zxf file-5.18.tar.gz
+cd file-5.18
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf file-5.17
+rm -rf file-5.18
 
 echo "# 6.13. Binutils-2.24"
 tar -jxf binutils-2.24.tar.bz2
@@ -284,19 +285,19 @@ make tooldir=/usr install
 cd /sources
 rm -rf binutils-build binutils-2.24
 
-echo "# 6.14. GMP-5.1.3"
-tar -Jxf gmp-5.1.3.tar.xz
-cd gmp-5.1.3
+echo "# 6.14. GMP-6.0.0a"
+tar -Jxf gmp-6.0.0a.tar.xz
+cd gmp-6.0.0
 ./configure --prefix=/usr --enable-cxx
 make
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/gmp-5.1.3
+    mkdir -v /usr/share/doc/gmp-6.0.0a
     cp    -v doc/{isa_abi_headache,configuration} doc/*.html \
-             /usr/share/doc/gmp-5.1.3
+             /usr/share/doc/gmp-6.0.0a
 fi
 cd /sources
-rm -rf gmp-5.1.3
+rm -rf gmp-6.0.0
 
 echo "# 6.15. MPFR-3.1.2"
 tar -Jxf mpfr-3.1.2.tar.xz
@@ -584,24 +585,16 @@ make install
 cd /sources
 rm -rf m4-1.4.17
 
-echo "# 6.32. Flex-2.5.38"
-tar -jxf flex-2.5.38.tar.bz2
-cd flex-2.5.38
+echo "# 6.32. Flex-2.5.39"
+tar -jxf flex-2.5.39.tar.bz2
+cd flex-2.5.39
 sed -i -e '/test-bison/d' tests/Makefile.in
-./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.5.38
+./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.5.39
 make
 make install
-cat > /usr/bin/lex << "EOF"
-#!/bin/sh
-# Begin /usr/bin/lex
-
-exec /usr/bin/flex -l "$@"
-
-# End /usr/bin/lex
-EOF
-chmod -v 755 /usr/bin/lex
+ln -s flex /usr/bin/lex
 cd /sources
-rm -rf flex-2.5.38
+rm -rf flex-2.5.39
 
 echo "# 6.33. Bison-3.0.2"
 tar -Jxf bison-3.0.2.tar.xz
@@ -898,34 +891,32 @@ fi
 cd /sources
 rm -rf kbd-2.0.1
 
-echo "# 6.59. Kmod-16"
-tar -Jxf kmod-16.tar.xz
-cd kmod-16
+echo "# 6.59. Kmod-17"
+tar -Jxf kmod-17.tar.xz
+cd kmod-17
 ./configure --prefix=/usr          \
             --bindir=/bin          \
             --sysconfdir=/etc      \
             --with-rootlibdir=/lib \
-            --disable-manpages     \
             --with-xz              \
             --with-zlib
 make
 make install
-make -C man install
 for target in depmod insmod modinfo modprobe rmmod; do
   ln -sv ../bin/kmod /sbin/$target
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-16
+rm -rf kmod-17
 
-echo "# 6.60. Libpipeline-1.2.6"
-tar -zxf libpipeline-1.2.6.tar.gz
-cd libpipeline-1.2.6
+echo "# 6.60. Libpipeline-1.3.0"
+tar -zxf libpipeline-1.3.0.tar.gz
+cd libpipeline-1.3.0
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf libpipeline-1.2.6
+rm -rf libpipeline-1.3.0
 
 echo "# 6.61. Make-4.0"
 tar -jxf make-4.0.tar.bz2
@@ -966,7 +957,7 @@ EOF
 cd /sources
 rm -rf sysklogd-1.5
 
-echo "# 6.65. Sysvinit-2.88dsf"
+echo "# 6.64. Sysvinit-2.88dsf"
 tar -jxf sysvinit-2.88dsf.tar.bz2
 cd sysvinit-2.88dsf
 patch -Np1 -i ../sysvinit-2.88dsf-consolidated-1.patch
@@ -975,7 +966,7 @@ make -C src install
 cd /sources
 rm -rf sysvinit-2.88dsf
 
-echo "# 6.66. Tar-1.27.1"
+echo "# 6.65. Tar-1.27.1"
 tar -Jxf tar-1.27.1.tar.xz
 cd tar-1.27.1
 patch -Np1 -i ../tar-1.27.1-manpage-1.patch
@@ -991,7 +982,7 @@ perl tarman > /usr/share/man/man1/tar.1
 cd /sources
 rm -rf tar-1.27.1
 
-echo "# 6.67. Texinfo-5.2"
+echo "# 6.66. Texinfo-5.2"
 tar -Jxf texinfo-5.2.tar.xz
 cd texinfo-5.2
 ./configure --prefix=/usr
@@ -1002,7 +993,9 @@ make install
 cd /sources
 rm -rf texinfo-5.2
 
-echo "# 6.68. Eudev-1.5.3"
+echo "# 6.67. Eudev-1.5.3"
+# Instead of building systemd, we follow this hint:
+# http://www.linuxfromscratch.org/hints/downloads/files/eudev-alt-hint.txt
 tar -zxf eudev-1.5.3.tar.gz
 cd eudev-1.5.3
 sed -i '/struct ucred/i struct ucred;' src/libudev/util.h
@@ -1049,6 +1042,22 @@ KERNEL=="dcbri[0-9]*",      GROUP="dialout"
 EOF
 cd /sources
 rm -rf eudev-1.5.3
+
+echo "6.68. D-Bus-1.8.0"
+tar -zxf dbus-1.8.0.tar.gz
+cd dbus-1.8.0
+./configure --prefix=/usr                       \
+            --sysconfdir=/etc                   \
+            --localstatedir=/var                \
+            --docdir=/usr/share/doc/dbus-1.8.0  \
+            --with-console-auth-dir=/run/console
+make
+make install
+mv -v /usr/lib/libdbus-1.so.* /lib
+ln -sfv ../../lib/$(readlink /usr/lib/libdbus-1.so) /usr/lib/libdbus-1.so
+ln -sv /etc/machine-id /var/lib/dbus
+cd /sources
+rm -rf dbus-1.8.0
 
 echo "# 6.69. Util-linux-2.24.1"
 tar -Jxf util-linux-2.24.1.tar.xz

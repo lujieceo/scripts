@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140331 v1.0
+# PiLFS Build Script SVN-20140408 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -61,7 +61,7 @@ binutils-2.24.tar.bz2
 gcc-4.8.2.tar.bz2
 gcc-4.8.0-pi-cpu-default.patch
 mpfr-3.1.2.tar.xz
-gmp-5.1.3.tar.xz
+gmp-6.0.0a.tar.xz
 mpc-1.0.2.tar.gz
 rpi-3.10.y.tar.gz
 glibc-2.19.tar.xz
@@ -74,7 +74,7 @@ bash-4.3.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.22.tar.xz
 diffutils-3.3.tar.xz
-file-5.17.tar.gz
+file-5.18.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.0.tar.xz
 gettext-0.18.3.2.tar.gz
@@ -167,8 +167,8 @@ cd gcc-4.8.2
 patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
 tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
-tar -Jxf ../gmp-5.1.3.tar.xz
-mv -v gmp-5.1.3 gmp
+tar -Jxf ../gmp-6.0.0a.tar.xz
+mv -v gmp-6.0.0 gmp
 tar -zxf ../mpc-1.0.2.tar.gz
 mv -v mpc-1.0.2 mpc
 for file in \
@@ -316,8 +316,8 @@ do
 done
 tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
-tar -Jxf ../gmp-5.1.3.tar.xz
-mv -v gmp-5.1.3 gmp
+tar -Jxf ../gmp-6.0.0a.tar.xz
+mv -v gmp-6.0.0 gmp
 tar -zxf ../mpc-1.0.2.tar.gz
 mv -v mpc-1.0.2 mpc
 mkdir -v ../gcc-build
@@ -443,14 +443,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.17"
-tar -zxf file-5.17.tar.gz
-cd file-5.17
+echo "# 5.20. File-5.18"
+tar -zxf file-5.18.tar.gz
+cd file-5.18
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf file-5.17
+rm -rf file-5.18
 
 echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
