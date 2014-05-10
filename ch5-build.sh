@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140408 v1.0
+# PiLFS Build Script SVN-20140502 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -58,12 +58,12 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 binutils-2.24.tar.bz2
-gcc-4.8.2.tar.bz2
-gcc-4.8.0-pi-cpu-default.patch
+gcc-4.9.0.tar.bz2
+gcc-4.9.0-pi-cpu-default.patch
 mpfr-3.1.2.tar.xz
 gmp-6.0.0a.tar.xz
 mpc-1.0.2.tar.gz
-rpi-3.10.y.tar.gz
+rpi-3.12.y.tar.gz
 glibc-2.19.tar.xz
 tcl8.6.1-src.tar.gz
 expect5.45.tar.gz
@@ -76,7 +76,7 @@ coreutils-8.22.tar.xz
 diffutils-3.3.tar.xz
 file-5.18.tar.gz
 findutils-4.4.2.tar.gz
-gawk-4.1.0.tar.xz
+gawk-4.1.1.tar.xz
 gettext-0.18.3.2.tar.gz
 grep-2.18.tar.xz
 gzip-1.6.tar.xz
@@ -88,7 +88,7 @@ perl-5.18.2-libc-1.patch
 sed-4.2.2.tar.bz2
 tar-1.27.1.tar.xz
 texinfo-5.2.tar.xz
-util-linux-2.24.1.tar.xz
+util-linux-2.24.2.tar.xz
 xz-5.0.5.tar.xz
 "
 
@@ -161,10 +161,10 @@ echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
 echo -e "==========================\n"
 
-echo "# 5.5. gcc-4.8.2 - Pass 1"
-tar -jxf gcc-4.8.2.tar.bz2
-cd gcc-4.8.2
-patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
+echo "# 5.5. gcc-4.9.0 - Pass 1"
+tar -jxf gcc-4.9.0.tar.bz2
+cd gcc-4.9.0
+patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
 tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
 tar -Jxf ../gmp-6.0.0a.tar.xz
@@ -187,7 +187,7 @@ done
 sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.8.2/configure                               \
+../gcc-4.9.0/configure                               \
     --target=$LFS_TGT                                \
     --prefix=/tools                                  \
     --with-sysroot=$LFS                              \
@@ -207,22 +207,23 @@ cd ../gcc-build
     --disable-libquadmath                            \
     --disable-libsanitizer                           \
     --disable-libssp                                 \
+    --disable-libvtv                                 \
+    --disable-libcilkrts                             \
     --disable-libstdc++-v3                           \
     --enable-languages=c,c++                         \
-    --with-mpfr-include=$(pwd)/../gcc-4.8.2/mpfr/src \
+    --with-mpfr-include=$(pwd)/../gcc-4.9.0/mpfr/src \
     --with-mpfr-lib=$(pwd)/mpfr/src/.libs
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
 sed -i 's/none-/armv6l-/' Makefile
 make
 make install
-ln -sv libgcc.a `$LFS_TGT-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/'`
 cd $LFS/sources
-rm -rf gcc-build gcc-4.8.2
+rm -rf gcc-build gcc-4.9.0
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
-tar -zxf rpi-3.10.y.tar.gz
-cd linux-rpi-3.10.y
+tar -zxf rpi-3.12.y.tar.gz
+cd linux-rpi-3.12.y
 make mrproper
 make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
@@ -254,12 +255,12 @@ ln -sv ld-2.19.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
 rm -rf glibc-build glibc-2.19
 
-echo "# 5.8. Libstdc++-4.8.2"
-tar -jxf gcc-4.8.2.tar.bz2
-cd gcc-4.8.2
+echo "# 5.8. Libstdc++-4.9.0"
+tar -jxf gcc-4.9.0.tar.bz2
+cd gcc-4.9.0
 mkdir -pv ../gcc-build
 cd ../gcc-build
-../gcc-4.8.2/libstdc++-v3/configure      \
+../gcc-4.9.0/libstdc++-v3/configure      \
     --host=$LFS_TGT                      \
     --prefix=/tools                      \
     --disable-multilib                   \
@@ -267,11 +268,11 @@ cd ../gcc-build
     --disable-nls                        \
     --disable-libstdcxx-threads          \
     --disable-libstdcxx-pch              \
-    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.8.2
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.9.0
 make
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-4.8.2
+rm -rf gcc-build gcc-4.9.0
 
 echo "# 5.9. Binutils-2.24 - Pass 2"
 tar -jxf binutils-2.24.tar.bz2
@@ -284,6 +285,7 @@ RANLIB=$LFS_TGT-ranlib         \
 ../binutils-2.24/configure     \
     --prefix=/tools            \
     --disable-nls              \
+    --disable-werror           \
     --with-lib-path=/tools/lib \
     --with-sysroot
 make
@@ -294,10 +296,10 @@ cp -v ld/ld-new /tools/bin
 cd $LFS/sources
 rm -rf binutils-build binutils-2.24
 
-echo "# 5.10. gcc-4.8.2 - Pass 2"
-tar -jxf gcc-4.8.2.tar.bz2
-cd gcc-4.8.2
-patch -Np1 -i ../gcc-4.8.0-pi-cpu-default.patch
+echo "# 5.10. gcc-4.9.0 - Pass 2"
+tar -jxf gcc-4.9.0.tar.bz2
+cd gcc-4.9.0
+patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
 sed -i 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in
@@ -326,7 +328,7 @@ CC=$LFS_TGT-gcc                                      \
 CXX=$LFS_TGT-g++                                     \
 AR=$LFS_TGT-ar                                       \
 RANLIB=$LFS_TGT-ranlib                               \
-../gcc-4.8.2/configure                               \
+../gcc-4.9.0/configure                               \
     --prefix=/tools                                  \
     --with-local-prefix=/tools                       \
     --with-native-system-header-dir=/tools/include   \
@@ -339,7 +341,7 @@ RANLIB=$LFS_TGT-ranlib                               \
     --disable-multilib                               \
     --disable-bootstrap                              \
     --disable-libgomp                                \
-    --with-mpfr-include=$(pwd)/../gcc-4.8.2/mpfr/src \
+    --with-mpfr-include=$(pwd)/../gcc-4.9.0/mpfr/src \
     --with-mpfr-lib=$(pwd)/mpfr/src/.libs
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
@@ -348,7 +350,7 @@ make
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-build gcc-4.8.2
+rm -rf gcc-build gcc-4.9.0
 
 echo "# 5.11. Tcl-8.6.1"
 tar -zxf tcl8.6.1-src.tar.gz
@@ -461,14 +463,14 @@ make install
 cd $LFS/sources
 rm -rf findutils-4.4.2
 
-echo "# 5.22. Gawk-4.1.0"
-tar -Jxf gawk-4.1.0.tar.xz
-cd gawk-4.1.0
+echo "# 5.22. Gawk-4.1.1"
+tar -Jxf gawk-4.1.1.tar.xz
+cd gawk-4.1.1
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf gawk-4.1.0
+rm -rf gawk-4.1.1
 
 echo "# 5.23. Gettext-0.18.3.2"
 tar -zxf gettext-0.18.3.2.tar.gz
@@ -567,9 +569,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Util-linux-2.24.1"
-tar -Jxf util-linux-2.24.1.tar.xz
-cd util-linux-2.24.1
+echo "# 5.33. Util-linux-2.24.2"
+tar -Jxf util-linux-2.24.2.tar.xz
+cd util-linux-2.24.2
 ./configure --prefix=/tools                \
             --disable-makeinstall-chown    \
             --without-systemdsystemunitdir \
@@ -577,7 +579,7 @@ cd util-linux-2.24.1
 make
 make install
 cd $LFS/sources
-rm -rf util-linux-2.24.1
+rm -rf util-linux-2.24.2
 
 echo "# 5.34. Xz-5.0.5"
 tar -Jxf xz-5.0.5.tar.xz
