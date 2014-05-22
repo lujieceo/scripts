@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140502 v1.0
+# PiLFS Build Script SVN-20140519 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -210,9 +210,7 @@ cd ../gcc-build
     --disable-libvtv                                 \
     --disable-libcilkrts                             \
     --disable-libstdc++-v3                           \
-    --enable-languages=c,c++                         \
-    --with-mpfr-include=$(pwd)/../gcc-4.9.0/mpfr/src \
-    --with-mpfr-lib=$(pwd)/mpfr/src/.libs
+    --enable-languages=c,c++
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
 sed -i 's/none-/armv6l-/' Makefile
@@ -302,7 +300,6 @@ cd gcc-4.9.0
 patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
-sed -i 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in
 for file in \
  $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
 do
@@ -340,9 +337,7 @@ RANLIB=$LFS_TGT-ranlib                               \
     --disable-libstdcxx-pch                          \
     --disable-multilib                               \
     --disable-bootstrap                              \
-    --disable-libgomp                                \
-    --with-mpfr-include=$(pwd)/../gcc-4.9.0/mpfr/src \
-    --with-mpfr-lib=$(pwd)/mpfr/src/.libs
+    --disable-libgomp
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
 sed -i 's/none-/armv6l-/' Makefile

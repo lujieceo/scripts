@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140502 v1.0
-# Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.71 - Vim
+# PiLFS Build Script SVN-20140519 v1.0
+# Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
@@ -10,7 +10,7 @@ LOCAL_TIMEZONE=Europe/London    # Use this timezone from /usr/share/zoneinfo/ to
 GROFF_PAPER_SIZE=A4             # Use this default paper size for Groff. See "6.52. Groff-1.22.2".
 INSTALL_OPTIONAL_DOCS=1         # Install optional documentation when given a choice?
 INSTALL_ALL_LOCALES=0           # Install all glibc locales? By default only en_US.ISO-8859-1 and en_US.UTF-8 are installed.
-INSTALL_SYSTEMD_DEPS=1          # Install Systemd dependencies? (Attr, Acl, Libcap, Expat, XML::Parser, Intltool & D-Bus)
+INSTALL_SYSTEMD_DEPS=1          # Install optional systemd dependencies? (Attr, Acl, Libcap, Expat, XML::Parser & Intltool)
 
 # End of optional parameters
 
@@ -37,19 +37,21 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.12.y.tar.gz
-man-pages-3.65.tar.xz
+man-pages-3.66.tar.xz
 glibc-2.19.tar.xz
 glibc-2.19-fhs-1.patch
-tzdata2014b.tar.gz
+tzdata2014c.tar.gz
 zlib-1.2.8.tar.xz
 file-5.18.tar.gz
 binutils-2.24.tar.bz2
+binutils-2.24-load_gcc_lto_plugin_by_default-1.patch
 gmp-6.0.0a.tar.xz
 mpfr-3.1.2.tar.xz
 mpfr-3.1.2-upstream_fixes-1.patch
 mpc-1.0.2.tar.gz
 gcc-4.9.0.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
+gcc-4.9.0-upstream_fixes-1.patch
 sed-4.2.2.tar.bz2
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
@@ -58,7 +60,7 @@ ncurses-5.9.tar.gz
 attr-2.4.47.src.tar.gz
 acl-2.2.52.src.tar.gz
 libcap-2.24.tar.xz
-shadow_4.1.5.1.orig.tar.gz
+shadow-4.2.1.tar.xz
 psmisc-22.21.tar.gz
 procps-ng-3.3.9.tar.xz
 e2fsprogs-1.42.9.tar.gz
@@ -109,9 +111,8 @@ tar-1.27.1.tar.xz
 tar-1.27.1-manpage-1.patch
 texinfo-5.2.tar.xz
 eudev-1.6.tar.gz
-eudev-1.5.3-manpages.tar.bz2
+eudev-1.6-manpages.tar.bz2
 udev-lfs-20140408.tar.bz2
-dbus-1.8.0.tar.gz
 util-linux-2.24.2.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
@@ -166,12 +167,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.65"
-tar -Jxf man-pages-3.65.tar.xz
-cd man-pages-3.65
+echo "# 6.8. Man-pages-3.66"
+tar -Jxf man-pages-3.66.tar.xz
+cd man-pages-3.66
 make install
 cd /sources
-rm -rf man-pages-3.65
+rm -rf man-pages-3.66
 
 echo "# 6.9. Glibc-2.19"
 tar -Jxf glibc-2.19.tar.xz
@@ -214,7 +215,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2014b.tar.gz
+tar -zxf ../tzdata2014c.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -228,9 +229,9 @@ zic -d $ZONEINFO -p America/New_York
 unset ZONEINFO
 if ! [[ -f /usr/share/zoneinfo/$LOCAL_TIMEZONE ]] ; then
     echo "Seems like your timezone won't work out. Defaulting to London. Either fix it yourself later or consider moving there :)"
-    cp -v --remove-destination /usr/share/zoneinfo/Europe/London /etc/localtime
+    cp -v /usr/share/zoneinfo/Europe/London /etc/localtime
 else
-    cp -v --remove-destination /usr/share/zoneinfo/$LOCAL_TIMEZONE /etc/localtime
+    cp -v /usr/share/zoneinfo/$LOCAL_TIMEZONE /etc/localtime
 fi
 cat > /etc/ld.so.conf << "EOF"
 # Begin /etc/ld.so.conf
@@ -284,6 +285,7 @@ tar -jxf binutils-2.24.tar.bz2
 cd binutils-2.24
 rm -fv etc/standards.info
 sed -i.bak '/^INFO/s/standards.info //' etc/Makefile.in
+patch -Np1 -i ../binutils-2.24-load_gcc_lto_plugin_by_default-1.patch
 mkdir -v ../binutils-build
 cd ../binutils-build
 ../binutils-2.24/configure --prefix=/usr  \
@@ -337,7 +339,7 @@ echo "# 6.17. GCC-4.9.0"
 tar -jxf gcc-4.9.0.tar.bz2
 cd gcc-4.9.0
 patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
-sed -i 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in
+patch -Np1 -i ../gcc-4.9.0-upstream_fixes-1.patch
 mkdir -v ../gcc-build
 cd ../gcc-build
 SED=sed                          \
@@ -355,6 +357,10 @@ make
 make install
 ln -sv ../usr/bin/cpp /lib
 ln -sv gcc /usr/bin/cc
+install -dm755 /usr/lib/bfd-plugins
+pushd /usr/lib/bfd-plugins
+ln -sfv ../../libexec/gcc/armv6l-unknown-linux-gnueabihf/4.9.0/liblto_plugin.so
+popd
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
@@ -484,9 +490,9 @@ cd /sources
 rm -rf libcap-2.24
 fi
 
-echo "# 6.25. Shadow-4.1.5.1"
-tar -zxf shadow_4.1.5.1.orig.tar.gz
-cd shadow-4.1.5.1
+echo "# 6.25. Shadow-4.2.1"
+tar -Jxf shadow-4.2.1.tar.xz
+cd shadow-4.2.1
 sed -i 's/groups$(EXEEXT) //' src/Makefile.in
 find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
 sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
@@ -502,7 +508,7 @@ sed -i 's/yes/no/' /etc/default/useradd
 # passwd root
 # Root password will be set at the end of the script to prevent a stop here
 cd /sources
-rm -rf shadow-4.1.5.1
+rm -rf shadow-4.2.1
 
 echo "# 6.26. Psmisc-22.21"
 tar -zxf psmisc-22.21.tar.gz
@@ -964,6 +970,7 @@ rm -rf patch-2.7.1
 echo "# 6.63. Sysklogd-1.5"
 tar -zxf sysklogd-1.5.tar.gz
 cd sysklogd-1.5
+sed -i '/Error loading kernel symbols/{n;n;d}' ksym_mod.c
 make
 make BINDIR=/sbin install
 cat > /etc/syslog.conf << "EOF"
@@ -1019,8 +1026,6 @@ cd /sources
 rm -rf texinfo-5.2
 
 echo "# 6.67. Eudev-1.6"
-# Instead of building systemd, we follow this hint:
-# http://www.linuxfromscratch.org/hints/downloads/files/eudev-alt-hint.txt
 tar -zxf eudev-1.6.tar.gz
 cd eudev-1.6
 sed -i '/struct ucred/i struct ucred;' src/libudev/util.h
@@ -1038,45 +1043,23 @@ BLKID_LIBS='-L/tools/lib -lblkid'   \
             --enable-split-usr      \
             --enable-libkmod        \
             --enable-rule_generator \
-            --enable-shared         \
-            --disable-static        \
-            --disable-selinux       \
+            --enable-keymap         \
             --disable-introspection \
-            --disable-keymap        \
             --disable-gudev         \
             --disable-gtk-doc-html  \
             --with-firmware-path=/lib/firmware
 make
 mkdir -pv /lib/{firmware,udev/devices/pts}
-mkdir -pv /lib/udev/{devices/pts,rules.d}
-mkdir -pv /etc/udev/{hwdb.d,rules.d}
+mkdir -pv /lib/udev/rules.d
+mkdir -pv /etc/udev/rules.d
 make install
-tar -jxf ../eudev-1.5.3-manpages.tar.bz2 -C /usr/share
+tar -jxf ../eudev-1.6-manpages.tar.bz2 -C /usr/share
 tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
 cd /sources
 rm -rf eudev-1.6
 
-if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.68. D-Bus-1.8.0"
-tar -zxf dbus-1.8.0.tar.gz
-cd dbus-1.8.0
-./configure --prefix=/usr                       \
-            --sysconfdir=/etc                   \
-            --localstatedir=/var                \
-            --docdir=/usr/share/doc/dbus-1.8.0  \
-            --with-console-auth-dir=/run/console
-make
-make install
-mv -v /usr/lib/libdbus-1.so.* /lib
-ln -sfv ../../lib/$(readlink /usr/lib/libdbus-1.so) /usr/lib/libdbus-1.so
-ln -sv /etc/machine-id /var/lib/dbus
-dbus-uuidgen --ensure
-cd /sources
-rm -rf dbus-1.8.0
-fi
-
-echo "# 6.69. Util-linux-2.24.2"
+echo "# 6.68. Util-linux-2.24.2"
 tar -Jxf util-linux-2.24.2.tar.xz
 cd util-linux-2.24.2
 sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
@@ -1088,7 +1071,7 @@ make install
 cd /sources
 rm -rf util-linux-2.24.2
 
-echo "# 6.70. Man-DB-2.6.7.1"
+echo "# 6.69. Man-DB-2.6.7.1"
 tar -Jxf man-db-2.6.7.1.tar.xz
 cd man-db-2.6.7.1
 ./configure --prefix=/usr                          \
@@ -1103,7 +1086,7 @@ make install
 cd /sources
 rm -rf man-db-2.6.7.1
 
-echo "# 6.71. Vim-7.4"
+echo "# 6.70. Vim-7.4"
 tar -jxf vim-7.4.tar.bz2
 cd vim74
 echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
@@ -1161,5 +1144,5 @@ select yn in "Yes" "No"; do
     esac
 done
 
-echo -e "\nThere, all done! Now continue reading from \"6.72. About Debugging Symbols\" to make your system bootable."
+echo -e "\nThere, all done! Now continue reading from \"6.71. About Debugging Symbols\" to make your system bootable."
 echo "And don't forget to check out http://www.intestinate.com/pilfs/beyond.html when you're done with your build!"
