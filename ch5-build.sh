@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140519 v1.0
+# PiLFS Build Script SVN-20140808 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -58,7 +58,7 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 binutils-2.24.tar.bz2
-gcc-4.9.0.tar.bz2
+gcc-4.9.1.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
 mpfr-3.1.2.tar.xz
 gmp-6.0.0a.tar.xz
@@ -68,27 +68,26 @@ glibc-2.19.tar.xz
 tcl8.6.1-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.1.tar.gz
-check-0.9.12.tar.gz
+check-0.9.14.tar.gz
 ncurses-5.9.tar.gz
 bash-4.3.tar.gz
 bzip2-1.0.6.tar.gz
-coreutils-8.22.tar.xz
+coreutils-8.23.tar.xz
 diffutils-3.3.tar.xz
-file-5.18.tar.gz
+file-5.19.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.1.tar.xz
-gettext-0.18.3.2.tar.gz
-grep-2.18.tar.xz
+gettext-0.19.2.tar.xz
+grep-2.20.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.0.tar.bz2
 patch-2.7.1.tar.xz
-perl-5.18.2.tar.bz2
-perl-5.18.2-libc-1.patch
+perl-5.20.0.tar.bz2
 sed-4.2.2.tar.bz2
-tar-1.27.1.tar.xz
+tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-util-linux-2.24.2.tar.xz
+util-linux-2.25.tar.xz
 xz-5.0.5.tar.xz
 "
 
@@ -161,9 +160,9 @@ echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
 echo -e "==========================\n"
 
-echo "# 5.5. gcc-4.9.0 - Pass 1"
-tar -jxf gcc-4.9.0.tar.bz2
-cd gcc-4.9.0
+echo "# 5.5. gcc-4.9.1 - Pass 1"
+tar -jxf gcc-4.9.1.tar.bz2
+cd gcc-4.9.1
 patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
 tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
@@ -185,9 +184,10 @@ do
   touch $file.orig
 done
 sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
+sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.9.0/configure                               \
+../gcc-4.9.1/configure                               \
     --target=$LFS_TGT                                \
     --prefix=/tools                                  \
     --with-sysroot=$LFS                              \
@@ -203,7 +203,6 @@ cd ../gcc-build
     --disable-libatomic                              \
     --disable-libgomp                                \
     --disable-libitm                                 \
-    --disable-libmudflap                             \
     --disable-libquadmath                            \
     --disable-libsanitizer                           \
     --disable-libssp                                 \
@@ -217,7 +216,7 @@ sed -i 's/none-/armv6l-/' Makefile
 make
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-4.9.0
+rm -rf gcc-build gcc-4.9.1
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
 tar -zxf rpi-3.12.y.tar.gz
@@ -253,12 +252,12 @@ ln -sv ld-2.19.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
 rm -rf glibc-build glibc-2.19
 
-echo "# 5.8. Libstdc++-4.9.0"
-tar -jxf gcc-4.9.0.tar.bz2
-cd gcc-4.9.0
+echo "# 5.8. Libstdc++-4.9.1"
+tar -jxf gcc-4.9.1.tar.bz2
+cd gcc-4.9.1
 mkdir -pv ../gcc-build
 cd ../gcc-build
-../gcc-4.9.0/libstdc++-v3/configure      \
+../gcc-4.9.1/libstdc++-v3/configure      \
     --host=$LFS_TGT                      \
     --prefix=/tools                      \
     --disable-multilib                   \
@@ -266,11 +265,11 @@ cd ../gcc-build
     --disable-nls                        \
     --disable-libstdcxx-threads          \
     --disable-libstdcxx-pch              \
-    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.9.0
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.9.1
 make
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-4.9.0
+rm -rf gcc-build gcc-4.9.1
 
 echo "# 5.9. Binutils-2.24 - Pass 2"
 tar -jxf binutils-2.24.tar.bz2
@@ -294,9 +293,9 @@ cp -v ld/ld-new /tools/bin
 cd $LFS/sources
 rm -rf binutils-build binutils-2.24
 
-echo "# 5.10. gcc-4.9.0 - Pass 2"
-tar -jxf gcc-4.9.0.tar.bz2
-cd gcc-4.9.0
+echo "# 5.10. gcc-4.9.1 - Pass 2"
+tar -jxf gcc-4.9.1.tar.bz2
+cd gcc-4.9.1
 patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
@@ -319,13 +318,14 @@ tar -Jxf ../gmp-6.0.0a.tar.xz
 mv -v gmp-6.0.0 gmp
 tar -zxf ../mpc-1.0.2.tar.gz
 mv -v mpc-1.0.2 mpc
+sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
 mkdir -v ../gcc-build
 cd ../gcc-build
 CC=$LFS_TGT-gcc                                      \
 CXX=$LFS_TGT-g++                                     \
 AR=$LFS_TGT-ar                                       \
 RANLIB=$LFS_TGT-ranlib                               \
-../gcc-4.9.0/configure                               \
+../gcc-4.9.1/configure                               \
     --prefix=/tools                                  \
     --with-local-prefix=/tools                       \
     --with-native-system-header-dir=/tools/include   \
@@ -345,7 +345,7 @@ make
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-build gcc-4.9.0
+rm -rf gcc-build gcc-4.9.1
 
 echo "# 5.11. Tcl-8.6.1"
 tar -zxf tcl8.6.1-src.tar.gz
@@ -381,14 +381,14 @@ make install
 cd $LFS/sources
 rm -rf dejagnu-1.5.1
 
-echo "# 5.14. Check-0.9.12"
-tar -zxf check-0.9.12.tar.gz
-cd check-0.9.12
+echo "# 5.14. Check-0.9.14"
+tar -zxf check-0.9.14.tar.gz
+cd check-0.9.14
 PKG_CONFIG= ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf check-0.9.12
+rm -rf check-0.9.14
 
 echo "# 5.15. Ncurses-5.9"
 tar -zxf ncurses-5.9.tar.gz
@@ -422,14 +422,14 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-echo "# 5.18. Coreutils-8.22"
-tar -Jxf coreutils-8.22.tar.xz
-cd coreutils-8.22
+echo "# 5.18. Coreutils-8.23"
+tar -Jxf coreutils-8.23.tar.xz
+cd coreutils-8.23
 ./configure --prefix=/tools --enable-install-program=hostname
 make
 make install
 cd $LFS/sources
-rm -rf coreutils-8.22
+rm -rf coreutils-8.23
 
 echo "# 5.19. Diffutils-3.3"
 tar -Jxf diffutils-3.3.tar.xz
@@ -440,14 +440,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.18"
-tar -zxf file-5.18.tar.gz
-cd file-5.18
+echo "# 5.20. File-5.19"
+tar -zxf file-5.19.tar.gz
+cd file-5.19
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf file-5.18
+rm -rf file-5.19
 
 echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
@@ -467,9 +467,9 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.1
 
-echo "# 5.23. Gettext-0.18.3.2"
-tar -zxf gettext-0.18.3.2.tar.gz
-cd gettext-0.18.3.2
+echo "# 5.23. Gettext-0.19.2"
+tar -Jxf gettext-0.19.2.tar.xz
+cd gettext-0.19.2
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
@@ -478,16 +478,16 @@ make -C src msgmerge
 make -C src xgettext
 cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.18.3.2
+rm -rf gettext-0.19.2
 
-echo "# 5.24. Grep-2.18"
-tar -Jxf grep-2.18.tar.xz
-cd grep-2.18
+echo "# 5.24. Grep-2.20"
+tar -Jxf grep-2.20.tar.xz
+cd grep-2.20
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf grep-2.18
+rm -rf grep-2.20
 
 echo "# 5.25. Gzip-1.6"
 tar -Jxf gzip-1.6.tar.xz
@@ -525,17 +525,16 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.1
 
-echo "# 5.29. Perl-5.18.2"
-tar -jxf perl-5.18.2.tar.bz2
-cd perl-5.18.2
-patch -Np1 -i ../perl-5.18.2-libc-1.patch
-sh Configure -des -Dprefix=/tools
+echo "# 5.29. Perl-5.20.0"
+tar -jxf perl-5.20.0.tar.bz2
+cd perl-5.20.0
+sh Configure -des -Dprefix=/tools -Dlibs=-lm
 make
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.18.2
-cp -Rv lib/* /tools/lib/perl5/5.18.2
+mkdir -pv /tools/lib/perl5/5.20.0
+cp -Rv lib/* /tools/lib/perl5/5.20.0
 cd $LFS/sources
-rm -rf perl-5.18.2
+rm -rf perl-5.20.0
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -546,14 +545,14 @@ make install
 cd $LFS/sources
 rm -rf sed-4.2.2
 
-echo "# 5.31. Tar-1.27.1"
-tar -Jxf tar-1.27.1.tar.xz
-cd tar-1.27.1
+echo "# 5.31. Tar-1.28"
+tar -Jxf tar-1.28.tar.xz
+cd tar-1.28
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf tar-1.27.1
+rm -rf tar-1.28
 
 echo "# 5.32. Texinfo-5.2"
 tar -Jxf texinfo-5.2.tar.xz
@@ -564,17 +563,18 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Util-linux-2.24.2"
-tar -Jxf util-linux-2.24.2.tar.xz
-cd util-linux-2.24.2
+echo "# 5.33. Util-linux-2.25"
+tar -Jxf util-linux-2.25.tar.xz
+cd util-linux-2.25
 ./configure --prefix=/tools                \
+            --without-python               \
             --disable-makeinstall-chown    \
             --without-systemdsystemunitdir \
             PKG_CONFIG=""
 make
 make install
 cd $LFS/sources
-rm -rf util-linux-2.24.2
+rm -rf util-linux-2.25
 
 echo "# 5.34. Xz-5.0.5"
 tar -Jxf xz-5.0.5.tar.xz
