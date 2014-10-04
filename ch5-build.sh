@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140808 v1.0
+# PiLFS Build Script SVN-20140929 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -64,8 +64,8 @@ mpfr-3.1.2.tar.xz
 gmp-6.0.0a.tar.xz
 mpc-1.0.2.tar.gz
 rpi-3.12.y.tar.gz
-glibc-2.19.tar.xz
-tcl8.6.1-src.tar.gz
+glibc-2.20.tar.xz
+tcl8.6.2-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.1.tar.gz
 check-0.9.14.tar.gz
@@ -83,12 +83,12 @@ gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.0.tar.bz2
 patch-2.7.1.tar.xz
-perl-5.20.0.tar.bz2
+perl-5.20.1.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-util-linux-2.25.tar.xz
-xz-5.0.5.tar.xz
+util-linux-2.25.1.tar.xz
+xz-5.0.7.tar.xz
 "
 
 for tarball in $LIST_OF_TARBALLS ; do
@@ -226,19 +226,19 @@ make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-echo "# 5.7. Glibc-2.19"
-tar -Jxf glibc-2.19.tar.xz
-cd glibc-2.19
+echo "# 5.7. Glibc-2.20"
+tar -Jxf glibc-2.20.tar.xz
+cd glibc-2.20
 if [ ! -r /usr/include/rpc/types.h ]; then
   su -c 'mkdir -p /usr/include/rpc'
   su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
 fi
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.19/configure                             \
+../glibc-2.20/configure                             \
       --prefix=/tools                               \
       --host=$LFS_TGT                               \
-      --build=$(../glibc-2.19/scripts/config.guess) \
+      --build=$(../glibc-2.20/scripts/config.guess) \
       --disable-profile                             \
       --enable-kernel=2.6.32                        \
       --with-headers=/tools/include                 \
@@ -248,9 +248,9 @@ cd ../glibc-build
 make
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.19.so $LFS/tools/lib/ld-linux.so.3
+ln -sv ld-2.20.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-build glibc-2.19
+rm -rf glibc-build glibc-2.20
 
 echo "# 5.8. Libstdc++-4.9.1"
 tar -jxf gcc-4.9.1.tar.bz2
@@ -329,10 +329,6 @@ RANLIB=$LFS_TGT-ranlib                               \
     --prefix=/tools                                  \
     --with-local-prefix=/tools                       \
     --with-native-system-header-dir=/tools/include   \
-    --enable-clocale=gnu                             \
-    --enable-shared                                  \
-    --enable-threads=posix                           \
-    --enable-__cxa_atexit                            \
     --enable-languages=c,c++                         \
     --disable-libstdcxx-pch                          \
     --disable-multilib                               \
@@ -347,9 +343,9 @@ ln -sv gcc /tools/bin/cc
 cd $LFS/sources
 rm -rf gcc-build gcc-4.9.1
 
-echo "# 5.11. Tcl-8.6.1"
-tar -zxf tcl8.6.1-src.tar.gz
-cd tcl8.6.1
+echo "# 5.11. Tcl-8.6.2"
+tar -zxf tcl8.6.2-src.tar.gz
+cd tcl8.6.2
 cd unix
 ./configure --prefix=/tools
 make
@@ -358,7 +354,7 @@ chmod -v u+w /tools/lib/libtcl8.6.so
 make install-private-headers
 ln -sv tclsh8.6 /tools/bin/tclsh
 cd $LFS/sources
-rm -rf tcl8.6.1
+rm -rf tcl8.6.2
 
 echo "# 5.12. Expect-5.45"
 tar -zxf expect5.45.tar.gz
@@ -525,16 +521,16 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.1
 
-echo "# 5.29. Perl-5.20.0"
-tar -jxf perl-5.20.0.tar.bz2
-cd perl-5.20.0
+echo "# 5.29. Perl-5.20.1"
+tar -jxf perl-5.20.1.tar.bz2
+cd perl-5.20.1
 sh Configure -des -Dprefix=/tools -Dlibs=-lm
 make
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.20.0
-cp -Rv lib/* /tools/lib/perl5/5.20.0
+mkdir -pv /tools/lib/perl5/5.20.1
+cp -Rv lib/* /tools/lib/perl5/5.20.1
 cd $LFS/sources
-rm -rf perl-5.20.0
+rm -rf perl-5.20.1
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -563,9 +559,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Util-linux-2.25"
-tar -Jxf util-linux-2.25.tar.xz
-cd util-linux-2.25
+echo "# 5.33. Util-linux-2.25.1"
+tar -Jxf util-linux-2.25.1.tar.xz
+cd util-linux-2.25.1
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -574,16 +570,16 @@ cd util-linux-2.25
 make
 make install
 cd $LFS/sources
-rm -rf util-linux-2.25
+rm -rf util-linux-2.25.1
 
-echo "# 5.34. Xz-5.0.5"
-tar -Jxf xz-5.0.5.tar.xz
-cd xz-5.0.5
+echo "# 5.34. Xz-5.0.7"
+tar -Jxf xz-5.0.7.tar.xz
+cd xz-5.0.7
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf xz-5.0.5
+rm -rf xz-5.0.7
 
 do_strip
 
