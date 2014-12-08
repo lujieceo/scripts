@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20140929 v1.0
+# PiLFS Build Script SVN-20141203 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
 
 LOCAL_TIMEZONE=Europe/London    # Use this timezone from /usr/share/zoneinfo/ to set /etc/localtime. See "6.9.2. Configuring Glibc".
-GROFF_PAPER_SIZE=A4             # Use this default paper size for Groff. See "6.52. Groff-1.22.2".
+GROFF_PAPER_SIZE=A4             # Use this default paper size for Groff. See "6.52. Groff-1.22.3".
 INSTALL_OPTIONAL_DOCS=1         # Install optional documentation when given a choice?
 INSTALL_ALL_LOCALES=0           # Install all glibc locales? By default only en_US.ISO-8859-1 and en_US.UTF-8 are installed.
 INSTALL_SYSTEMD_DEPS=1          # Install optional systemd dependencies? (Attr, Acl, Libcap, Expat, XML::Parser & Intltool)
@@ -37,22 +37,22 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.12.y.tar.gz
-man-pages-3.73.tar.xz
+man-pages-3.75.tar.xz
 glibc-2.20.tar.xz
 glibc-2.20-fhs-1.patch
-tzdata2014h.tar.gz
+tzdata2014j.tar.gz
 zlib-1.2.8.tar.xz
-file-5.19.tar.gz
+file-5.20.tar.gz
 binutils-2.24.tar.bz2
 binutils-2.24-load_gcc_lto_plugin_by_default-1.patch
 binutils-2.24-lto_testsuite-1.patch
+binutils-2.24-multiple_plugins-1.patch
 gmp-6.0.0a.tar.xz
 mpfr-3.1.2.tar.xz
 mpfr-3.1.2-upstream_fixes-2.patch
 mpc-1.0.2.tar.gz
-gcc-4.9.1.tar.bz2
+gcc-4.9.2.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
-gcc-4.9.1-upstream_fixes-1.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
@@ -71,48 +71,48 @@ iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
 flex-2.5.39.tar.bz2
 bison-3.0.2.tar.xz
-grep-2.20.tar.xz
+grep-2.21.tar.xz
 readline-6.3.tar.gz
-readline-6.3-upstream_fixes-2.patch
-bash-4.3.tar.gz
-bash-4.3-upstream_fixes-5.patch
+readline-6.3-upstream_fixes-3.patch
+bash-4.3.30.tar.gz
 bc-1.06.95.tar.bz2
 bc-1.06.95-memory_leak-1.patch
-libtool-2.4.2.tar.gz
+libtool-2.4.4.tar.xz
 gdbm-1.11.tar.gz
 expat-2.1.0.tar.gz
 inetutils-1.9.2.tar.gz
 perl-5.20.1.tar.bz2
+perl-5.20.1-infinite_recurse_fix-1.patch
 XML-Parser-2.42_01.tar.gz
 autoconf-2.69.tar.xz
 automake-1.14.1.tar.xz
 diffutils-3.3.tar.xz
 gawk-4.1.1.tar.xz
 findutils-4.4.2.tar.gz
-gettext-0.19.2.tar.xz
+gettext-0.19.3.tar.xz
 intltool-0.50.2.tar.gz
 gperf-3.0.4.tar.gz
-groff-1.22.2.tar.gz
+groff-1.22.3.tar.gz
 xz-5.0.7.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
-iproute2-3.16.0.tar.xz
+iproute2-3.17.0.tar.xz
 kbd-2.0.2.tar.gz
 kbd-2.0.2-backspace-1.patch
-kmod-18.tar.xz
-libpipeline-1.3.1.tar.gz
-make-4.0.tar.bz2
-man-db-2.7.0.2.tar.xz
+kmod-19.tar.xz
+libpipeline-1.4.0.tar.gz
+make-4.1.tar.bz2
+man-db-2.7.1.tar.xz
 patch-2.7.1.tar.xz
-sysklogd-1.5.tar.gz
+sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-eudev-1.10.tar.gz
-eudev-1.10-manpages.tar.bz2
+eudev-2.1.tar.gz
+eudev-2.1-manpages.tar.bz2
 udev-lfs-20140408.tar.bz2
-util-linux-2.25.1.tar.xz
+util-linux-2.25.2.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -166,12 +166,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.73"
-tar -Jxf man-pages-3.73.tar.xz
-cd man-pages-3.73
+echo "# 6.8. Man-pages-3.75"
+tar -Jxf man-pages-3.75.tar.xz
+cd man-pages-3.75
 make install
 cd /sources
-rm -rf man-pages-3.73
+rm -rf man-pages-3.75
 
 echo "# 6.9. Glibc-2.20"
 tar -Jxf glibc-2.20.tar.xz
@@ -213,7 +213,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2014h.tar.gz
+tar -zxf ../tzdata2014j.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -269,14 +269,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.19"
-tar -zxf file-5.19.tar.gz
-cd file-5.19
+echo "# 6.12. File-5.20"
+tar -zxf file-5.20.tar.gz
+cd file-5.20
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf file-5.19
+rm -rf file-5.20
 
 echo "# 6.13. Binutils-2.24"
 tar -jxf binutils-2.24.tar.bz2
@@ -285,6 +285,7 @@ rm -fv etc/standards.info
 sed -i.bak '/^INFO/s/standards.info //' etc/Makefile.in
 patch -Np1 -i ../binutils-2.24-load_gcc_lto_plugin_by_default-1.patch
 patch -Np1 -i ../binutils-2.24-lto_testsuite-1.patch
+patch -Np1 -i ../binutils-2.24-multiple_plugins-1.patch
 mkdir -v ../binutils-build
 cd ../binutils-build
 ../binutils-2.24/configure --prefix=/usr  \
@@ -339,16 +340,14 @@ fi
 cd /sources
 rm -rf mpc-1.0.2
 
-echo "# 6.17. GCC-4.9.1"
-tar -jxf gcc-4.9.1.tar.bz2
-cd gcc-4.9.1
+echo "# 6.17. GCC-4.9.2"
+tar -jxf gcc-4.9.2.tar.bz2
+cd gcc-4.9.2
 patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
-sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
-patch -Np1 -i ../gcc-4.9.1-upstream_fixes-1.patch
 mkdir -v ../gcc-build
 cd ../gcc-build
 SED=sed                          \
-../gcc-4.9.1/configure           \
+../gcc-4.9.2/configure           \
      --prefix=/usr               \
      --enable-languages=c,c++    \
      --disable-multilib          \
@@ -359,11 +358,11 @@ make install
 ln -sv ../usr/bin/cpp /lib
 ln -sv gcc /usr/bin/cc
 install -v -dm755 /usr/lib/bfd-plugins
-ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/4.9.1/liblto_plugin.so /usr/lib/bfd-plugins/
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/4.9.2/liblto_plugin.so /usr/lib/bfd-plugins/
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-build gcc-4.9.1
+rm -rf gcc-build gcc-4.9.2
 
 echo "# 6.18. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -627,19 +626,19 @@ make install
 cd /sources
 rm -rf bison-3.0.2
 
-echo "# 6.34. Grep-2.20"
-tar -Jxf grep-2.20.tar.xz
-cd grep-2.20
+echo "# 6.34. Grep-2.21"
+tar -Jxf grep-2.21.tar.xz
+cd grep-2.21
 ./configure --prefix=/usr --bindir=/bin
 make
 make install
 cd /sources
-rm -rf grep-2.20
+rm -rf grep-2.21
 
 echo "# 6.35. Readline-6.3"
 tar -zxf readline-6.3.tar.gz
 cd readline-6.3
-patch -Np1 -i ../readline-6.3-upstream_fixes-2.patch
+patch -Np1 -i ../readline-6.3-upstream_fixes-3.patch
 sed -i '/MV.*old/d' Makefile.in
 sed -i '/{OLDSUFF}/c:' support/shlib-install
 ./configure --prefix=/usr --docdir=/usr/share/doc/readline-6.3 
@@ -654,13 +653,12 @@ fi
 cd /sources
 rm -rf readline-6.3
 
-echo "# 6.36. Bash-4.3"
-tar -zxf bash-4.3.tar.gz
-cd bash-4.3
-patch -Np1 -i ../bash-4.3-upstream_fixes-5.patch
+echo "# 6.36. Bash-4.3.30"
+tar -zxf bash-4.3.30.tar.gz
+cd bash-4.3.30
 ./configure --prefix=/usr                     \
             --bindir=/bin                     \
-            --htmldir=/usr/share/doc/bash-4.3 \
+            --htmldir=/usr/share/doc/bash-4.3.30 \
             --without-bash-malloc             \
             --with-installed-readline
 make
@@ -668,7 +666,7 @@ make install
 # exec /bin/bash --login +h
 # Don't know of a good way to keep running the script after entering bash here.
 cd /sources
-rm -rf bash-4.3
+rm -rf bash-4.3.30
 
 echo "# 6.37. Bc-1.06.95"
 tar -jxf bc-1.06.95.tar.bz2
@@ -683,14 +681,14 @@ make install
 cd /sources
 rm -rf bc-1.06.95
 
-echo "# 6.38. Libtool-2.4.2"
-tar -zxf libtool-2.4.2.tar.gz
-cd libtool-2.4.2
+echo "# 6.38. Libtool-2.4.4"
+tar -Jxf libtool-2.4.4.tar.xz
+cd libtool-2.4.4
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf libtool-2.4.2
+rm -rf libtool-2.4.4
 
 echo "# 6.39. GDBM-1.11"
 tar -zxf gdbm-1.11.tar.gz
@@ -738,6 +736,7 @@ cd perl-5.20.1
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 export BUILD_ZLIB=False
 export BUILD_BZIP2=0
+patch -Np1 -i ../perl-5.20.1-infinite_recurse_fix-1.patch
 sh Configure -des -Dprefix=/usr                 \
                   -Dvendorprefix=/usr           \
                   -Dman1dir=/usr/share/man/man1 \
@@ -813,14 +812,14 @@ sed -i 's/find:=${BINDIR}/find:=\/bin/' /usr/bin/updatedb
 cd /sources
 rm -rf findutils-4.4.2
 
-echo "# 6.49. Gettext-0.19.2"
-tar -Jxf gettext-0.19.2.tar.xz
-cd gettext-0.19.2
-./configure --prefix=/usr --docdir=/usr/share/doc/gettext-0.19.2
+echo "# 6.49. Gettext-0.19.3"
+tar -Jxf gettext-0.19.3.tar.xz
+cd gettext-0.19.3
+./configure --prefix=/usr --docdir=/usr/share/doc/gettext-0.19.3
 make
 make install
 cd /sources
-rm -rf gettext-0.19.2
+rm -rf gettext-0.19.3
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.50. Intltool-0.50.2"
@@ -845,14 +844,14 @@ make install
 cd /sources
 rm -rf gperf-3.0.4
 
-echo "# 6.52. Groff-1.22.2"
-tar -zxf groff-1.22.2.tar.gz
-cd groff-1.22.2
+echo "# 6.52. Groff-1.22.3"
+tar -zxf groff-1.22.3.tar.gz
+cd groff-1.22.3
 PAGE=$GROFF_PAPER_SIZE ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf groff-1.22.2
+rm -rf groff-1.22.3
 
 echo "# 6.53. Xz-5.0.7"
 tar -Jxf xz-5.0.7.tar.xz
@@ -889,16 +888,16 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.6
 
-echo "# 6.57. IPRoute2-3.16.0"
-tar -Jxf iproute2-3.16.0.tar.xz
-cd iproute2-3.16.0
+echo "# 6.57. IPRoute2-3.17.0"
+tar -Jxf iproute2-3.17.0.tar.xz
+cd iproute2-3.17.0
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make
-make DOCDIR=/usr/share/doc/iproute2-3.16.0 install
+make DOCDIR=/usr/share/doc/iproute2-3.17.0 install
 cd /sources
-rm -rf iproute2-3.16.0
+rm -rf iproute2-3.17.0
 
 echo "# 6.58. Kbd-2.0.2"
 tar -zxf kbd-2.0.2.tar.gz
@@ -916,9 +915,9 @@ fi
 cd /sources
 rm -rf kbd-2.0.2
 
-echo "# 6.59. Kmod-18"
-tar -Jxf kmod-18.tar.xz
-cd kmod-18
+echo "# 6.59. Kmod-19"
+tar -Jxf kmod-19.tar.xz
+cd kmod-19
 ./configure --prefix=/usr          \
             --bindir=/bin          \
             --sysconfdir=/etc      \
@@ -932,25 +931,25 @@ for target in depmod insmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-18
+rm -rf kmod-19
 
-echo "# 6.60. Libpipeline-1.3.1"
-tar -zxf libpipeline-1.3.1.tar.gz
-cd libpipeline-1.3.1
+echo "# 6.60. Libpipeline-1.4.0"
+tar -zxf libpipeline-1.4.0.tar.gz
+cd libpipeline-1.4.0
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf libpipeline-1.3.1
+rm -rf libpipeline-1.4.0
 
-echo "# 6.61. Make-4.0"
-tar -jxf make-4.0.tar.bz2
-cd make-4.0
+echo "# 6.61. Make-4.1"
+tar -jxf make-4.1.tar.bz2
+cd make-4.1
 ./configure --prefix=/usr
 make
 make install
 cd /sources
-rm -rf make-4.0
+rm -rf make-4.1
 
 echo "# 6.62. Patch-2.7.1"
 tar -Jxf patch-2.7.1.tar.xz
@@ -961,9 +960,9 @@ make install
 cd /sources
 rm -rf patch-2.7.1
 
-echo "# 6.63. Sysklogd-1.5"
-tar -zxf sysklogd-1.5.tar.gz
-cd sysklogd-1.5
+echo "# 6.63. Sysklogd-1.5.1"
+tar -zxf sysklogd-1.5.1.tar.gz
+cd sysklogd-1.5.1
 sed -i '/Error loading kernel symbols/{n;n;d}' ksym_mod.c
 make
 make BINDIR=/sbin install
@@ -981,7 +980,7 @@ user.* -/var/log/user.log
 # End /etc/syslog.conf
 EOF
 cd /sources
-rm -rf sysklogd-1.5
+rm -rf sysklogd-1.5.1
 
 echo "# 6.64. Sysvinit-2.88dsf"
 tar -jxf sysvinit-2.88dsf.tar.bz2
@@ -1017,9 +1016,9 @@ make install
 cd /sources
 rm -rf texinfo-5.2
 
-echo "# 6.67. Eudev-1.10"
-tar -zxf eudev-1.10.tar.gz
-cd eudev-1.10
+echo "# 6.67. Eudev-2.1"
+tar -zxf eudev-2.1.tar.gz
+cd eudev-2.1
 sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
 BLKID_CFLAGS=-I/tools/include       \
 BLKID_LIBS='-L/tools/lib -lblkid'   \
@@ -1040,34 +1039,41 @@ BLKID_LIBS='-L/tools/lib -lblkid'   \
             --disable-gtk-doc-html  \
             --with-firmware-path=/lib/firmware
 make
-mkdir -pv /lib/{firmware,udev}
 mkdir -pv /lib/udev/rules.d
 mkdir -pv /etc/udev/rules.d
 make install
-tar -jxf ../eudev-1.10-manpages.tar.bz2 -C /usr/share
+tar -jxf ../eudev-2.1-manpages.tar.bz2 -C /usr/share
 tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
+udevadm hwdb --update
 cd /sources
-rm -rf eudev-1.10
+rm -rf eudev-2.1
 
-echo "# 6.68. Util-linux-2.25.1"
-tar -Jxf util-linux-2.25.1.tar.xz
-cd util-linux-2.25.1
+echo "# 6.68. Util-linux-2.25.2"
+tar -Jxf util-linux-2.25.2.tar.xz
+cd util-linux-2.25.2
 mkdir -pv /var/lib/hwclock
-sed -e 's/2^64/(2^64/' -e 's/E </E) <=/' -e 's/ne /eq /' \
-    -i tests/ts/ipcs/limits2
-./configure ADJTIME_PATH=/var/lib/hwclock/adjtime \
-            --docdir=/usr/share/doc/util-linux-2.25.1
+./configure ADJTIME_PATH=/var/lib/hwclock/adjtime     \
+            --docdir=/usr/share/doc/util-linux-2.25.2 \
+            --disable-chfn-chsh  \
+            --disable-login      \
+            --disable-su         \
+            --disable-setpriv    \
+            --disable-runuser    \
+            --disable-pylibmount \
+            --without-python     \
+            --without-systemd    \
+            --without-systemdsystemunitdir
 make
 make install
 cd /sources
-rm -rf util-linux-2.25.1
+rm -rf util-linux-2.25.2
 
-echo "# 6.69. Man-DB-2.7.0.2"
-tar -Jxf man-db-2.7.0.2.tar.xz
-cd man-db-2.7.0.2
+echo "# 6.69. Man-DB-2.7.1"
+tar -Jxf man-db-2.7.1.tar.xz
+cd man-db-2.7.1
 ./configure --prefix=/usr                          \
-            --docdir=/usr/share/doc/man-db-2.7.0.2 \
+            --docdir=/usr/share/doc/man-db-2.7.1 \
             --sysconfdir=/etc                      \
             --disable-setuid                       \
             --with-browser=/usr/bin/lynx           \
@@ -1076,7 +1082,7 @@ cd man-db-2.7.0.2
 make
 make install
 cd /sources
-rm -rf man-db-2.7.0.2
+rm -rf man-db-2.7.1
 
 echo "# 6.70. Vim-7.4"
 tar -jxf vim-7.4.tar.bz2
