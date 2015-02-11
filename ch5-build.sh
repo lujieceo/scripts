@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20141203 v1.0
+# PiLFS Build Script SVN-20150209 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -57,38 +57,38 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-binutils-2.24.tar.bz2
+binutils-2.25.tar.bz2
 gcc-4.9.2.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
 mpfr-3.1.2.tar.xz
 gmp-6.0.0a.tar.xz
 mpc-1.0.2.tar.gz
-rpi-3.12.y.tar.gz
-glibc-2.20.tar.xz
+rpi-3.18.y.tar.gz
+glibc-2.21.tar.xz
 tcl8.6.3-src.tar.gz
 expect5.45.tar.gz
-dejagnu-1.5.1.tar.gz
+dejagnu-1.5.2.tar.gz
 check-0.9.14.tar.gz
 ncurses-5.9.tar.gz
 bash-4.3.30.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.23.tar.xz
 diffutils-3.3.tar.xz
-file-5.20.tar.gz
+file-5.22.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.1.tar.xz
-gettext-0.19.3.tar.xz
+gettext-0.19.4.tar.xz
 grep-2.21.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.1.tar.bz2
-patch-2.7.1.tar.xz
+patch-2.7.4.tar.xz
 perl-5.20.1.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-util-linux-2.25.2.tar.xz
-xz-5.0.7.tar.xz
+util-linux-2.26-rc2.tar.xz
+xz-5.2.0.tar.xz
 "
 
 for tarball in $LIST_OF_TARBALLS ; do
@@ -138,13 +138,13 @@ done
 total_time=$(timer)
 sbu_time=$(timer)
 
-echo "# 5.4. Binutils-2.24 - Pass 1"
+echo "# 5.4. Binutils-2.25 - Pass 1"
 cd $LFS/sources
-tar -jxf binutils-2.24.tar.bz2
-cd binutils-2.24
+tar -jxf binutils-2.25.tar.bz2
+cd binutils-2.25
 mkdir -v ../binutils-build
 cd ../binutils-build
-../binutils-2.24/configure     \
+../binutils-2.25/configure     \
     --prefix=/tools            \
     --with-sysroot=$LFS        \
     --with-lib-path=/tools/lib \
@@ -154,7 +154,7 @@ cd ../binutils-build
 make
 make install
 cd $LFS/sources
-rm -rf binutils-build binutils-2.24
+rm -rf binutils-build binutils-2.25
 
 echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
@@ -218,26 +218,26 @@ cd $LFS/sources
 rm -rf gcc-build gcc-4.9.2
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
-tar -zxf rpi-3.12.y.tar.gz
-cd linux-rpi-3.12.y
+tar -zxf rpi-3.18.y.tar.gz
+cd linux-rpi-3.18.y
 make mrproper
 make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-echo "# 5.7. Glibc-2.20"
-tar -Jxf glibc-2.20.tar.xz
-cd glibc-2.20
+echo "# 5.7. Glibc-2.21"
+tar -Jxf glibc-2.21.tar.xz
+cd glibc-2.21
 if [ ! -r /usr/include/rpc/types.h ]; then
   su -c 'mkdir -p /usr/include/rpc'
   su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
 fi
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.20/configure                             \
+../glibc-2.21/configure                             \
       --prefix=/tools                               \
       --host=$LFS_TGT                               \
-      --build=$(../glibc-2.20/scripts/config.guess) \
+      --build=$(../glibc-2.21/scripts/config.guess) \
       --disable-profile                             \
       --enable-kernel=2.6.32                        \
       --with-headers=/tools/include                 \
@@ -247,9 +247,9 @@ cd ../glibc-build
 make
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.20.so $LFS/tools/lib/ld-linux.so.3
+ln -sv ld-2.21.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-build glibc-2.20
+rm -rf glibc-build glibc-2.21
 
 echo "# 5.8. Libstdc++-4.9.2"
 tar -jxf gcc-4.9.2.tar.bz2
@@ -270,15 +270,15 @@ make install
 cd $LFS/sources
 rm -rf gcc-build gcc-4.9.2
 
-echo "# 5.9. Binutils-2.24 - Pass 2"
-tar -jxf binutils-2.24.tar.bz2
-cd binutils-2.24
+echo "# 5.9. Binutils-2.25 - Pass 2"
+tar -jxf binutils-2.25.tar.bz2
+cd binutils-2.25
 mkdir -v ../binutils-build
 cd ../binutils-build
 CC=$LFS_TGT-gcc                \
 AR=$LFS_TGT-ar                 \
 RANLIB=$LFS_TGT-ranlib         \
-../binutils-2.24/configure     \
+../binutils-2.25/configure     \
     --prefix=/tools            \
     --disable-nls              \
     --disable-werror           \
@@ -290,7 +290,7 @@ make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
 cp -v ld/ld-new /tools/bin
 cd $LFS/sources
-rm -rf binutils-build binutils-2.24
+rm -rf binutils-build binutils-2.25
 
 echo "# 5.10. gcc-4.9.2 - Pass 2"
 tar -jxf gcc-4.9.2.tar.bz2
@@ -367,13 +367,13 @@ make SCRIPTS="" install
 cd $LFS/sources
 rm -rf expect5.45
 
-echo "# 5.13. DejaGNU-1.5.1"
-tar -zxf dejagnu-1.5.1.tar.gz
-cd dejagnu-1.5.1
+echo "# 5.13. DejaGNU-1.5.2"
+tar -zxf dejagnu-1.5.2.tar.gz
+cd dejagnu-1.5.2
 ./configure --prefix=/tools
 make install
 cd $LFS/sources
-rm -rf dejagnu-1.5.1
+rm -rf dejagnu-1.5.2
 
 echo "# 5.14. Check-0.9.14"
 tar -zxf check-0.9.14.tar.gz
@@ -434,14 +434,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.20"
-tar -zxf file-5.20.tar.gz
-cd file-5.20
+echo "# 5.20. File-5.22"
+tar -zxf file-5.22.tar.gz
+cd file-5.22
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf file-5.20
+rm -rf file-5.22
 
 echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
@@ -461,18 +461,19 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.1
 
-echo "# 5.23. Gettext-0.19.3"
-tar -Jxf gettext-0.19.3.tar.xz
-cd gettext-0.19.3
+echo "# 5.23. Gettext-0.19.4"
+tar -Jxf gettext-0.19.4.tar.xz
+cd gettext-0.19.4
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
+make -C intl pluralx.c
 make -C src msgfmt
 make -C src msgmerge
 make -C src xgettext
 cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.19.3
+rm -rf gettext-0.19.4
 
 echo "# 5.24. Grep-2.21"
 tar -Jxf grep-2.21.tar.xz
@@ -510,14 +511,14 @@ make install
 cd $LFS/sources
 rm -rf make-4.1
 
-echo "# 5.28. Patch-2.7.1"
-tar -Jxf patch-2.7.1.tar.xz
-cd patch-2.7.1
+echo "# 5.28. Patch-2.7.4"
+tar -Jxf patch-2.7.4.tar.xz
+cd patch-2.7.4
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf patch-2.7.1
+rm -rf patch-2.7.4
 
 echo "# 5.29. Perl-5.20.1"
 tar -jxf perl-5.20.1.tar.bz2
@@ -557,9 +558,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Util-linux-2.25.2"
-tar -Jxf util-linux-2.25.2.tar.xz
-cd util-linux-2.25.2
+echo "# 5.33. Util-linux-2.26-rc2"
+tar -Jxf util-linux-2.26-rc2.tar.xz
+cd util-linux-2.26-rc2
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -568,16 +569,16 @@ cd util-linux-2.25.2
 make
 make install
 cd $LFS/sources
-rm -rf util-linux-2.25.2
+rm -rf util-linux-2.26-rc2
 
-echo "# 5.34. Xz-5.0.7"
-tar -Jxf xz-5.0.7.tar.xz
-cd xz-5.0.7
+echo "# 5.34. Xz-5.2.0"
+tar -Jxf xz-5.2.0.tar.xz
+cd xz-5.2.0
 ./configure --prefix=/tools
 make
 make install
 cd $LFS/sources
-rm -rf xz-5.0.7
+rm -rf xz-5.2.0
 
 do_strip
 
