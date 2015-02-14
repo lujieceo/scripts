@@ -45,11 +45,13 @@ zlib-1.2.8.tar.xz
 file-5.22.tar.gz
 binutils-2.25.tar.bz2
 gmp-6.0.0a.tar.xz
+gmp-6.0.0a-rpi2-cpuguess-fix.patch
 mpfr-3.1.2.tar.xz
 mpfr-3.1.2-upstream_fixes-3.patch
 mpc-1.0.2.tar.gz
 gcc-4.9.2.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
+gcc-4.9.2-rpi2-cpu-default.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
@@ -292,6 +294,9 @@ rm -rf binutils-build binutils-2.25
 echo "# 6.14. GMP-6.0.0a"
 tar -Jxf gmp-6.0.0a.tar.xz
 cd gmp-6.0.0
+case $(uname -m) in
+  armv7l) patch -Np1 -i ../gmp-6.0.0a-rpi2-cpuguess-fix.patch ;; 
+esac
 ./configure --prefix=/usr \
             --enable-cxx  \
             --docdir=/usr/share/doc/gmp-6.0.0a
@@ -336,7 +341,10 @@ rm -rf mpc-1.0.2
 echo "# 6.17. GCC-4.9.2"
 tar -jxf gcc-4.9.2.tar.bz2
 cd gcc-4.9.2
-patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
+case $(uname -m) in
+  armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
+  armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;; 
+esac
 mkdir -v ../gcc-build
 cd ../gcc-build
 SED=sed                          \

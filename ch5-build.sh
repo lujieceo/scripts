@@ -24,8 +24,8 @@ function prebuild_sanity_check {
         exit 1
     fi
 
-    if ! [[ -v LFS_TGT ]] || [[ $LFS_TGT != "armv6l-lfs-linux-gnueabihf" ]] ; then
-        echo "Your LFS_TGT variable should be set to armv6l-lfs-linux-gnueabihf"
+    if ! [[ -v LFS_TGT ]] || [[ $LFS_TGT != "armv6l-lfs-linux-gnueabihf" && $LFS_TGT != "armv7l-lfs-linux-gnueabihf" ]] ; then
+        echo "Your LFS_TGT variable should be set to armv6l-lfs-linux-gnueabihf for Raspberry Pi or armv7l-lfs-linux-gnueabihf for Raspberry Pi 2"
         exit 1
     fi
 
@@ -60,6 +60,7 @@ LIST_OF_TARBALLS="
 binutils-2.25.tar.bz2
 gcc-4.9.2.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
+gcc-4.9.2-rpi2-cpu-default.patch
 mpfr-3.1.2.tar.xz
 gmp-6.0.0a.tar.xz
 mpc-1.0.2.tar.gz
@@ -163,7 +164,10 @@ echo -e "==========================\n"
 echo "# 5.5. gcc-4.9.2 - Pass 1"
 tar -jxf gcc-4.9.2.tar.bz2
 cd gcc-4.9.2
-patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
+case $(uname -m) in
+  armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
+  armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;;
+esac
 tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
 tar -Jxf ../gmp-6.0.0a.tar.xz
@@ -211,7 +215,10 @@ cd ../gcc-build
     --enable-languages=c,c++
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
-sed -i 's/none-/armv6l-/' Makefile
+case $(uname -m) in
+  armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
+  armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
+esac
 make
 make install
 cd $LFS/sources
@@ -295,7 +302,10 @@ rm -rf binutils-build binutils-2.25
 echo "# 5.10. gcc-4.9.2 - Pass 2"
 tar -jxf gcc-4.9.2.tar.bz2
 cd gcc-4.9.2
-patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch
+case $(uname -m) in
+  armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
+  armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;;
+esac
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
 for file in \
@@ -334,7 +344,10 @@ RANLIB=$LFS_TGT-ranlib                               \
     --disable-libgomp
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
-sed -i 's/none-/armv6l-/' Makefile
+case $(uname -m) in
+  armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
+  armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
+esac
 make
 make install
 ln -sv gcc /tools/bin/cc

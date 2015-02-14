@@ -78,6 +78,8 @@ http://www.linuxfromscratch.org/patches/lfs/development/perl-5.20.1-infinite_rec
 http://www.linuxfromscratch.org/patches/lfs/development/readline-6.3-upstream_fixes-3.patch
 http://www.linuxfromscratch.org/patches/lfs/development/sysvinit-2.88dsf-consolidated-1.patch
 http://www.intestinate.com/pilfs/patches/gcc-4.9.0-pi-cpu-default.patch
+http://www.intestinate.com/pilfs/patches/gcc-4.9.2-rpi2-cpu-default.patch
+http://www.intestinate.com/pilfs/patches/gmp-6.0.0a-rpi2-cpuguess-fix.patch
 http://www.intestinate.com/pilfs/scripts/ch5-build.sh
 http://www.intestinate.com/pilfs/scripts/ch6-build.sh
 http://www.intestinate.com/pilfs/scripts/pilfs-bootscripts-20140312.tar.xz
