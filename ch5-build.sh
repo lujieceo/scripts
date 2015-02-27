@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150209 v1.0
+# PiLFS Build Script SVN-20150223 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
 
+PARALLEL_JOBS=1             # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 recommended.
 STRIP_AND_DELETE_DOCS=1     # Strip binaries and delete manpages to save space at the end of chapter 5?
 
 # End of optional parameters
@@ -84,11 +85,11 @@ gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.1.tar.bz2
 patch-2.7.4.tar.xz
-perl-5.20.1.tar.bz2
+perl-5.20.2.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-util-linux-2.26-rc2.tar.xz
+util-linux-2.26.tar.xz
 xz-5.2.0.tar.xz
 "
 
@@ -152,7 +153,7 @@ cd ../binutils-build
     --target=$LFS_TGT          \
     --disable-nls              \
     --disable-werror
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf binutils-build binutils-2.25
@@ -219,7 +220,7 @@ case $(uname -m) in
   armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
   armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
 esac
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf gcc-build gcc-4.9.2
@@ -239,6 +240,9 @@ if [ ! -r /usr/include/rpc/types.h ]; then
   su -c 'mkdir -p /usr/include/rpc'
   su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
 fi
+sed -e '/ia32/s/^/1:/' \
+    -e '/SSE2/s/^1://' \
+    -i  sysdeps/i386/i686/multiarch/mempcpy_chk.S
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.21/configure                             \
@@ -251,7 +255,7 @@ cd ../glibc-build
       libc_cv_forced_unwind=yes                     \
       libc_cv_ctors_header=yes                      \
       libc_cv_c_cleanup=yes
-make
+make -j $PARALLEL_JOBS
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
 ln -sv ld-2.21.so $LFS/tools/lib/ld-linux.so.3
@@ -272,7 +276,7 @@ cd ../gcc-build
     --disable-libstdcxx-threads          \
     --disable-libstdcxx-pch              \
     --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.9.2
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf gcc-build gcc-4.9.2
@@ -291,7 +295,7 @@ RANLIB=$LFS_TGT-ranlib         \
     --disable-werror           \
     --with-lib-path=/tools/lib \
     --with-sysroot
-make
+make -j $PARALLEL_JOBS
 make install
 make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
@@ -348,7 +352,7 @@ case $(uname -m) in
   armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
   armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
 esac
-make
+make -j $PARALLEL_JOBS
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
@@ -359,7 +363,7 @@ tar -zxf tcl8.6.3-src.tar.gz
 cd tcl8.6.3
 cd unix
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 chmod -v u+w /tools/lib/libtcl8.6.so
 make install-private-headers
@@ -375,7 +379,7 @@ sed 's:/usr/local/bin:/bin:' configure.orig > configure
 ./configure --prefix=/tools       \
             --with-tcl=/tools/lib \
             --with-tclinclude=/tools/include
-make
+make -j $PARALLEL_JOBS
 make SCRIPTS="" install
 cd $LFS/sources
 rm -rf expect5.45
@@ -392,7 +396,7 @@ echo "# 5.14. Check-0.9.14"
 tar -zxf check-0.9.14.tar.gz
 cd check-0.9.14
 PKG_CONFIG= ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf check-0.9.14
@@ -406,7 +410,7 @@ cd ncurses-5.9
             --without-ada   \
             --enable-widec  \
             --enable-overwrite
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf ncurses-5.9
@@ -415,7 +419,7 @@ echo "# 5.16. Bash-4.3.30"
 tar -zxf bash-4.3.30.tar.gz
 cd bash-4.3.30
 ./configure --prefix=/tools --without-bash-malloc
-make
+make -j $PARALLEL_JOBS
 make install
 ln -sv bash /tools/bin/sh
 cd $LFS/sources
@@ -424,7 +428,7 @@ rm -rf bash-4.3.30
 echo "# 5.17. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
 cd bzip2-1.0.6
-make
+make -j $PARALLEL_JOBS
 make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
@@ -433,7 +437,7 @@ echo "# 5.18. Coreutils-8.23"
 tar -Jxf coreutils-8.23.tar.xz
 cd coreutils-8.23
 ./configure --prefix=/tools --enable-install-program=hostname
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf coreutils-8.23
@@ -442,7 +446,7 @@ echo "# 5.19. Diffutils-3.3"
 tar -Jxf diffutils-3.3.tar.xz
 cd diffutils-3.3
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf diffutils-3.3
@@ -451,7 +455,7 @@ echo "# 5.20. File-5.22"
 tar -zxf file-5.22.tar.gz
 cd file-5.22
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf file-5.22
@@ -460,7 +464,7 @@ echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
 cd findutils-4.4.2
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf findutils-4.4.2
@@ -469,7 +473,7 @@ echo "# 5.22. Gawk-4.1.1"
 tar -Jxf gawk-4.1.1.tar.xz
 cd gawk-4.1.1
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf gawk-4.1.1
@@ -492,7 +496,7 @@ echo "# 5.24. Grep-2.21"
 tar -Jxf grep-2.21.tar.xz
 cd grep-2.21
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf grep-2.21
@@ -501,7 +505,7 @@ echo "# 5.25. Gzip-1.6"
 tar -Jxf gzip-1.6.tar.xz
 cd gzip-1.6
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf gzip-1.6
@@ -510,7 +514,7 @@ echo "# 5.26. M4-1.4.17"
 tar -Jxf m4-1.4.17.tar.xz
 cd m4-1.4.17
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf m4-1.4.17
@@ -519,7 +523,7 @@ echo "# 5.27. Make-4.1"
 tar -jxf make-4.1.tar.bz2
 cd make-4.1
 ./configure --prefix=/tools --without-guile
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf make-4.1
@@ -528,27 +532,27 @@ echo "# 5.28. Patch-2.7.4"
 tar -Jxf patch-2.7.4.tar.xz
 cd patch-2.7.4
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf patch-2.7.4
 
-echo "# 5.29. Perl-5.20.1"
-tar -jxf perl-5.20.1.tar.bz2
-cd perl-5.20.1
+echo "# 5.29. Perl-5.20.2"
+tar -jxf perl-5.20.2.tar.bz2
+cd perl-5.20.2
 sh Configure -des -Dprefix=/tools -Dlibs=-lm
-make
+make -j $PARALLEL_JOBS
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.20.1
-cp -Rv lib/* /tools/lib/perl5/5.20.1
+mkdir -pv /tools/lib/perl5/5.20.2
+cp -Rv lib/* /tools/lib/perl5/5.20.2
 cd $LFS/sources
-rm -rf perl-5.20.1
+rm -rf perl-5.20.2
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
 cd sed-4.2.2
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf sed-4.2.2
@@ -557,7 +561,7 @@ echo "# 5.31. Tar-1.28"
 tar -Jxf tar-1.28.tar.xz
 cd tar-1.28
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf tar-1.28
@@ -566,29 +570,29 @@ echo "# 5.32. Texinfo-5.2"
 tar -Jxf texinfo-5.2.tar.xz
 cd texinfo-5.2
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Util-linux-2.26-rc2"
-tar -Jxf util-linux-2.26-rc2.tar.xz
-cd util-linux-2.26-rc2
+echo "# 5.33. Util-linux-2.26"
+tar -Jxf util-linux-2.26.tar.xz
+cd util-linux-2.26
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
             --without-systemdsystemunitdir \
             PKG_CONFIG=""
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.26-rc2
+rm -rf util-linux-2.26
 
 echo "# 5.34. Xz-5.2.0"
 tar -Jxf xz-5.2.0.tar.xz
 cd xz-5.2.0
 ./configure --prefix=/tools
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf xz-5.2.0
