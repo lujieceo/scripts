@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150223 v1.0
+# PiLFS Build Script SVN-20150320 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -64,10 +64,10 @@ gcc-4.9.0-pi-cpu-default.patch
 gcc-4.9.2-rpi2-cpu-default.patch
 mpfr-3.1.2.tar.xz
 gmp-6.0.0a.tar.xz
-mpc-1.0.2.tar.gz
+mpc-1.0.3.tar.gz
 rpi-3.18.y.tar.gz
 glibc-2.21.tar.xz
-tcl8.6.3-src.tar.gz
+tcl-core8.6.4-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.2.tar.gz
 check-0.9.14.tar.gz
@@ -84,13 +84,13 @@ grep-2.21.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.1.tar.bz2
-patch-2.7.4.tar.xz
+patch-2.7.5.tar.xz
 perl-5.20.2.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-util-linux-2.26.tar.xz
-xz-5.2.0.tar.xz
+util-linux-2.26.1.tar.xz
+xz-5.2.1.tar.xz
 "
 
 for tarball in $LIST_OF_TARBALLS ; do
@@ -173,8 +173,8 @@ tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
 tar -Jxf ../gmp-6.0.0a.tar.xz
 mv -v gmp-6.0.0 gmp
-tar -zxf ../mpc-1.0.2.tar.gz
-mv -v mpc-1.0.2 mpc
+tar -zxf ../mpc-1.0.3.tar.gz
+mv -v mpc-1.0.3 mpc
 for file in \
  $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
 do
@@ -329,8 +329,8 @@ tar -Jxf ../mpfr-3.1.2.tar.xz
 mv -v mpfr-3.1.2 mpfr
 tar -Jxf ../gmp-6.0.0a.tar.xz
 mv -v gmp-6.0.0 gmp
-tar -zxf ../mpc-1.0.2.tar.gz
-mv -v mpc-1.0.2 mpc
+tar -zxf ../mpc-1.0.3.tar.gz
+mv -v mpc-1.0.3 mpc
 mkdir -v ../gcc-build
 cd ../gcc-build
 CC=$LFS_TGT-gcc                                      \
@@ -358,9 +358,9 @@ ln -sv gcc /tools/bin/cc
 cd $LFS/sources
 rm -rf gcc-build gcc-4.9.2
 
-echo "# 5.11. Tcl-8.6.3"
-tar -zxf tcl8.6.3-src.tar.gz
-cd tcl8.6.3
+echo "# 5.11. Tcl-core-8.6.4"
+tar -zxf tcl-core8.6.4-src.tar.gz
+cd tcl8.6.4
 cd unix
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
@@ -369,7 +369,7 @@ chmod -v u+w /tools/lib/libtcl8.6.so
 make install-private-headers
 ln -sv tclsh8.6 /tools/bin/tclsh
 cd $LFS/sources
-rm -rf tcl8.6.3
+rm -rf tcl8.6.4
 
 echo "# 5.12. Expect-5.45"
 tar -zxf expect5.45.tar.gz
@@ -528,14 +528,14 @@ make install
 cd $LFS/sources
 rm -rf make-4.1
 
-echo "# 5.28. Patch-2.7.4"
-tar -Jxf patch-2.7.4.tar.xz
-cd patch-2.7.4
+echo "# 5.28. Patch-2.7.5"
+tar -Jxf patch-2.7.5.tar.xz
+cd patch-2.7.5
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf patch-2.7.4
+rm -rf patch-2.7.5
 
 echo "# 5.29. Perl-5.20.2"
 tar -jxf perl-5.20.2.tar.bz2
@@ -575,9 +575,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Util-linux-2.26"
-tar -Jxf util-linux-2.26.tar.xz
-cd util-linux-2.26
+echo "# 5.33. Util-linux-2.26.1"
+tar -Jxf util-linux-2.26.1.tar.xz
+cd util-linux-2.26.1
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -586,16 +586,16 @@ cd util-linux-2.26
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.26
+rm -rf util-linux-2.26.1
 
-echo "# 5.34. Xz-5.2.0"
-tar -Jxf xz-5.2.0.tar.xz
-cd xz-5.2.0
+echo "# 5.34. Xz-5.2.1"
+tar -Jxf xz-5.2.1.tar.xz
+cd xz-5.2.1
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf xz-5.2.0
+rm -rf xz-5.2.1
 
 do_strip
 

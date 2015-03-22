@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150223 v1.0
+# PiLFS Build Script SVN-20150320 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,7 +38,7 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.18.y.tar.gz
-man-pages-3.79.tar.xz
+man-pages-3.81.tar.xz
 glibc-2.21.tar.xz
 glibc-2.21-fhs-1.patch
 tzdata2015a.tar.gz
@@ -49,7 +49,7 @@ gmp-6.0.0a.tar.xz
 gmp-6.0.0a-rpi2-cpuguess-fix.patch
 mpfr-3.1.2.tar.xz
 mpfr-3.1.2-upstream_fixes-3.patch
-mpc-1.0.2.tar.gz
+mpc-1.0.3.tar.gz
 gcc-4.9.2.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
 gcc-4.9.2-rpi2-cpu-default.patch
@@ -90,29 +90,28 @@ diffutils-3.3.tar.xz
 gawk-4.1.1.tar.xz
 findutils-4.4.2.tar.gz
 gettext-0.19.4.tar.xz
-intltool-0.50.2.tar.gz
+intltool-0.51.0.tar.gz
 gperf-3.0.4.tar.gz
 groff-1.22.3.tar.gz
-xz-5.2.0.tar.xz
+xz-5.2.1.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
 iproute2-3.19.0.tar.xz
 kbd-2.0.2.tar.gz
 kbd-2.0.2-backspace-1.patch
-kmod-19.tar.xz
+kmod-20.tar.xz
 libpipeline-1.4.0.tar.gz
 make-4.1.tar.bz2
 man-db-2.7.1.tar.xz
-patch-2.7.4.tar.xz
+patch-2.7.5.tar.xz
 sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-eudev-2.1.1.tar.gz
-eudev-2.1.1-manpages.tar.bz2
+eudev-3.0.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.26.tar.xz
+util-linux-2.26.1.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -166,12 +165,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.79"
-tar -Jxf man-pages-3.79.tar.xz
-cd man-pages-3.79
+echo "# 6.8. Man-pages-3.81"
+tar -Jxf man-pages-3.81.tar.xz
+cd man-pages-3.81
 make install
 cd /sources
-rm -rf man-pages-3.79
+rm -rf man-pages-3.81
 
 echo "# 6.9. Glibc-2.21"
 tar -Jxf glibc-2.21.tar.xz
@@ -302,6 +301,7 @@ case $(uname -m) in
 esac
 ./configure --prefix=/usr \
             --enable-cxx  \
+            --disable-static \
             --docdir=/usr/share/doc/gmp-6.0.0a
 make -j $PARALLEL_JOBS
 make install
@@ -317,6 +317,7 @@ tar -Jxf mpfr-3.1.2.tar.xz
 cd mpfr-3.1.2
 patch -Np1 -i ../mpfr-3.1.2-upstream_fixes-3.patch
 ./configure  --prefix=/usr        \
+             --disable-static     \
              --enable-thread-safe \
              --docdir=/usr/share/doc/mpfr-3.1.2
 make -j $PARALLEL_JOBS
@@ -328,10 +329,12 @@ fi
 cd /sources
 rm -rf mpfr-3.1.2
 
-echo "# 6.16. MPC-1.0.2"
-tar -zxf mpc-1.0.2.tar.gz
-cd mpc-1.0.2
-./configure --prefix=/usr --docdir=/usr/share/doc/mpc-1.0.2
+echo "# 6.16. MPC-1.0.3"
+tar -zxf mpc-1.0.3.tar.gz
+cd mpc-1.0.3
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/mpc-1.0.3
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -339,7 +342,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     make install-html
 fi
 cd /sources
-rm -rf mpc-1.0.2
+rm -rf mpc-1.0.3
 
 echo "# 6.17. GCC-4.9.2"
 tar -jxf gcc-4.9.2.tar.bz2
@@ -402,6 +405,7 @@ rm -rf pkg-config-0.28
 echo "# 6.20. Ncurses-5.9"
 tar -zxf ncurses-5.9.tar.gz
 cd ncurses-5.9
+sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 ./configure --prefix=/usr           \
             --mandir=/usr/share/man \
             --with-shared           \
@@ -415,15 +419,11 @@ ln -sfv ../../lib/$(readlink /usr/lib/libncursesw.so) /usr/lib/libncursesw.so
 for lib in ncurses form panel menu ; do
     rm -vf                    /usr/lib/lib${lib}.so
     echo "INPUT(-l${lib}w)" > /usr/lib/lib${lib}.so
-    ln -sfv lib${lib}w.a      /usr/lib/lib${lib}.a
     ln -sfv ${lib}w.pc        /usr/lib/pkgconfig/${lib}.pc
 done
-ln -sfv libncurses++w.a /usr/lib/libncurses++.a
 rm -vf                     /usr/lib/libcursesw.so
 echo "INPUT(-lncursesw)" > /usr/lib/libcursesw.so
 ln -sfv libncurses.so      /usr/lib/libcurses.so
-ln -sfv libncursesw.a      /usr/lib/libcursesw.a
-ln -sfv libncurses.a       /usr/lib/libcurses.a
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     mkdir -v       /usr/share/doc/ncurses-5.9
     cp -v -R doc/* /usr/share/doc/ncurses-5.9
@@ -436,7 +436,9 @@ echo "6.21. Attr-2.4.47"
 tar -zxf attr-2.4.47.src.tar.gz
 cd attr-2.4.47
 sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
-./configure --prefix=/usr --bindir=/bin
+./configure --prefix=/usr \
+            --bindir=/bin \
+            --disable-static
 make -j $PARALLEL_JOBS
 make install install-dev install-lib
 chmod -v 755 /usr/lib/libattr.so
@@ -456,6 +458,7 @@ sed -i -e "/TABS-1;/a if (x > (TABS-1)) x = (TABS-1);" \
     libacl/__acl_to_any_text.c
 ./configure --prefix=/usr \
             --bindir=/bin \
+            --disable-static \
             --libexecdir=/usr/lib
 make -j $PARALLEL_JOBS
 make install install-dev install-lib
@@ -470,6 +473,7 @@ if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.23. Libcap-2.24"
 tar -Jxf libcap-2.24.tar.xz
 cd libcap-2.24
+sed -i '/install.*STALIBNAME/d' libcap/Makefile
 make -j $PARALLEL_JOBS
 make RAISE_SETFCAP=no prefix=/usr install
 chmod -v 755 /usr/lib/libcap.so
@@ -543,6 +547,9 @@ rm -rf procps-ng-3.3.10
 echo "# 6.28. E2fsprogs-1.42.12"
 tar -zxf e2fsprogs-1.42.12.tar.gz
 cd e2fsprogs-1.42.12
+sed -e '/int.*old_desc_blocks/s/int/blk64_t/' \
+    -e '/if (old_desc_blocks/s/super->s_first_meta_bg/desc_blocks/' \
+    -i lib/ext2fs/closefs.c
 mkdir -v build
 cd build
 LIBS=-L/tools/lib                    \
@@ -614,7 +621,8 @@ echo "# 6.32. Flex-2.5.39"
 tar -jxf flex-2.5.39.tar.bz2
 cd flex-2.5.39
 sed -i -e '/test-bison/d' tests/Makefile.in
-./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.5.39
+./configure --prefix=/usr    \
+            --docdir=/usr/share/doc/flex-2.5.39
 make -j $PARALLEL_JOBS
 make install
 ln -sv flex /usr/bin/lex
@@ -633,6 +641,7 @@ rm -rf bison-3.0.4
 echo "# 6.34. Grep-2.21"
 tar -Jxf grep-2.21.tar.xz
 cd grep-2.21
+sed -i -e '/tp++/a  if (ep <= tp) break;' src/kwset.c
 ./configure --prefix=/usr --bindir=/bin
 make -j $PARALLEL_JOBS
 make install
@@ -645,7 +654,9 @@ cd readline-6.3
 patch -Np1 -i ../readline-6.3-upstream_fixes-3.patch
 sed -i '/MV.*old/d' Makefile.in
 sed -i '/{OLDSUFF}/c:' support/shlib-install
-./configure --prefix=/usr --docdir=/usr/share/doc/readline-6.3 
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/readline-6.3
 make -j $PARALLEL_JOBS SHLIB_LIBS=-lncurses
 make SHLIB_LIBS=-lncurses install
 mv -v /usr/lib/lib{readline,history}.so.* /lib
@@ -698,7 +709,9 @@ rm -rf libtool-2.4.6
 echo "# 6.39. GDBM-1.11"
 tar -zxf gdbm-1.11.tar.gz
 cd gdbm-1.11
-./configure --prefix=/usr --enable-libgdbm-compat
+./configure --prefix=/usr \
+            --disable-static \
+            --enable-libgdbm-compat
 make -j $PARALLEL_JOBS
 make install
 cd /sources
@@ -708,7 +721,7 @@ if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.40. Expat-2.1.0"
 tar -zxf expat-2.1.0.tar.gz
 cd expat-2.1.0
-./configure --prefix=/usr
+./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -819,24 +832,26 @@ rm -rf findutils-4.4.2
 echo "# 6.49. Gettext-0.19.4"
 tar -Jxf gettext-0.19.4.tar.xz
 cd gettext-0.19.4
-./configure --prefix=/usr --docdir=/usr/share/doc/gettext-0.19.4
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/gettext-0.19.4
 make -j $PARALLEL_JOBS
 make install
 cd /sources
 rm -rf gettext-0.19.4
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.50. Intltool-0.50.2"
-tar -zxf intltool-0.50.2.tar.gz
-cd intltool-0.50.2
+echo "6.50. Intltool-0.51.0"
+tar -zxf intltool-0.51.0.tar.gz
+cd intltool-0.51.0
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -Dm644 doc/I18N-HOWTO /usr/share/doc/intltool-0.50.2/I18N-HOWTO
+    install -v -Dm644 doc/I18N-HOWTO /usr/share/doc/intltool-0.51.0/I18N-HOWTO
 fi
 cd /sources
-rm -rf intltool-0.50.2
+rm -rf intltool-0.51.0
 fi
 
 echo "6.51. Gperf-3.0.4"
@@ -858,17 +873,19 @@ make install
 cd /sources
 rm -rf groff-1.22.3
 
-echo "# 6.53. Xz-5.2.0"
-tar -Jxf xz-5.2.0.tar.xz
-cd xz-5.2.0
-./configure --prefix=/usr --docdir=/usr/share/doc/xz-5.2.0
+echo "# 6.53. Xz-5.2.1"
+tar -Jxf xz-5.2.1.tar.xz
+cd xz-5.2.1
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/xz-5.2.1
 make -j $PARALLEL_JOBS
 make install
 mv -v /usr/bin/{lzma,unlzma,lzcat,xz,unxz,xzcat} /bin
 mv -v /usr/lib/liblzma.so.* /lib
 ln -svf ../../lib/$(readlink /usr/lib/liblzma.so) /usr/lib/liblzma.so
 cd /sources
-rm -rf xz-5.2.0
+rm -rf xz-5.2.1
 
 # 6.54. GRUB-2.00
 # We don't use GRUB on ARM
@@ -920,9 +937,9 @@ fi
 cd /sources
 rm -rf kbd-2.0.2
 
-echo "# 6.59. Kmod-19"
-tar -Jxf kmod-19.tar.xz
-cd kmod-19
+echo "# 6.59. Kmod-20"
+tar -Jxf kmod-20.tar.xz
+cd kmod-20
 ./configure --prefix=/usr          \
             --bindir=/bin          \
             --sysconfdir=/etc      \
@@ -936,7 +953,7 @@ for target in depmod insmod lsmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-19
+rm -rf kmod-20
 
 echo "# 6.60. Libpipeline-1.4.0"
 tar -zxf libpipeline-1.4.0.tar.gz
@@ -956,14 +973,14 @@ make install
 cd /sources
 rm -rf make-4.1
 
-echo "# 6.62. Patch-2.7.4"
-tar -Jxf patch-2.7.4.tar.xz
-cd patch-2.7.4
+echo "# 6.62. Patch-2.7.5"
+tar -Jxf patch-2.7.5.tar.xz
+cd patch-2.7.5
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf patch-2.7.4
+rm -rf patch-2.7.5
 
 echo "# 6.63. Sysklogd-1.5.1"
 tar -zxf sysklogd-1.5.1.tar.gz
@@ -1021,10 +1038,9 @@ make install
 cd /sources
 rm -rf texinfo-5.2
 
-echo "# 6.67. Eudev-2.1.1"
-tar -zxf eudev-2.1.1.tar.gz
-cd eudev-2.1.1
-sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
+echo "# 6.67. Eudev-3.0"
+tar -zxf eudev-3.0.tar.gz
+cd eudev-3.0
 BLKID_CFLAGS=-I/tools/include       \
 BLKID_LIBS='-L/tools/lib -lblkid'   \
 ./configure --prefix=/usr           \
@@ -1041,25 +1057,27 @@ BLKID_LIBS='-L/tools/lib -lblkid'   \
             --enable-keymap         \
             --disable-introspection \
             --disable-gudev         \
-            --disable-gtk-doc-html  \
-            --with-firmware-path=/lib/firmware
+            --disable-static        \
+            --disable-gtk-doc-html
 make -j $PARALLEL_JOBS
 mkdir -pv /lib/udev/rules.d
 mkdir -pv /etc/udev/rules.d
 make install
-tar -jxf ../eudev-2.1.1-manpages.tar.bz2 -C /usr/share
+pushd man
+make install-man7 install-man8
+popd
 tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
 udevadm hwdb --update
 cd /sources
-rm -rf eudev-2.1.1
+rm -rf eudev-3.0
 
-echo "# 6.68. Util-linux-2.26"
-tar -Jxf util-linux-2.26.tar.xz
-cd util-linux-2.26
+echo "# 6.68. Util-linux-2.26.1"
+tar -Jxf util-linux-2.26.1.tar.xz
+cd util-linux-2.26.1
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime     \
-            --docdir=/usr/share/doc/util-linux-2.26 \
+            --docdir=/usr/share/doc/util-linux-2.26.1 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1067,13 +1085,14 @@ mkdir -pv /var/lib/hwclock
             --disable-setpriv    \
             --disable-runuser    \
             --disable-pylibmount \
+            --disable-static     \
             --without-python     \
             --without-systemd    \
             --without-systemdsystemunitdir
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.26
+rm -rf util-linux-2.26.1
 
 echo "# 6.69. Man-DB-2.7.1"
 tar -Jxf man-db-2.7.1.tar.xz
