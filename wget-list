@@ -9,7 +9,7 @@ http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.xz
 http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
 http://sourceforge.net/projects/check/files/check/0.9.14/check-0.9.14.tar.gz
 http://ftp.gnu.org/gnu/coreutils/coreutils-8.23.tar.xz
-http://ftp.gnu.org/gnu/dejagnu/dejagnu-1.5.2.tar.gz
+http://ftp.gnu.org/gnu/dejagnu/dejagnu-1.5.3.tar.gz
 http://ftp.gnu.org/gnu/diffutils/diffutils-3.3.tar.xz
 http://dev.gentoo.org/~blueness/eudev/eudev-3.0.tar.gz
 http://downloads.sourceforge.net/project/e2fsprogs/e2fsprogs/v1.42.12/e2fsprogs-1.42.12.tar.gz
@@ -17,9 +17,9 @@ http://prdownloads.sourceforge.net/expat/expat-2.1.0.tar.gz
 http://prdownloads.sourceforge.net/expect/expect5.45.tar.gz
 ftp://ftp.astron.com/pub/file/file-5.22.tar.gz
 http://ftp.gnu.org/gnu/findutils/findutils-4.4.2.tar.gz
-http://prdownloads.sourceforge.net/flex/flex-2.5.39.tar.bz2
+http://prdownloads.sourceforge.net/flex/flex-2.5.39.tar.xz
 http://ftp.gnu.org/gnu/gawk/gawk-4.1.1.tar.xz
-http://ftp.gnu.org/gnu/gcc/gcc-4.9.2/gcc-4.9.2.tar.bz2
+http://ftp.gnu.org/gnu/gcc/gcc-5.1.0/gcc-5.1.0.tar.bz2
 http://ftp.gnu.org/gnu/gdbm/gdbm-1.11.tar.gz
 http://ftp.gnu.org/gnu/gettext/gettext-0.19.4.tar.xz
 http://ftp.gnu.org/gnu/glibc/glibc-2.21.tar.xz
@@ -29,10 +29,10 @@ http://ftp.gnu.org/gnu/grep/grep-2.21.tar.xz
 http://ftp.gnu.org/gnu/groff/groff-1.22.3.tar.gz
 http://ftp.gnu.org/gnu/gzip/gzip-1.6.tar.xz
 http://anduin.linuxfromscratch.org/sources/LFS/lfs-packages/conglomeration/iana-etc/iana-etc-2.30.tar.bz2
-http://ftp.gnu.org/gnu/inetutils/inetutils-1.9.2.tar.gz
+http://ftp.gnu.org/gnu/inetutils/inetutils-1.9.2.tar.xz
 http://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz
-https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-3.19.0.tar.xz
-https://www.kernel.org/pub/linux/utils/kbd/kbd-2.0.2.tar.gz
+https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-4.0.0.tar.xz
+https://www.kernel.org/pub/linux/utils/kbd/kbd-2.0.2.tar.xz
 https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-20.tar.xz
 http://www.greenwoodsoftware.com/less/less-458.tar.gz
 http://www.linuxfromscratch.org/lfs/downloads/development/lfs-bootscripts-20150222.tar.bz2
@@ -42,7 +42,7 @@ http://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz
 http://ftp.gnu.org/gnu/m4/m4-1.4.17.tar.xz
 http://ftp.gnu.org/gnu/make/make-4.1.tar.bz2
 http://download.savannah.gnu.org/releases/man-db/man-db-2.7.1.tar.xz
-https://www.kernel.org/pub/linux/docs/man-pages/man-pages-3.81.tar.xz
+https://www.kernel.org/pub/linux/docs/man-pages/man-pages-3.83.tar.xz
 http://www.multiprecision.org/mpc/download/mpc-1.0.3.tar.gz
 http://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz
 http://ftp.gnu.org/gnu//ncurses/ncurses-5.9.tar.gz
@@ -59,7 +59,7 @@ http://download.savannah.gnu.org/releases/sysvinit/sysvinit-2.88dsf.tar.bz2
 http://ftp.gnu.org/gnu/tar/tar-1.28.tar.xz
 http://sourceforge.net/projects/tcl/files/Tcl/8.6.4/tcl-core8.6.4-src.tar.gz
 http://ftp.gnu.org/gnu/texinfo/texinfo-5.2.tar.xz
-http://www.iana.org/time-zones/repository/releases/tzdata2015a.tar.gz
+http://www.iana.org/time-zones/repository/releases/tzdata2015d.tar.gz
 http://anduin.linuxfromscratch.org/sources/other/udev-lfs-20140408.tar.bz2
 https://www.kernel.org/pub/linux/utils/util-linux/v2.26/util-linux-2.26.1.tar.xz
 ftp://ftp.vim.org/pub/vim/unix/vim-7.4.tar.bz2
@@ -73,6 +73,8 @@ http://www.linuxfromscratch.org/patches/lfs/development/coreutils-8.23-i18n-1.pa
 http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.21-fhs-1.patch
 http://www.linuxfromscratch.org/patches/lfs/development/kbd-2.0.2-backspace-1.patch
 http://www.linuxfromscratch.org/patches/lfs/development/mpfr-3.1.2-upstream_fixes-3.patch
+http://www.linuxfromscratch.org/patches/lfs/development/ncurses-5.9-gcc5_buildfixes-1.patch
+http://www.linuxfromscratch.org/patches/lfs/development/perl-5.20.2-gcc5_fixes-1.patch
 http://www.linuxfromscratch.org/patches/lfs/development/readline-6.3-upstream_fixes-3.patch
 http://www.linuxfromscratch.org/patches/lfs/development/sysvinit-2.88dsf-consolidated-1.patch
 http://www.intestinate.com/pilfs/patches/gcc-4.9.0-pi-cpu-default.patch

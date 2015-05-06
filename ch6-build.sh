@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150320 v1.0
+# PiLFS Build Script SVN-20150426 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,10 +38,10 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.18.y.tar.gz
-man-pages-3.81.tar.xz
+man-pages-3.83.tar.xz
 glibc-2.21.tar.xz
 glibc-2.21-fhs-1.patch
-tzdata2015a.tar.gz
+tzdata2015d.tar.gz
 zlib-1.2.8.tar.xz
 file-5.22.tar.gz
 binutils-2.25.tar.bz2
@@ -50,13 +50,14 @@ gmp-6.0.0a-rpi2-cpuguess-fix.patch
 mpfr-3.1.2.tar.xz
 mpfr-3.1.2-upstream_fixes-3.patch
 mpc-1.0.3.tar.gz
-gcc-4.9.2.tar.bz2
+gcc-5.1.0.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
 gcc-4.9.2-rpi2-cpu-default.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
 ncurses-5.9.tar.gz
+ncurses-5.9-gcc5_buildfixes-1.patch
 attr-2.4.47.src.tar.gz
 acl-2.2.52.src.tar.gz
 libcap-2.24.tar.xz
@@ -69,7 +70,7 @@ coreutils-8.23.tar.xz
 coreutils-8.23-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
-flex-2.5.39.tar.bz2
+flex-2.5.39.tar.xz
 bison-3.0.4.tar.xz
 grep-2.21.tar.xz
 readline-6.3.tar.gz
@@ -81,8 +82,9 @@ bc-1.06.95-memory_leak-1.patch
 libtool-2.4.6.tar.xz
 gdbm-1.11.tar.gz
 expat-2.1.0.tar.gz
-inetutils-1.9.2.tar.gz
+inetutils-1.9.2.tar.xz
 perl-5.20.2.tar.bz2
+perl-5.20.2-gcc5_fixes-1.patch
 XML-Parser-2.44.tar.gz
 autoconf-2.69.tar.xz
 automake-1.15.tar.xz
@@ -96,8 +98,8 @@ groff-1.22.3.tar.gz
 xz-5.2.1.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
-iproute2-3.19.0.tar.xz
-kbd-2.0.2.tar.gz
+iproute2-4.0.0.tar.xz
+kbd-2.0.2.tar.xz
 kbd-2.0.2-backspace-1.patch
 kmod-20.tar.xz
 libpipeline-1.4.0.tar.gz
@@ -165,12 +167,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.81"
-tar -Jxf man-pages-3.81.tar.xz
-cd man-pages-3.81
+echo "# 6.8. Man-pages-3.83"
+tar -Jxf man-pages-3.83.tar.xz
+cd man-pages-3.83
 make install
 cd /sources
-rm -rf man-pages-3.81
+rm -rf man-pages-3.83
 
 echo "# 6.9. Glibc-2.21"
 tar -Jxf glibc-2.21.tar.xz
@@ -179,6 +181,10 @@ patch -Np1 -i ../glibc-2.21-fhs-1.patch
 sed -e '/ia32/s/^/1:/' \
     -e '/SSE2/s/^1://' \
     -i  sysdeps/i386/i686/multiarch/mempcpy_chk.S
+sed -i '/glibc.*pad/{i\  buflen = buflen > pad ? buflen - pad : 0;
+                     s/ + pad//}' resolv/nss_dns/dns-host.c
+sed -e '/tst-audit2-ENV/i CFLAGS-tst-audit2.c += -fno-builtin' \
+    -i elf/Makefile
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.21/configure    \
@@ -215,7 +221,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2015a.tar.gz
+tar -zxf ../tzdata2015d.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -344,9 +350,9 @@ fi
 cd /sources
 rm -rf mpc-1.0.3
 
-echo "# 6.17. GCC-4.9.2"
-tar -jxf gcc-4.9.2.tar.bz2
-cd gcc-4.9.2
+echo "# 6.17. GCC-5.1.0"
+tar -jxf gcc-5.1.0.tar.bz2
+cd gcc-5.1.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
   armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;; 
@@ -354,22 +360,22 @@ esac
 mkdir -v ../gcc-build
 cd ../gcc-build
 SED=sed                          \
-../gcc-4.9.2/configure           \
+../gcc-5.1.0/configure           \
      --prefix=/usr               \
      --enable-languages=c,c++    \
      --disable-multilib          \
      --disable-bootstrap         \
      --with-system-zlib
-make -j $PARALLEL_JOBS
+make
 make install
 ln -sv ../usr/bin/cpp /lib
 ln -sv gcc /usr/bin/cc
 install -v -dm755 /usr/lib/bfd-plugins
-ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/4.9.2/liblto_plugin.so /usr/lib/bfd-plugins/
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/5.1.0/liblto_plugin.so /usr/lib/bfd-plugins/
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-build gcc-4.9.2
+rm -rf gcc-build gcc-5.1.0
 
 echo "# 6.18. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -405,11 +411,13 @@ rm -rf pkg-config-0.28
 echo "# 6.20. Ncurses-5.9"
 tar -zxf ncurses-5.9.tar.gz
 cd ncurses-5.9
+patch -Np1 -i ../ncurses-5.9-gcc5_buildfixes-1.patch
 sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 ./configure --prefix=/usr           \
             --mandir=/usr/share/man \
             --with-shared           \
             --without-debug         \
+            --without-normal        \
             --enable-pc-files       \
             --enable-widec
 make -j $PARALLEL_JOBS
@@ -436,6 +444,7 @@ echo "6.21. Attr-2.4.47"
 tar -zxf attr-2.4.47.src.tar.gz
 cd attr-2.4.47
 sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
+sed -i -e "/SUBDIRS/s|man2||" man/Makefile
 ./configure --prefix=/usr \
             --bindir=/bin \
             --disable-static
@@ -530,11 +539,11 @@ rm -rf psmisc-22.21
 echo "# 6.27. Procps-ng-3.3.10"
 tar -Jxf procps-ng-3.3.10.tar.xz
 cd procps-ng-3.3.10
-./configure --prefix=/usr                           \
-            --exec-prefix=                          \
-            --libdir=/usr/lib                       \
+./configure --prefix=/usr                            \
+            --exec-prefix=                           \
+            --libdir=/usr/lib                        \
             --docdir=/usr/share/doc/procps-ng-3.3.10 \
-            --disable-static                        \
+            --disable-static                         \
             --disable-kill
 make -j $PARALLEL_JOBS
 make install
@@ -618,11 +627,10 @@ cd /sources
 rm -rf m4-1.4.17
 
 echo "# 6.32. Flex-2.5.39"
-tar -jxf flex-2.5.39.tar.bz2
+tar -Jxf flex-2.5.39.tar.xz
 cd flex-2.5.39
 sed -i -e '/test-bison/d' tests/Makefile.in
-./configure --prefix=/usr    \
-            --docdir=/usr/share/doc/flex-2.5.39
+./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.5.39
 make -j $PARALLEL_JOBS
 make install
 ln -sv flex /usr/bin/lex
@@ -672,10 +680,10 @@ echo "# 6.36. Bash-4.3.30"
 tar -zxf bash-4.3.30.tar.gz
 cd bash-4.3.30
 patch -Np1 -i ../bash-4.3.30-upstream_fixes-1.patch
-./configure --prefix=/usr                     \
-            --bindir=/bin                     \
-            --htmldir=/usr/share/doc/bash-4.3.30 \
-            --without-bash-malloc             \
+./configure --prefix=/usr                       \
+            --bindir=/bin                       \
+            --docdir=/usr/share/doc/bash-4.3.30 \
+            --without-bash-malloc               \
             --with-installed-readline
 make -j $PARALLEL_JOBS
 make install
@@ -733,13 +741,13 @@ rm -rf expat-2.1.0
 fi
 
 echo "# 6.41. Inetutils-1.9.2"
-tar -zxf inetutils-1.9.2.tar.gz
+tar -Jxf inetutils-1.9.2.tar.xz
 cd inetutils-1.9.2
 echo '#define PATH_PROCNET_DEV "/proc/net/dev"' >> ifconfig/system/linux.h 
-./configure --prefix=/usr  \
-            --localstatedir=/var   \
-            --disable-logger       \
-            --disable-whois        \
+./configure --prefix=/usr        \
+            --localstatedir=/var \
+            --disable-logger     \
+            --disable-whois      \
             --disable-servers
 make -j $PARALLEL_JOBS
 make install
@@ -754,6 +762,7 @@ cd perl-5.20.2
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 export BUILD_ZLIB=False
 export BUILD_BZIP2=0
+patch -Np1 -i ../perl-5.20.2-gcc5_fixes-1.patch
 sh Configure -des -Dprefix=/usr                 \
                   -Dvendorprefix=/usr           \
                   -Dman1dir=/usr/share/man/man1 \
@@ -910,19 +919,19 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.6
 
-echo "# 6.57. IPRoute2-3.19.0"
-tar -Jxf iproute2-3.19.0.tar.xz
-cd iproute2-3.19.0
+echo "# 6.57. IPRoute2-4.0.0"
+tar -Jxf iproute2-4.0.0.tar.xz
+cd iproute2-4.0.0
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-3.19.0 install
+make DOCDIR=/usr/share/doc/iproute2-4.0.0 install
 cd /sources
-rm -rf iproute2-3.19.0
+rm -rf iproute2-4.0.0
 
 echo "# 6.58. Kbd-2.0.2"
-tar -zxf kbd-2.0.2.tar.gz
+tar -Jxf kbd-2.0.2.tar.xz
 cd kbd-2.0.2
 patch -Np1 -i ../kbd-2.0.2-backspace-1.patch
 sed -i 's/\(RESIZECONS_PROGS=\)yes/\1no/g' configure
@@ -1041,8 +1050,12 @@ rm -rf texinfo-5.2
 echo "# 6.67. Eudev-3.0"
 tar -zxf eudev-3.0.tar.gz
 cd eudev-3.0
-BLKID_CFLAGS=-I/tools/include       \
-BLKID_LIBS='-L/tools/lib -lblkid'   \
+sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
+cat > config.cache << "EOF"
+HAVE_BLKID=1
+BLKID_LIBS="-lblkid"
+BLKID_CFLAGS="-I/tools/include"
+EOF
 ./configure --prefix=/usr           \
             --bindir=/sbin          \
             --sbindir=/sbin         \
@@ -1052,23 +1065,21 @@ BLKID_LIBS='-L/tools/lib -lblkid'   \
             --with-rootprefix=      \
             --with-rootlibdir=/lib  \
             --enable-split-usr      \
-            --enable-libkmod        \
-            --enable-rule_generator \
-            --enable-keymap         \
             --disable-introspection \
             --disable-gudev         \
             --disable-static        \
+            --config-cache          \
             --disable-gtk-doc-html
-make -j $PARALLEL_JOBS
+LIBRARY_PATH=/tools/lib make -j $PARALLEL_JOBS
 mkdir -pv /lib/udev/rules.d
 mkdir -pv /etc/udev/rules.d
-make install
+make LD_LIBRARY_PATH=/tools/lib install
 pushd man
 make install-man7 install-man8
 popd
 tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
-udevadm hwdb --update
+LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
 rm -rf eudev-3.0
 
@@ -1097,12 +1108,12 @@ rm -rf util-linux-2.26.1
 echo "# 6.69. Man-DB-2.7.1"
 tar -Jxf man-db-2.7.1.tar.xz
 cd man-db-2.7.1
-./configure --prefix=/usr                          \
+./configure --prefix=/usr                        \
             --docdir=/usr/share/doc/man-db-2.7.1 \
-            --sysconfdir=/etc                      \
-            --disable-setuid                       \
-            --with-browser=/usr/bin/lynx           \
-            --with-vgrind=/usr/bin/vgrind          \
+            --sysconfdir=/etc                    \
+            --disable-setuid                     \
+            --with-browser=/usr/bin/lynx         \
+            --with-vgrind=/usr/bin/vgrind        \
             --with-grap=/usr/bin/grap
 make -j $PARALLEL_JOBS
 make install

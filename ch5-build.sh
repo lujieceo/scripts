@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150320 v1.0
+# PiLFS Build Script SVN-20150426 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -59,7 +59,7 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 binutils-2.25.tar.bz2
-gcc-4.9.2.tar.bz2
+gcc-5.1.0.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
 gcc-4.9.2-rpi2-cpu-default.patch
 mpfr-3.1.2.tar.xz
@@ -69,9 +69,10 @@ rpi-3.18.y.tar.gz
 glibc-2.21.tar.xz
 tcl-core8.6.4-src.tar.gz
 expect5.45.tar.gz
-dejagnu-1.5.2.tar.gz
+dejagnu-1.5.3.tar.gz
 check-0.9.14.tar.gz
 ncurses-5.9.tar.gz
+ncurses-5.9-gcc5_buildfixes-1.patch
 bash-4.3.30.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.23.tar.xz
@@ -162,9 +163,9 @@ echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
 echo -e "==========================\n"
 
-echo "# 5.5. gcc-4.9.2 - Pass 1"
-tar -jxf gcc-4.9.2.tar.bz2
-cd gcc-4.9.2
+echo "# 5.5. gcc-5.1.0 - Pass 1"
+tar -jxf gcc-5.1.0.tar.bz2
+cd gcc-5.1.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
   armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;;
@@ -188,31 +189,31 @@ do
 #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
   touch $file.orig
 done
-sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 mkdir -v ../gcc-build
 cd ../gcc-build
-../gcc-4.9.2/configure                               \
-    --target=$LFS_TGT                                \
-    --prefix=/tools                                  \
-    --with-sysroot=$LFS                              \
-    --with-newlib                                    \
-    --without-headers                                \
-    --with-local-prefix=/tools                       \
-    --with-native-system-header-dir=/tools/include   \
-    --disable-nls                                    \
-    --disable-shared                                 \
-    --disable-multilib                               \
-    --disable-decimal-float                          \
-    --disable-threads                                \
-    --disable-libatomic                              \
-    --disable-libgomp                                \
-    --disable-libitm                                 \
-    --disable-libquadmath                            \
-    --disable-libsanitizer                           \
-    --disable-libssp                                 \
-    --disable-libvtv                                 \
-    --disable-libcilkrts                             \
-    --disable-libstdc++-v3                           \
+../gcc-5.1.0/configure                             \
+    --target=$LFS_TGT                              \
+    --prefix=/tools                                \
+    --with-glibc-version=2.11                      \
+    --with-sysroot=$LFS                            \
+    --with-newlib                                  \
+    --without-headers                              \
+    --with-local-prefix=/tools                     \
+    --with-native-system-header-dir=/tools/include \
+    --disable-nls                                  \
+    --disable-shared                               \
+    --disable-multilib                             \
+    --disable-decimal-float                        \
+    --disable-threads                              \
+    --disable-libatomic                            \
+    --disable-libgomp                              \
+    --disable-libitm                               \
+    --disable-libquadmath                          \
+    --disable-libsanitizer                         \
+    --disable-libssp                               \
+    --disable-libvtv                               \
+    --disable-libcilkrts                           \
+    --disable-libstdc++-v3                         \
     --enable-languages=c,c++
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
@@ -220,10 +221,10 @@ case $(uname -m) in
   armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
   armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
 esac
-make -j $PARALLEL_JOBS
+make
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-4.9.2
+rm -rf gcc-build gcc-5.1.0
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
 tar -zxf rpi-3.18.y.tar.gz
@@ -236,10 +237,6 @@ cd $LFS/sources
 echo "# 5.7. Glibc-2.21"
 tar -Jxf glibc-2.21.tar.xz
 cd glibc-2.21
-if [ ! -r /usr/include/rpc/types.h ]; then
-  su -c 'mkdir -p /usr/include/rpc'
-  su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
-fi
 sed -e '/ia32/s/^/1:/' \
     -e '/SSE2/s/^1://' \
     -i  sysdeps/i386/i686/multiarch/mempcpy_chk.S
@@ -251,6 +248,7 @@ cd ../glibc-build
       --build=$(../glibc-2.21/scripts/config.guess) \
       --disable-profile                             \
       --enable-kernel=2.6.32                        \
+      --enable-obsolete-rpc                         \
       --with-headers=/tools/include                 \
       libc_cv_forced_unwind=yes                     \
       libc_cv_ctors_header=yes                      \
@@ -262,24 +260,23 @@ ln -sv ld-2.21.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
 rm -rf glibc-build glibc-2.21
 
-echo "# 5.8. Libstdc++-4.9.2"
-tar -jxf gcc-4.9.2.tar.bz2
-cd gcc-4.9.2
+echo "# 5.8. Libstdc++-5.1.0"
+tar -jxf gcc-5.1.0.tar.bz2
+cd gcc-5.1.0
 mkdir -pv ../gcc-build
 cd ../gcc-build
-../gcc-4.9.2/libstdc++-v3/configure      \
-    --host=$LFS_TGT                      \
-    --prefix=/tools                      \
-    --disable-multilib                   \
-    --disable-shared                     \
-    --disable-nls                        \
-    --disable-libstdcxx-threads          \
-    --disable-libstdcxx-pch              \
-    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/4.9.2
+../gcc-5.1.0/libstdc++-v3/configure \
+    --host=$LFS_TGT                 \
+    --prefix=/tools                 \
+    --disable-multilib              \
+    --disable-nls                   \
+    --disable-libstdcxx-threads     \
+    --disable-libstdcxx-pch         \
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/5.1.0
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-4.9.2
+rm -rf gcc-build gcc-5.1.0
 
 echo "# 5.9. Binutils-2.25 - Pass 2"
 tar -jxf binutils-2.25.tar.bz2
@@ -303,9 +300,9 @@ cp -v ld/ld-new /tools/bin
 cd $LFS/sources
 rm -rf binutils-build binutils-2.25
 
-echo "# 5.10. gcc-4.9.2 - Pass 2"
-tar -jxf gcc-4.9.2.tar.bz2
-cd gcc-4.9.2
+echo "# 5.10. gcc-5.1.0 - Pass 2"
+tar -jxf gcc-5.1.0.tar.bz2
+cd gcc-5.1.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
   armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;;
@@ -333,18 +330,18 @@ tar -zxf ../mpc-1.0.3.tar.gz
 mv -v mpc-1.0.3 mpc
 mkdir -v ../gcc-build
 cd ../gcc-build
-CC=$LFS_TGT-gcc                                      \
-CXX=$LFS_TGT-g++                                     \
-AR=$LFS_TGT-ar                                       \
-RANLIB=$LFS_TGT-ranlib                               \
-../gcc-4.9.2/configure                               \
-    --prefix=/tools                                  \
-    --with-local-prefix=/tools                       \
-    --with-native-system-header-dir=/tools/include   \
-    --enable-languages=c,c++                         \
-    --disable-libstdcxx-pch                          \
-    --disable-multilib                               \
-    --disable-bootstrap                              \
+CC=$LFS_TGT-gcc                                    \
+CXX=$LFS_TGT-g++                                   \
+AR=$LFS_TGT-ar                                     \
+RANLIB=$LFS_TGT-ranlib                             \
+../gcc-5.1.0/configure                             \
+    --prefix=/tools                                \
+    --with-local-prefix=/tools                     \
+    --with-native-system-header-dir=/tools/include \
+    --enable-languages=c,c++                       \
+    --disable-libstdcxx-pch                        \
+    --disable-multilib                             \
+    --disable-bootstrap                            \
     --disable-libgomp
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
@@ -352,11 +349,11 @@ case $(uname -m) in
   armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
   armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
 esac
-make -j $PARALLEL_JOBS
+make
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-build gcc-4.9.2
+rm -rf gcc-build gcc-5.1.0
 
 echo "# 5.11. Tcl-core-8.6.4"
 tar -zxf tcl-core8.6.4-src.tar.gz
@@ -384,13 +381,13 @@ make SCRIPTS="" install
 cd $LFS/sources
 rm -rf expect5.45
 
-echo "# 5.13. DejaGNU-1.5.2"
-tar -zxf dejagnu-1.5.2.tar.gz
-cd dejagnu-1.5.2
+echo "# 5.13. DejaGNU-1.5.3"
+tar -zxf dejagnu-1.5.3.tar.gz
+cd dejagnu-1.5.3
 ./configure --prefix=/tools
 make install
 cd $LFS/sources
-rm -rf dejagnu-1.5.2
+rm -rf dejagnu-1.5.3
 
 echo "# 5.14. Check-0.9.14"
 tar -zxf check-0.9.14.tar.gz
@@ -404,6 +401,7 @@ rm -rf check-0.9.14
 echo "# 5.15. Ncurses-5.9"
 tar -zxf ncurses-5.9.tar.gz
 cd ncurses-5.9
+patch -Np1 -i ../ncurses-5.9-gcc5_buildfixes-1.patch
 ./configure --prefix=/tools \
             --with-shared   \
             --without-debug \
