@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150426 v1.0
+# PiLFS Build Script SVN-20150610 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -77,20 +77,20 @@ bash-4.3.30.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.23.tar.xz
 diffutils-3.3.tar.xz
-file-5.22.tar.gz
+file-5.23.tar.gz
 findutils-4.4.2.tar.gz
-gawk-4.1.1.tar.xz
+gawk-4.1.3.tar.xz
 gettext-0.19.4.tar.xz
 grep-2.21.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.1.tar.bz2
 patch-2.7.5.tar.xz
-perl-5.20.2.tar.bz2
+perl-5.22.0.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-util-linux-2.26.1.tar.xz
+util-linux-2.26.2.tar.xz
 xz-5.2.1.tar.xz
 "
 
@@ -449,14 +449,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.22"
-tar -zxf file-5.22.tar.gz
-cd file-5.22
+echo "# 5.20. File-5.23"
+tar -zxf file-5.23.tar.gz
+cd file-5.23
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf file-5.22
+rm -rf file-5.23
 
 echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
@@ -467,14 +467,14 @@ make install
 cd $LFS/sources
 rm -rf findutils-4.4.2
 
-echo "# 5.22. Gawk-4.1.1"
-tar -Jxf gawk-4.1.1.tar.xz
-cd gawk-4.1.1
+echo "# 5.22. Gawk-4.1.3"
+tar -Jxf gawk-4.1.3.tar.xz
+cd gawk-4.1.3
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf gawk-4.1.1
+rm -rf gawk-4.1.3
 
 echo "# 5.23. Gettext-0.19.4"
 tar -Jxf gettext-0.19.4.tar.xz
@@ -535,16 +535,16 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.5
 
-echo "# 5.29. Perl-5.20.2"
-tar -jxf perl-5.20.2.tar.bz2
-cd perl-5.20.2
+echo "# 5.29. Perl-5.22.0"
+tar -jxf perl-5.22.0.tar.bz2
+cd perl-5.22.0
 sh Configure -des -Dprefix=/tools -Dlibs=-lm
 make -j $PARALLEL_JOBS
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.20.2
-cp -Rv lib/* /tools/lib/perl5/5.20.2
+mkdir -pv /tools/lib/perl5/5.22.0
+cp -Rv lib/* /tools/lib/perl5/5.22.0
 cd $LFS/sources
-rm -rf perl-5.20.2
+rm -rf perl-5.22.0
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -573,9 +573,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-5.2
 
-echo "# 5.33. Util-linux-2.26.1"
-tar -Jxf util-linux-2.26.1.tar.xz
-cd util-linux-2.26.1
+echo "# 5.33. Util-linux-2.26.2"
+tar -Jxf util-linux-2.26.2.tar.xz
+cd util-linux-2.26.2
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -584,7 +584,7 @@ cd util-linux-2.26.1
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.26.1
+rm -rf util-linux-2.26.2
 
 echo "# 5.34. Xz-5.2.1"
 tar -Jxf xz-5.2.1.tar.xz

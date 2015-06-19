@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150426 v1.0
+# PiLFS Build Script SVN-20150610 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,12 +38,12 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-3.18.y.tar.gz
-man-pages-3.83.tar.xz
+man-pages-4.00.tar.xz
 glibc-2.21.tar.xz
 glibc-2.21-fhs-1.patch
 tzdata2015d.tar.gz
 zlib-1.2.8.tar.xz
-file-5.22.tar.gz
+file-5.23.tar.gz
 binutils-2.25.tar.bz2
 gmp-6.0.0a.tar.xz
 gmp-6.0.0a-rpi2-cpuguess-fix.patch
@@ -51,6 +51,7 @@ mpfr-3.1.2.tar.xz
 mpfr-3.1.2-upstream_fixes-3.patch
 mpc-1.0.3.tar.gz
 gcc-5.1.0.tar.bz2
+gcc-5.1.0-upstream_fixes-1.patch
 gcc-4.9.0-pi-cpu-default.patch
 gcc-4.9.2-rpi2-cpu-default.patch
 bzip2-1.0.6.tar.gz
@@ -65,7 +66,7 @@ sed-4.2.2.tar.bz2
 shadow-4.2.1.tar.xz
 psmisc-22.21.tar.gz
 procps-ng-3.3.10.tar.xz
-e2fsprogs-1.42.12.tar.gz
+e2fsprogs-1.42.13.tar.gz
 coreutils-8.23.tar.xz
 coreutils-8.23-i18n-1.patch
 iana-etc-2.30.tar.bz2
@@ -76,20 +77,19 @@ grep-2.21.tar.xz
 readline-6.3.tar.gz
 readline-6.3-upstream_fixes-3.patch
 bash-4.3.30.tar.gz
-bash-4.3.30-upstream_fixes-1.patch
+bash-4.3.30-upstream_fixes-2.patch
 bc-1.06.95.tar.bz2
 bc-1.06.95-memory_leak-1.patch
 libtool-2.4.6.tar.xz
 gdbm-1.11.tar.gz
 expat-2.1.0.tar.gz
-inetutils-1.9.2.tar.xz
-perl-5.20.2.tar.bz2
-perl-5.20.2-gcc5_fixes-1.patch
+inetutils-1.9.4.tar.xz
+perl-5.22.0.tar.bz2
 XML-Parser-2.44.tar.gz
 autoconf-2.69.tar.xz
 automake-1.15.tar.xz
 diffutils-3.3.tar.xz
-gawk-4.1.1.tar.xz
+gawk-4.1.3.tar.xz
 findutils-4.4.2.tar.gz
 gettext-0.19.4.tar.xz
 intltool-0.51.0.tar.gz
@@ -101,7 +101,7 @@ gzip-1.6.tar.xz
 iproute2-4.0.0.tar.xz
 kbd-2.0.2.tar.xz
 kbd-2.0.2-backspace-1.patch
-kmod-20.tar.xz
+kmod-21.tar.xz
 libpipeline-1.4.0.tar.gz
 make-4.1.tar.bz2
 man-db-2.7.1.tar.xz
@@ -111,9 +111,9 @@ sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-eudev-3.0.tar.gz
+eudev-3.1.1.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.26.1.tar.xz
+util-linux-2.26.2.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -167,12 +167,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-3.83"
-tar -Jxf man-pages-3.83.tar.xz
-cd man-pages-3.83
+echo "# 6.8. Man-pages-4.00"
+tar -Jxf man-pages-4.00.tar.xz
+cd man-pages-4.00
 make install
 cd /sources
-rm -rf man-pages-3.83
+rm -rf man-pages-4.00
 
 echo "# 6.9. Glibc-2.21"
 tar -Jxf glibc-2.21.tar.xz
@@ -277,14 +277,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.22"
-tar -zxf file-5.22.tar.gz
-cd file-5.22
+echo "# 6.12. File-5.23"
+tar -zxf file-5.23.tar.gz
+cd file-5.23
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf file-5.22
+rm -rf file-5.23
 
 echo "# 6.13. Binutils-2.25"
 tar -jxf binutils-2.25.tar.bz2
@@ -353,6 +353,7 @@ rm -rf mpc-1.0.3
 echo "# 6.17. GCC-5.1.0"
 tar -jxf gcc-5.1.0.tar.bz2
 cd gcc-5.1.0
+patch -Np1 -i ../gcc-5.1.0-upstream_fixes-1.patch
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
   armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;; 
@@ -553,9 +554,9 @@ ln -sfv ../../lib/$(readlink /usr/lib/libprocps.so) /usr/lib/libprocps.so
 cd /sources
 rm -rf procps-ng-3.3.10
 
-echo "# 6.28. E2fsprogs-1.42.12"
-tar -zxf e2fsprogs-1.42.12.tar.gz
-cd e2fsprogs-1.42.12
+echo "# 6.28. E2fsprogs-1.42.13"
+tar -zxf e2fsprogs-1.42.13.tar.gz
+cd e2fsprogs-1.42.13
 sed -e '/int.*old_desc_blocks/s/int/blk64_t/' \
     -e '/if (old_desc_blocks/s/super->s_first_meta_bg/desc_blocks/' \
     -i lib/ext2fs/closefs.c
@@ -584,7 +585,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     install-info --dir-file=/usr/share/info/dir /usr/share/info/com_err.info
 fi
 cd /sources
-rm -rf e2fsprogs-1.42.12
+rm -rf e2fsprogs-1.42.13
 
 echo "# 6.29. Coreutils-8.23"
 tar -Jxf coreutils-8.23.tar.xz
@@ -679,7 +680,7 @@ rm -rf readline-6.3
 echo "# 6.36. Bash-4.3.30"
 tar -zxf bash-4.3.30.tar.gz
 cd bash-4.3.30
-patch -Np1 -i ../bash-4.3.30-upstream_fixes-1.patch
+patch -Np1 -i ../bash-4.3.30-upstream_fixes-2.patch
 ./configure --prefix=/usr                       \
             --bindir=/bin                       \
             --docdir=/usr/share/doc/bash-4.3.30 \
@@ -740,10 +741,9 @@ cd /sources
 rm -rf expat-2.1.0
 fi
 
-echo "# 6.41. Inetutils-1.9.2"
-tar -Jxf inetutils-1.9.2.tar.xz
-cd inetutils-1.9.2
-echo '#define PATH_PROCNET_DEV "/proc/net/dev"' >> ifconfig/system/linux.h 
+echo "# 6.41. Inetutils-1.9.4"
+tar -Jxf inetutils-1.9.4.tar.xz
+cd inetutils-1.9.4
 ./configure --prefix=/usr        \
             --localstatedir=/var \
             --disable-logger     \
@@ -754,15 +754,14 @@ make install
 mv -v /usr/bin/{hostname,ping,ping6,traceroute} /bin
 mv -v /usr/bin/ifconfig /sbin
 cd /sources
-rm -rf inetutils-1.9.2
+rm -rf inetutils-1.9.4
 
-echo "# 6.42. Perl-5.20.2"
-tar -jxf perl-5.20.2.tar.bz2
-cd perl-5.20.2
+echo "# 6.42. Perl-5.22.0"
+tar -jxf perl-5.22.0.tar.bz2
+cd perl-5.22.0
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 export BUILD_ZLIB=False
 export BUILD_BZIP2=0
-patch -Np1 -i ../perl-5.20.2-gcc5_fixes-1.patch
 sh Configure -des -Dprefix=/usr                 \
                   -Dvendorprefix=/usr           \
                   -Dman1dir=/usr/share/man/man1 \
@@ -773,7 +772,7 @@ make -j $PARALLEL_JOBS
 make install
 unset BUILD_ZLIB BUILD_BZIP2
 cd /sources
-rm -rf perl-5.20.2
+rm -rf perl-5.22.0
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.43. XML::Parser-2.44"
@@ -814,18 +813,18 @@ make install
 cd /sources
 rm -rf diffutils-3.3
 
-echo "# 6.47. Gawk-4.1.1"
-tar -Jxf gawk-4.1.1.tar.xz
-cd gawk-4.1.1
+echo "# 6.47. Gawk-4.1.3"
+tar -Jxf gawk-4.1.3.tar.xz
+cd gawk-4.1.3
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/gawk-4.1.1
-    cp    -v doc/{awkforai.txt,*.{eps,pdf,jpg}} /usr/share/doc/gawk-4.1.1
+    mkdir -v /usr/share/doc/gawk-4.1.3
+    cp    -v doc/{awkforai.txt,*.{eps,pdf,jpg}} /usr/share/doc/gawk-4.1.3
 fi
 cd /sources
-rm -rf gawk-4.1.1
+rm -rf gawk-4.1.3
 
 echo "# 6.48. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
@@ -946,9 +945,9 @@ fi
 cd /sources
 rm -rf kbd-2.0.2
 
-echo "# 6.59. Kmod-20"
-tar -Jxf kmod-20.tar.xz
-cd kmod-20
+echo "# 6.59. Kmod-21"
+tar -Jxf kmod-21.tar.xz
+cd kmod-21
 ./configure --prefix=/usr          \
             --bindir=/bin          \
             --sysconfdir=/etc      \
@@ -962,7 +961,7 @@ for target in depmod insmod lsmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-20
+rm -rf kmod-21
 
 echo "# 6.60. Libpipeline-1.4.0"
 tar -zxf libpipeline-1.4.0.tar.gz
@@ -1047,9 +1046,9 @@ make install
 cd /sources
 rm -rf texinfo-5.2
 
-echo "# 6.67. Eudev-3.0"
-tar -zxf eudev-3.0.tar.gz
-cd eudev-3.0
+echo "# 6.67. Eudev-3.1.1"
+tar -zxf eudev-3.1.1.tar.gz
+cd eudev-3.1.1
 sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
 cat > config.cache << "EOF"
 HAVE_BLKID=1
@@ -1065,6 +1064,8 @@ EOF
             --with-rootprefix=      \
             --with-rootlibdir=/lib  \
             --enable-split-usr      \
+            --enable-manpages       \
+            --enable-hwdb           \
             --disable-introspection \
             --disable-gudev         \
             --disable-static        \
@@ -1074,21 +1075,18 @@ LIBRARY_PATH=/tools/lib make -j $PARALLEL_JOBS
 mkdir -pv /lib/udev/rules.d
 mkdir -pv /etc/udev/rules.d
 make LD_LIBRARY_PATH=/tools/lib install
-pushd man
-make install-man7 install-man8
-popd
 tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
 LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
-rm -rf eudev-3.0
+rm -rf eudev-3.1.1
 
-echo "# 6.68. Util-linux-2.26.1"
-tar -Jxf util-linux-2.26.1.tar.xz
-cd util-linux-2.26.1
+echo "# 6.68. Util-linux-2.26.2"
+tar -Jxf util-linux-2.26.2.tar.xz
+cd util-linux-2.26.2
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime     \
-            --docdir=/usr/share/doc/util-linux-2.26.1 \
+            --docdir=/usr/share/doc/util-linux-2.26.2 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1103,7 +1101,7 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.26.1
+rm -rf util-linux-2.26.2
 
 echo "# 6.69. Man-DB-2.7.1"
 tar -Jxf man-db-2.7.1.tar.xz
