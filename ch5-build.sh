@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150610 v1.0
+# PiLFS Build Script SVN-20150623 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -62,10 +62,10 @@ binutils-2.25.tar.bz2
 gcc-5.1.0.tar.bz2
 gcc-4.9.0-pi-cpu-default.patch
 gcc-4.9.2-rpi2-cpu-default.patch
-mpfr-3.1.2.tar.xz
+mpfr-3.1.3.tar.xz
 gmp-6.0.0a.tar.xz
 mpc-1.0.3.tar.gz
-rpi-3.18.y.tar.gz
+rpi-4.0.y.tar.gz
 glibc-2.21.tar.xz
 tcl-core8.6.4-src.tar.gz
 expect5.45.tar.gz
@@ -170,8 +170,8 @@ case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
   armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;;
 esac
-tar -Jxf ../mpfr-3.1.2.tar.xz
-mv -v mpfr-3.1.2 mpfr
+tar -Jxf ../mpfr-3.1.3.tar.xz
+mv -v mpfr-3.1.3 mpfr
 tar -Jxf ../gmp-6.0.0a.tar.xz
 mv -v gmp-6.0.0 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
@@ -227,8 +227,8 @@ cd $LFS/sources
 rm -rf gcc-build gcc-5.1.0
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
-tar -zxf rpi-3.18.y.tar.gz
-cd linux-rpi-3.18.y
+tar -zxf rpi-4.0.y.tar.gz
+cd linux-rpi-4.0.y
 make mrproper
 make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
@@ -322,8 +322,8 @@ do
 #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
   touch $file.orig
 done
-tar -Jxf ../mpfr-3.1.2.tar.xz
-mv -v mpfr-3.1.2 mpfr
+tar -Jxf ../mpfr-3.1.3.tar.xz
+mv -v mpfr-3.1.3 mpfr
 tar -Jxf ../gmp-6.0.0a.tar.xz
 mv -v gmp-6.0.0 gmp
 tar -zxf ../mpc-1.0.3.tar.gz

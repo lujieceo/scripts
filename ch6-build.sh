@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150610 v1.0
+# PiLFS Build Script SVN-20150623 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -37,18 +37,17 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-rpi-3.18.y.tar.gz
+rpi-4.0.y.tar.gz
 man-pages-4.00.tar.xz
 glibc-2.21.tar.xz
 glibc-2.21-fhs-1.patch
-tzdata2015d.tar.gz
+tzdata2015e.tar.gz
 zlib-1.2.8.tar.xz
 file-5.23.tar.gz
 binutils-2.25.tar.bz2
 gmp-6.0.0a.tar.xz
 gmp-6.0.0a-rpi2-cpuguess-fix.patch
-mpfr-3.1.2.tar.xz
-mpfr-3.1.2-upstream_fixes-3.patch
+mpfr-3.1.3.tar.xz
 mpc-1.0.3.tar.gz
 gcc-5.1.0.tar.bz2
 gcc-5.1.0-upstream_fixes-1.patch
@@ -111,7 +110,7 @@ sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.28.tar.xz
 texinfo-5.2.tar.xz
-eudev-3.1.1.tar.gz
+eudev-3.1.2.tar.gz
 udev-lfs-20140408.tar.bz2
 util-linux-2.26.2.tar.xz
 vim-7.4.tar.bz2
@@ -157,10 +156,10 @@ total_time=$(timer)
 
 echo "# 6.7. Raspberry Pi Linux API Headers"
 cd /sources
-if ! [[ -d /sources/linux-rpi-3.18.y ]] ; then
-    tar -zxf rpi-3.18.y.tar.gz
+if ! [[ -d /sources/linux-rpi-4.0.y ]] ; then
+    tar -zxf rpi-4.0.y.tar.gz
 fi
-cd linux-rpi-3.18.y
+cd linux-rpi-4.0.y
 make mrproper
 make INSTALL_HDR_PATH=dest headers_install
 find dest/include \( -name .install -o -name ..install.cmd \) -delete
@@ -221,7 +220,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2015d.tar.gz
+tar -zxf ../tzdata2015e.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -318,14 +317,13 @@ fi
 cd /sources
 rm -rf gmp-6.0.0
 
-echo "# 6.15. MPFR-3.1.2"
-tar -Jxf mpfr-3.1.2.tar.xz
-cd mpfr-3.1.2
-patch -Np1 -i ../mpfr-3.1.2-upstream_fixes-3.patch
+echo "# 6.15. MPFR-3.1.3"
+tar -Jxf mpfr-3.1.3.tar.xz
+cd mpfr-3.1.3
 ./configure  --prefix=/usr        \
              --disable-static     \
              --enable-thread-safe \
-             --docdir=/usr/share/doc/mpfr-3.1.2
+             --docdir=/usr/share/doc/mpfr-3.1.3
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -333,7 +331,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     make install-html
 fi
 cd /sources
-rm -rf mpfr-3.1.2
+rm -rf mpfr-3.1.3
 
 echo "# 6.16. MPC-1.0.3"
 tar -zxf mpc-1.0.3.tar.gz
@@ -1046,9 +1044,9 @@ make install
 cd /sources
 rm -rf texinfo-5.2
 
-echo "# 6.67. Eudev-3.1.1"
-tar -zxf eudev-3.1.1.tar.gz
-cd eudev-3.1.1
+echo "# 6.67. Eudev-3.1.2"
+tar -zxf eudev-3.1.2.tar.gz
+cd eudev-3.1.2
 sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
 cat > config.cache << "EOF"
 HAVE_BLKID=1
@@ -1079,7 +1077,7 @@ tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
 LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
-rm -rf eudev-3.1.1
+rm -rf eudev-3.1.2
 
 echo "# 6.68. Util-linux-2.26.2"
 tar -Jxf util-linux-2.26.2.tar.xz
