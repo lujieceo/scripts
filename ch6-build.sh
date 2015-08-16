@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150623 v1.0
+# PiLFS Build Script SVN-20150811 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -37,37 +37,36 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-rpi-4.0.y.tar.gz
-man-pages-4.00.tar.xz
-glibc-2.21.tar.xz
-glibc-2.21-fhs-1.patch
+rpi-4.1.y.tar.gz
+man-pages-4.02.tar.xz
+glibc-2.22.tar.xz
+glibc-2.22-fhs-1.patch
+glibc-2.22-disable-libmvec-test.patch
 tzdata2015e.tar.gz
 zlib-1.2.8.tar.xz
-file-5.23.tar.gz
-binutils-2.25.tar.bz2
+file-5.24.tar.gz
+binutils-2.25.1.tar.bz2
 gmp-6.0.0a.tar.xz
 gmp-6.0.0a-rpi2-cpuguess-fix.patch
 mpfr-3.1.3.tar.xz
 mpc-1.0.3.tar.gz
-gcc-5.1.0.tar.bz2
-gcc-5.1.0-upstream_fixes-1.patch
-gcc-4.9.0-pi-cpu-default.patch
-gcc-4.9.2-rpi2-cpu-default.patch
+gcc-5.2.0.tar.bz2
+gcc-5.2.0-pi-cpu-default.patch
+gcc-5.2.0-rpi2-cpu-default.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
 pkg-config-0.28.tar.gz
-ncurses-5.9.tar.gz
-ncurses-5.9-gcc5_buildfixes-1.patch
+ncurses-6.0.tar.gz
 attr-2.4.47.src.tar.gz
 acl-2.2.52.src.tar.gz
 libcap-2.24.tar.xz
 sed-4.2.2.tar.bz2
 shadow-4.2.1.tar.xz
 psmisc-22.21.tar.gz
-procps-ng-3.3.10.tar.xz
+procps-ng-3.3.11.tar.xz
 e2fsprogs-1.42.13.tar.gz
-coreutils-8.23.tar.xz
-coreutils-8.23-i18n-1.patch
+coreutils-8.24.tar.xz
+coreutils-8.24-i18n-1.patch
 iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
 flex-2.5.39.tar.xz
@@ -90,16 +89,16 @@ automake-1.15.tar.xz
 diffutils-3.3.tar.xz
 gawk-4.1.3.tar.xz
 findutils-4.4.2.tar.gz
-gettext-0.19.4.tar.xz
+gettext-0.19.5.1.tar.xz
 intltool-0.51.0.tar.gz
 gperf-3.0.4.tar.gz
 groff-1.22.3.tar.gz
 xz-5.2.1.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
-iproute2-4.0.0.tar.xz
-kbd-2.0.2.tar.xz
-kbd-2.0.2-backspace-1.patch
+iproute2-4.1.1.tar.xz
+kbd-2.0.3.tar.xz
+kbd-2.0.3-backspace-1.patch
 kmod-21.tar.xz
 libpipeline-1.4.0.tar.gz
 make-4.1.tar.bz2
@@ -109,7 +108,7 @@ sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.28.tar.xz
-texinfo-5.2.tar.xz
+texinfo-6.0.tar.xz
 eudev-3.1.2.tar.gz
 udev-lfs-20140408.tar.bz2
 util-linux-2.26.2.tar.xz
@@ -156,37 +155,31 @@ total_time=$(timer)
 
 echo "# 6.7. Raspberry Pi Linux API Headers"
 cd /sources
-if ! [[ -d /sources/linux-rpi-4.0.y ]] ; then
-    tar -zxf rpi-4.0.y.tar.gz
+if ! [[ -d /sources/linux-rpi-4.1.y ]] ; then
+    tar -zxf rpi-4.1.y.tar.gz
 fi
-cd linux-rpi-4.0.y
+cd linux-rpi-4.1.y
 make mrproper
 make INSTALL_HDR_PATH=dest headers_install
 find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-4.00"
-tar -Jxf man-pages-4.00.tar.xz
-cd man-pages-4.00
+echo "# 6.8. Man-pages-4.02"
+tar -Jxf man-pages-4.02.tar.xz
+cd man-pages-4.02
 make install
 cd /sources
-rm -rf man-pages-4.00
+rm -rf man-pages-4.02
 
-echo "# 6.9. Glibc-2.21"
-tar -Jxf glibc-2.21.tar.xz
-cd glibc-2.21
-patch -Np1 -i ../glibc-2.21-fhs-1.patch
-sed -e '/ia32/s/^/1:/' \
-    -e '/SSE2/s/^1://' \
-    -i  sysdeps/i386/i686/multiarch/mempcpy_chk.S
-sed -i '/glibc.*pad/{i\  buflen = buflen > pad ? buflen - pad : 0;
-                     s/ + pad//}' resolv/nss_dns/dns-host.c
-sed -e '/tst-audit2-ENV/i CFLAGS-tst-audit2.c += -fno-builtin' \
-    -i elf/Makefile
+echo "# 6.9. Glibc-2.22"
+tar -Jxf glibc-2.22.tar.xz
+cd glibc-2.22
+patch -Np1 -i ../glibc-2.22-fhs-1.patch
+patch -Np1 -i ../glibc-2.22-disable-libmvec-test.patch
 mkdir -v ../glibc-build
 cd ../glibc-build
-../glibc-2.21/configure    \
+../glibc-2.22/configure    \
     --prefix=/usr          \
     --disable-profile      \
     --enable-kernel=2.6.32 \
@@ -194,7 +187,7 @@ cd ../glibc-build
 make -j $PARALLEL_JOBS
 touch /etc/ld.so.conf
 make install
-cp -v ../glibc-2.21/nscd/nscd.conf /etc/nscd.conf
+cp -v ../glibc-2.22/nscd/nscd.conf /etc/nscd.conf
 mkdir -pv /var/cache/nscd
 if [[ $INSTALL_ALL_LOCALES = 1 ]] ; then
     make localedata/install-locales
@@ -251,9 +244,9 @@ include /etc/ld.so.conf.d/*.conf
 EOF
 mkdir -pv /etc/ld.so.conf.d
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.21.so /lib/ld-linux.so.3
+ln -sv ld-2.22.so /lib/ld-linux.so.3
 cd /sources
-rm -rf glibc-build glibc-2.21
+rm -rf glibc-build glibc-2.22
 
 echo "# 6.10. Adjusting the Toolchain"
 mv -v /tools/bin/{ld,ld-old}
@@ -276,27 +269,27 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.23"
-tar -zxf file-5.23.tar.gz
-cd file-5.23
+echo "# 6.12. File-5.24"
+tar -zxf file-5.24.tar.gz
+cd file-5.24
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf file-5.23
+rm -rf file-5.24
 
-echo "# 6.13. Binutils-2.25"
-tar -jxf binutils-2.25.tar.bz2
-cd binutils-2.25
+echo "# 6.13. Binutils-2.25.1"
+tar -jxf binutils-2.25.1.tar.bz2
+cd binutils-2.25.1
 mkdir -v ../binutils-build
 cd ../binutils-build
-../binutils-2.25/configure --prefix=/usr  \
-                           --enable-shared \
-                           --disable-werror
+../binutils-2.25.1/configure --prefix=/usr  \
+                             --enable-shared \
+                             --disable-werror
 make -j $PARALLEL_JOBS tooldir=/usr
 make tooldir=/usr install
 cd /sources
-rm -rf binutils-build binutils-2.25
+rm -rf binutils-build binutils-2.25.1
 
 echo "# 6.14. GMP-6.0.0a"
 tar -Jxf gmp-6.0.0a.tar.xz
@@ -348,33 +341,32 @@ fi
 cd /sources
 rm -rf mpc-1.0.3
 
-echo "# 6.17. GCC-5.1.0"
-tar -jxf gcc-5.1.0.tar.bz2
-cd gcc-5.1.0
-patch -Np1 -i ../gcc-5.1.0-upstream_fixes-1.patch
+echo "# 6.17. GCC-5.2.0"
+tar -jxf gcc-5.2.0.tar.bz2
+cd gcc-5.2.0
 case $(uname -m) in
-  armv6l) patch -Np1 -i ../gcc-4.9.0-pi-cpu-default.patch ;;
-  armv7l) patch -Np1 -i ../gcc-4.9.2-rpi2-cpu-default.patch ;; 
+  armv6l) patch -Np1 -i ../gcc-5.2.0-pi-cpu-default.patch ;;
+  armv7l) patch -Np1 -i ../gcc-5.2.0-rpi2-cpu-default.patch ;; 
 esac
 mkdir -v ../gcc-build
 cd ../gcc-build
-SED=sed                          \
-../gcc-5.1.0/configure           \
-     --prefix=/usr               \
-     --enable-languages=c,c++    \
-     --disable-multilib          \
-     --disable-bootstrap         \
+SED=sed                       \
+../gcc-5.2.0/configure        \
+     --prefix=/usr            \
+     --enable-languages=c,c++ \
+     --disable-multilib       \
+     --disable-bootstrap      \
      --with-system-zlib
 make
 make install
 ln -sv ../usr/bin/cpp /lib
 ln -sv gcc /usr/bin/cc
 install -v -dm755 /usr/lib/bfd-plugins
-ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/5.1.0/liblto_plugin.so /usr/lib/bfd-plugins/
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/5.2.0/liblto_plugin.so /usr/lib/bfd-plugins/
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-build gcc-5.1.0
+rm -rf gcc-build gcc-5.2.0
 
 echo "# 6.18. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -407,10 +399,9 @@ make install
 cd /sources
 rm -rf pkg-config-0.28
 
-echo "# 6.20. Ncurses-5.9"
-tar -zxf ncurses-5.9.tar.gz
-cd ncurses-5.9
-patch -Np1 -i ../ncurses-5.9-gcc5_buildfixes-1.patch
+echo "# 6.20. Ncurses-6.0"
+tar -zxf ncurses-6.0.tar.gz
+cd ncurses-6.0
 sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 ./configure --prefix=/usr           \
             --mandir=/usr/share/man \
@@ -421,7 +412,7 @@ sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
             --enable-widec
 make -j $PARALLEL_JOBS
 make install
-mv -v /usr/lib/libncursesw.so.5* /lib
+mv -v /usr/lib/libncursesw.so.6* /lib
 ln -sfv ../../lib/$(readlink /usr/lib/libncursesw.so) /usr/lib/libncursesw.so
 for lib in ncurses form panel menu ; do
     rm -vf                    /usr/lib/lib${lib}.so
@@ -432,11 +423,11 @@ rm -vf                     /usr/lib/libcursesw.so
 echo "INPUT(-lncursesw)" > /usr/lib/libcursesw.so
 ln -sfv libncurses.so      /usr/lib/libcurses.so
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v       /usr/share/doc/ncurses-5.9
-    cp -v -R doc/* /usr/share/doc/ncurses-5.9
+    mkdir -v       /usr/share/doc/ncurses-6.0
+    cp -v -R doc/* /usr/share/doc/ncurses-6.0
 fi
 cd /sources
-rm -rf ncurses-5.9
+rm -rf ncurses-6.0
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.21. Attr-2.4.47"
@@ -535,22 +526,21 @@ mv -v /usr/bin/killall /bin
 cd /sources
 rm -rf psmisc-22.21
 
-echo "# 6.27. Procps-ng-3.3.10"
-tar -Jxf procps-ng-3.3.10.tar.xz
-cd procps-ng-3.3.10
+echo "# 6.27. Procps-ng-3.3.11"
+tar -Jxf procps-ng-3.3.11.tar.xz
+cd procps-ng-3.3.11
 ./configure --prefix=/usr                            \
             --exec-prefix=                           \
             --libdir=/usr/lib                        \
-            --docdir=/usr/share/doc/procps-ng-3.3.10 \
+            --docdir=/usr/share/doc/procps-ng-3.3.11 \
             --disable-static                         \
             --disable-kill
 make -j $PARALLEL_JOBS
 make install
-mv -v /usr/bin/pidof /bin
 mv -v /usr/lib/libprocps.so.* /lib
 ln -sfv ../../lib/$(readlink /usr/lib/libprocps.so) /usr/lib/libprocps.so
 cd /sources
-rm -rf procps-ng-3.3.10
+rm -rf procps-ng-3.3.11
 
 echo "# 6.28. E2fsprogs-1.42.13"
 tar -zxf e2fsprogs-1.42.13.tar.gz
@@ -585,11 +575,11 @@ fi
 cd /sources
 rm -rf e2fsprogs-1.42.13
 
-echo "# 6.29. Coreutils-8.23"
-tar -Jxf coreutils-8.23.tar.xz
-cd coreutils-8.23
-patch -Np1 -i ../coreutils-8.23-i18n-1.patch &&
-touch Makefile.in
+echo "# 6.29. Coreutils-8.24"
+tar -Jxf coreutils-8.24.tar.xz
+cd coreutils-8.24
+patch -Np1 -i ../coreutils-8.24-i18n-1.patch 
+sed -i '/tests\/misc\/sort.pl/ d' Makefile.in
 FORCE_UNSAFE_CONFIGURE=1 ./configure \
             --prefix=/usr            \
             --enable-no-install-program=kill,uptime
@@ -606,7 +596,7 @@ mv -v /usr/share/man/man1/chroot.1 /usr/share/man/man8/chroot.8
 sed -i s/\"1\"/\"8\"/1 /usr/share/man/man8/chroot.8
 mv -v /usr/bin/{head,sleep,nice,test,[} /bin
 cd /sources
-rm -rf coreutils-8.23
+rm -rf coreutils-8.24
 
 echo "# 6.30. Iana-Etc-2.30"
 tar -jxf iana-etc-2.30.tar.bz2
@@ -795,6 +785,7 @@ rm -rf autoconf-2.69
 echo "# 6.45. Automake-1.15"
 tar -Jxf automake-1.15.tar.xz
 cd automake-1.15
+sed -i 's:/\\\${:/\\\$\\{:' bin/automake.in
 ./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.15
 make -j $PARALLEL_JOBS
 make install
@@ -835,21 +826,22 @@ sed -i 's/find:=${BINDIR}/find:=\/bin/' /usr/bin/updatedb
 cd /sources
 rm -rf findutils-4.4.2
 
-echo "# 6.49. Gettext-0.19.4"
-tar -Jxf gettext-0.19.4.tar.xz
-cd gettext-0.19.4
+echo "# 6.49. Gettext-0.19.5.1"
+tar -Jxf gettext-0.19.5.1.tar.xz
+cd gettext-0.19.5.1
 ./configure --prefix=/usr    \
             --disable-static \
-            --docdir=/usr/share/doc/gettext-0.19.4
+            --docdir=/usr/share/doc/gettext-0.19.5.1
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf gettext-0.19.4
+rm -rf gettext-0.19.5.1
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.50. Intltool-0.51.0"
 tar -zxf intltool-0.51.0.tar.gz
 cd intltool-0.51.0
+sed -i 's:\\\${:\\\$\\{:' intltool-update.in
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
@@ -916,32 +908,32 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.6
 
-echo "# 6.57. IPRoute2-4.0.0"
-tar -Jxf iproute2-4.0.0.tar.xz
-cd iproute2-4.0.0
+echo "# 6.57. IPRoute2-4.1.1"
+tar -Jxf iproute2-4.1.1.tar.xz
+cd iproute2-4.1.1
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-4.0.0 install
+make DOCDIR=/usr/share/doc/iproute2-4.1.1 install
 cd /sources
-rm -rf iproute2-4.0.0
+rm -rf iproute2-4.1.1
 
-echo "# 6.58. Kbd-2.0.2"
-tar -Jxf kbd-2.0.2.tar.xz
-cd kbd-2.0.2
-patch -Np1 -i ../kbd-2.0.2-backspace-1.patch
+echo "# 6.58. Kbd-2.0.3"
+tar -Jxf kbd-2.0.3.tar.xz
+cd kbd-2.0.3
+patch -Np1 -i ../kbd-2.0.3-backspace-1.patch
 sed -i 's/\(RESIZECONS_PROGS=\)yes/\1no/g' configure
 sed -i 's/resizecons.8 //' docs/man/man8/Makefile.in
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr --disable-vlock
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/kbd-2.0.2
-    cp -R -v docs/doc/* /usr/share/doc/kbd-2.0.2
+    mkdir -v /usr/share/doc/kbd-2.0.3
+    cp -R -v docs/doc/* /usr/share/doc/kbd-2.0.3
 fi
 cd /sources
-rm -rf kbd-2.0.2
+rm -rf kbd-2.0.3
 
 echo "# 6.59. Kmod-21"
 tar -Jxf kmod-21.tar.xz
@@ -1033,16 +1025,16 @@ fi
 cd /sources
 rm -rf tar-1.28
 
-echo "# 6.66. Texinfo-5.2"
-tar -Jxf texinfo-5.2.tar.xz
-cd texinfo-5.2
+echo "# 6.66. Texinfo-6.0"
+tar -Jxf texinfo-6.0.tar.xz
+cd texinfo-6.0
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 # I don't know anybody who wants this... prove me wrong!
 # make TEXMF=/usr/share/texmf install-tex
 cd /sources
-rm -rf texinfo-5.2
+rm -rf texinfo-6.0
 
 echo "# 6.67. Eudev-3.1.2"
 tar -zxf eudev-3.1.2.tar.gz
