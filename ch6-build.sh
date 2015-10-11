@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150811 v1.0
+# PiLFS Build Script SVN-20151002 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -41,21 +41,22 @@ rpi-4.1.y.tar.gz
 man-pages-4.02.tar.xz
 glibc-2.22.tar.xz
 glibc-2.22-fhs-1.patch
-glibc-2.22-disable-libmvec-test.patch
-tzdata2015e.tar.gz
+glibc-2.22-upstream_i386_fix-1.patch
+tzdata2015f.tar.gz
 zlib-1.2.8.tar.xz
-file-5.24.tar.gz
+file-5.25.tar.gz
 binutils-2.25.1.tar.bz2
 gmp-6.0.0a.tar.xz
 gmp-6.0.0a-rpi2-cpuguess-fix.patch
 mpfr-3.1.3.tar.xz
+mpfr-3.1.3-upstream_fixes-1.patch
 mpc-1.0.3.tar.gz
 gcc-5.2.0.tar.bz2
 gcc-5.2.0-pi-cpu-default.patch
 gcc-5.2.0-rpi2-cpu-default.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
-pkg-config-0.28.tar.gz
+pkg-config-0.29.tar.gz
 ncurses-6.0.tar.gz
 attr-2.4.47.src.tar.gz
 acl-2.2.52.src.tar.gz
@@ -89,20 +90,20 @@ automake-1.15.tar.xz
 diffutils-3.3.tar.xz
 gawk-4.1.3.tar.xz
 findutils-4.4.2.tar.gz
-gettext-0.19.5.1.tar.xz
+gettext-0.19.6.tar.xz
 intltool-0.51.0.tar.gz
 gperf-3.0.4.tar.gz
 groff-1.22.3.tar.gz
-xz-5.2.1.tar.xz
+xz-5.2.2.tar.xz
 less-458.tar.gz
 gzip-1.6.tar.xz
-iproute2-4.1.1.tar.xz
+iproute2-4.2.0.tar.xz
 kbd-2.0.3.tar.xz
 kbd-2.0.3-backspace-1.patch
 kmod-21.tar.xz
-libpipeline-1.4.0.tar.gz
+libpipeline-1.4.1.tar.gz
 make-4.1.tar.bz2
-man-db-2.7.1.tar.xz
+man-db-2.7.3.tar.xz
 patch-2.7.5.tar.xz
 sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
@@ -111,7 +112,7 @@ tar-1.28.tar.xz
 texinfo-6.0.tar.xz
 eudev-3.1.2.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.26.2.tar.xz
+util-linux-2.27.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -141,6 +142,18 @@ function timer {
 
 prebuild_sanity_check
 check_tarballs
+
+if [[ $(cat /proc/swaps | wc -l) == 1 ]] ; then
+    echo -e "\nYou are almost certainly going to want to add some swap space before building!"
+    echo -e "(See http://www.intestinate.com/pilfs/beyond.html#addswap for instructions)"
+    echo -e "Continue without swap?"
+    select yn in "Yes" "No"; do
+        case $yn in
+            Yes ) break;;
+            No ) exit;;
+        esac
+    done
+fi
 
 echo -e "\nThis is your last chance to quit before we start building... continue?"
 echo "(Note that if anything goes wrong during the build, the script will abort mission)"
@@ -176,7 +189,7 @@ echo "# 6.9. Glibc-2.22"
 tar -Jxf glibc-2.22.tar.xz
 cd glibc-2.22
 patch -Np1 -i ../glibc-2.22-fhs-1.patch
-patch -Np1 -i ../glibc-2.22-disable-libmvec-test.patch
+patch -Np1 -i ../glibc-2.22-upstream_i386_fix-1.patch
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.22/configure    \
@@ -213,7 +226,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2015e.tar.gz
+tar -zxf ../tzdata2015f.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -269,14 +282,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.24"
-tar -zxf file-5.24.tar.gz
-cd file-5.24
+echo "# 6.12. File-5.25"
+tar -zxf file-5.25.tar.gz
+cd file-5.25
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf file-5.24
+rm -rf file-5.25
 
 echo "# 6.13. Binutils-2.25.1"
 tar -jxf binutils-2.25.1.tar.bz2
@@ -313,6 +326,7 @@ rm -rf gmp-6.0.0
 echo "# 6.15. MPFR-3.1.3"
 tar -Jxf mpfr-3.1.3.tar.xz
 cd mpfr-3.1.3
+patch -Np1 -i ../mpfr-3.1.3-upstream_fixes-1.patch
 ./configure  --prefix=/usr        \
              --disable-static     \
              --enable-thread-safe \
@@ -387,17 +401,17 @@ ln -sv bzip2 /bin/bzcat
 cd /sources
 rm -rf bzip2-1.0.6
 
-echo "# 6.19. Pkg-config-0.28"
-tar -zxf pkg-config-0.28.tar.gz
-cd pkg-config-0.28
+echo "# 6.19. Pkg-config-0.29"
+tar -zxf pkg-config-0.29.tar.gz
+cd pkg-config-0.29
 ./configure --prefix=/usr         \
             --with-internal-glib  \
             --disable-host-tool   \
-            --docdir=/usr/share/doc/pkg-config-0.28
+            --docdir=/usr/share/doc/pkg-config-0.29
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf pkg-config-0.28
+rm -rf pkg-config-0.29
 
 echo "# 6.20. Ncurses-6.0"
 tar -zxf ncurses-6.0.tar.gz
@@ -545,9 +559,6 @@ rm -rf procps-ng-3.3.11
 echo "# 6.28. E2fsprogs-1.42.13"
 tar -zxf e2fsprogs-1.42.13.tar.gz
 cd e2fsprogs-1.42.13
-sed -e '/int.*old_desc_blocks/s/int/blk64_t/' \
-    -e '/if (old_desc_blocks/s/super->s_first_meta_bg/desc_blocks/' \
-    -i lib/ext2fs/closefs.c
 mkdir -v build
 cd build
 LIBS=-L/tools/lib                    \
@@ -736,6 +747,10 @@ cd inetutils-1.9.4
             --localstatedir=/var \
             --disable-logger     \
             --disable-whois      \
+            --disable-rcp        \
+            --disable-rexec      \
+            --disable-rlogin     \
+            --disable-rsh        \
             --disable-servers
 make -j $PARALLEL_JOBS
 make install
@@ -826,16 +841,16 @@ sed -i 's/find:=${BINDIR}/find:=\/bin/' /usr/bin/updatedb
 cd /sources
 rm -rf findutils-4.4.2
 
-echo "# 6.49. Gettext-0.19.5.1"
-tar -Jxf gettext-0.19.5.1.tar.xz
-cd gettext-0.19.5.1
+echo "# 6.49. Gettext-0.19.6"
+tar -Jxf gettext-0.19.6.tar.xz
+cd gettext-0.19.6
 ./configure --prefix=/usr    \
             --disable-static \
-            --docdir=/usr/share/doc/gettext-0.19.5.1
+            --docdir=/usr/share/doc/gettext-0.19.6
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf gettext-0.19.5.1
+rm -rf gettext-0.19.6
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.50. Intltool-0.51.0"
@@ -871,19 +886,19 @@ make install
 cd /sources
 rm -rf groff-1.22.3
 
-echo "# 6.53. Xz-5.2.1"
-tar -Jxf xz-5.2.1.tar.xz
-cd xz-5.2.1
+echo "# 6.53. Xz-5.2.2"
+tar -Jxf xz-5.2.2.tar.xz
+cd xz-5.2.2
 ./configure --prefix=/usr    \
             --disable-static \
-            --docdir=/usr/share/doc/xz-5.2.1
+            --docdir=/usr/share/doc/xz-5.2.2
 make -j $PARALLEL_JOBS
 make install
 mv -v /usr/bin/{lzma,unlzma,lzcat,xz,unxz,xzcat} /bin
 mv -v /usr/lib/liblzma.so.* /lib
 ln -svf ../../lib/$(readlink /usr/lib/liblzma.so) /usr/lib/liblzma.so
 cd /sources
-rm -rf xz-5.2.1
+rm -rf xz-5.2.2
 
 # 6.54. GRUB-2.00
 # We don't use GRUB on ARM
@@ -908,16 +923,16 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.6
 
-echo "# 6.57. IPRoute2-4.1.1"
-tar -Jxf iproute2-4.1.1.tar.xz
-cd iproute2-4.1.1
+echo "# 6.57. IPRoute2-4.2.0"
+tar -Jxf iproute2-4.2.0.tar.xz
+cd iproute2-4.2.0
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-4.1.1 install
+make DOCDIR=/usr/share/doc/iproute2-4.2.0 install
 cd /sources
-rm -rf iproute2-4.1.1
+rm -rf iproute2-4.2.0
 
 echo "# 6.58. Kbd-2.0.3"
 tar -Jxf kbd-2.0.3.tar.xz
@@ -953,14 +968,14 @@ ln -sv kmod /bin/lsmod
 cd /sources
 rm -rf kmod-21
 
-echo "# 6.60. Libpipeline-1.4.0"
-tar -zxf libpipeline-1.4.0.tar.gz
-cd libpipeline-1.4.0
+echo "# 6.60. Libpipeline-1.4.1"
+tar -zxf libpipeline-1.4.1.tar.gz
+cd libpipeline-1.4.1
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf libpipeline-1.4.0
+rm -rf libpipeline-1.4.1
 
 echo "# 6.61. Make-4.1"
 tar -jxf make-4.1.tar.bz2
@@ -1071,12 +1086,12 @@ LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
 rm -rf eudev-3.1.2
 
-echo "# 6.68. Util-linux-2.26.2"
-tar -Jxf util-linux-2.26.2.tar.xz
-cd util-linux-2.26.2
+echo "# 6.68. Util-linux-2.27"
+tar -Jxf util-linux-2.27.tar.xz
+cd util-linux-2.27
 mkdir -pv /var/lib/hwclock
-./configure ADJTIME_PATH=/var/lib/hwclock/adjtime     \
-            --docdir=/usr/share/doc/util-linux-2.26.2 \
+./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
+            --docdir=/usr/share/doc/util-linux-2.27 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1091,13 +1106,13 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.26.2
+rm -rf util-linux-2.27
 
-echo "# 6.69. Man-DB-2.7.1"
-tar -Jxf man-db-2.7.1.tar.xz
-cd man-db-2.7.1
+echo "# 6.69. Man-DB-2.7.3"
+tar -Jxf man-db-2.7.3.tar.xz
+cd man-db-2.7.3
 ./configure --prefix=/usr                        \
-            --docdir=/usr/share/doc/man-db-2.7.1 \
+            --docdir=/usr/share/doc/man-db-2.7.3 \
             --sysconfdir=/etc                    \
             --disable-setuid                     \
             --with-browser=/usr/bin/lynx         \
@@ -1106,7 +1121,7 @@ cd man-db-2.7.1
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf man-db-2.7.1
+rm -rf man-db-2.7.3
 
 echo "# 6.70. Vim-7.4"
 tar -jxf vim-7.4.tar.bz2

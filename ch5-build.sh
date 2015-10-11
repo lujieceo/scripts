@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20150811 v1.0
+# PiLFS Build Script SVN-20151002 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -67,6 +67,7 @@ gmp-6.0.0a.tar.xz
 mpc-1.0.3.tar.gz
 rpi-4.1.y.tar.gz
 glibc-2.22.tar.xz
+glibc-2.22-upstream_i386_fix-1.patch
 tcl-core8.6.4-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.3.tar.gz
@@ -76,10 +77,10 @@ bash-4.3.30.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.24.tar.xz
 diffutils-3.3.tar.xz
-file-5.24.tar.gz
+file-5.25.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.3.tar.xz
-gettext-0.19.5.1.tar.xz
+gettext-0.19.6.tar.xz
 grep-2.21.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
@@ -89,8 +90,8 @@ perl-5.22.0.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
 texinfo-6.0.tar.xz
-util-linux-2.26.2.tar.xz
-xz-5.2.1.tar.xz
+util-linux-2.27.tar.xz
+xz-5.2.2.tar.xz
 "
 
 for tarball in $LIST_OF_TARBALLS ; do
@@ -127,6 +128,18 @@ function timer {
 
 prebuild_sanity_check
 check_tarballs
+
+if [[ $(free | grep 'Swap:' | tr -d ' ' | cut -d ':' -f2) == "000" ]] ; then
+    echo -e "\nYou are almost certainly going to want to add some swap space before building!"
+    echo -e "(See http://www.intestinate.com/pilfs/beyond.html#addswap for instructions)"
+    echo -e "Continue without swap?"
+    select yn in "Yes" "No"; do
+        case $yn in
+            Yes ) break;;
+            No ) exit;;
+        esac
+    done
+fi
 
 echo -e "\nThis is your last chance to quit before we start building... continue?"
 echo "(Note that if anything goes wrong during the build, the script will abort mission)"
@@ -233,6 +246,7 @@ cd $LFS/sources
 echo "# 5.7. Glibc-2.22"
 tar -Jxf glibc-2.22.tar.xz
 cd glibc-2.22
+patch -Np1 -i ../glibc-2.22-upstream_i386_fix-1.patch
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.22/configure                             \
@@ -394,6 +408,7 @@ rm -rf check-0.10.0
 echo "# 5.15. Ncurses-6.0"
 tar -zxf ncurses-6.0.tar.gz
 cd ncurses-6.0
+sed -i s/mawk// configure
 ./configure --prefix=/tools \
             --with-shared   \
             --without-debug \
@@ -441,14 +456,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.24"
-tar -zxf file-5.24.tar.gz
-cd file-5.24
+echo "# 5.20. File-5.25"
+tar -zxf file-5.25.tar.gz
+cd file-5.25
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf file-5.24
+rm -rf file-5.25
 
 echo "# 5.21. Findutils-4.4.2"
 tar -zxf findutils-4.4.2.tar.gz
@@ -468,9 +483,9 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.3
 
-echo "# 5.23. Gettext-0.19.5.1"
-tar -Jxf gettext-0.19.5.1.tar.xz
-cd gettext-0.19.5.1
+echo "# 5.23. Gettext-0.19.6"
+tar -Jxf gettext-0.19.6.tar.xz
+cd gettext-0.19.6
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
@@ -480,7 +495,7 @@ make -C src msgmerge
 make -C src xgettext
 cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.19.5.1
+rm -rf gettext-0.19.6
 
 echo "# 5.24. Grep-2.21"
 tar -Jxf grep-2.21.tar.xz
@@ -565,9 +580,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-6.0
 
-echo "# 5.33. Util-linux-2.26.2"
-tar -Jxf util-linux-2.26.2.tar.xz
-cd util-linux-2.26.2
+echo "# 5.33. Util-linux-2.27"
+tar -Jxf util-linux-2.27.tar.xz
+cd util-linux-2.27
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -576,16 +591,16 @@ cd util-linux-2.26.2
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.26.2
+rm -rf util-linux-2.27
 
-echo "# 5.34. Xz-5.2.1"
-tar -Jxf xz-5.2.1.tar.xz
-cd xz-5.2.1
+echo "# 5.34. Xz-5.2.2"
+tar -Jxf xz-5.2.2.tar.xz
+cd xz-5.2.2
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf xz-5.2.1
+rm -rf xz-5.2.2
 
 do_strip
 
