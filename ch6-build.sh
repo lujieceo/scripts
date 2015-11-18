@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20151002 v1.0
+# PiLFS Build Script SVN-20151106 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -42,7 +42,8 @@ man-pages-4.02.tar.xz
 glibc-2.22.tar.xz
 glibc-2.22-fhs-1.patch
 glibc-2.22-upstream_i386_fix-1.patch
-tzdata2015f.tar.gz
+glibc-2.22-largefile-1.patch
+tzdata2015g.tar.gz
 zlib-1.2.8.tar.xz
 file-5.25.tar.gz
 binutils-2.25.1.tar.bz2
@@ -72,7 +73,7 @@ iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
 flex-2.5.39.tar.xz
 bison-3.0.4.tar.xz
-grep-2.21.tar.xz
+grep-2.22.tar.xz
 readline-6.3.tar.gz
 readline-6.3-upstream_fixes-3.patch
 bash-4.3.30.tar.gz
@@ -95,24 +96,24 @@ intltool-0.51.0.tar.gz
 gperf-3.0.4.tar.gz
 groff-1.22.3.tar.gz
 xz-5.2.2.tar.xz
-less-458.tar.gz
+less-481.tar.gz
 gzip-1.6.tar.xz
-iproute2-4.2.0.tar.xz
+iproute2-4.3.0.tar.xz
 kbd-2.0.3.tar.xz
 kbd-2.0.3-backspace-1.patch
 kmod-21.tar.xz
 libpipeline-1.4.1.tar.gz
 make-4.1.tar.bz2
-man-db-2.7.3.tar.xz
+man-db-2.7.4.tar.xz
 patch-2.7.5.tar.xz
 sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.28.tar.xz
 texinfo-6.0.tar.xz
-eudev-3.1.2.tar.gz
+eudev-3.1.5.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.27.tar.xz
+util-linux-2.27.1.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -190,6 +191,7 @@ tar -Jxf glibc-2.22.tar.xz
 cd glibc-2.22
 patch -Np1 -i ../glibc-2.22-fhs-1.patch
 patch -Np1 -i ../glibc-2.22-upstream_i386_fix-1.patch
+patch -Np1 -i ../glibc-2.22-largefile-1.patch
 mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.22/configure    \
@@ -226,7 +228,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../tzdata2015f.tar.gz
+tar -zxf ../tzdata2015g.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -630,7 +632,9 @@ echo "# 6.32. Flex-2.5.39"
 tar -Jxf flex-2.5.39.tar.xz
 cd flex-2.5.39
 sed -i -e '/test-bison/d' tests/Makefile.in
-./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.5.39
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/flex-2.5.39
 make -j $PARALLEL_JOBS
 make install
 ln -sv flex /usr/bin/lex
@@ -646,15 +650,14 @@ make install
 cd /sources
 rm -rf bison-3.0.4
 
-echo "# 6.34. Grep-2.21"
-tar -Jxf grep-2.21.tar.xz
-cd grep-2.21
-sed -i -e '/tp++/a  if (ep <= tp) break;' src/kwset.c
+echo "# 6.34. Grep-2.22"
+tar -Jxf grep-2.22.tar.xz
+cd grep-2.22
 ./configure --prefix=/usr --bindir=/bin
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf grep-2.21
+rm -rf grep-2.22
 
 echo "# 6.35. Readline-6.3"
 tar -zxf readline-6.3.tar.gz
@@ -849,6 +852,7 @@ cd gettext-0.19.6
             --docdir=/usr/share/doc/gettext-0.19.6
 make -j $PARALLEL_JOBS
 make install
+chmod -v 0755 /usr/lib/preloadable_libintl.so
 cd /sources
 rm -rf gettext-0.19.6
 
@@ -903,14 +907,14 @@ rm -rf xz-5.2.2
 # 6.54. GRUB-2.00
 # We don't use GRUB on ARM
 
-echo "# 6.55. Less-458"
-tar -zxf less-458.tar.gz
-cd less-458
+echo "# 6.55. Less-481"
+tar -zxf less-481.tar.gz
+cd less-481
 ./configure --prefix=/usr --sysconfdir=/etc
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf less-458
+rm -rf less-481
 
 echo "# 6.56. Gzip-1.6"
 tar -Jxf gzip-1.6.tar.xz
@@ -923,16 +927,16 @@ mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
 cd /sources
 rm -rf gzip-1.6
 
-echo "# 6.57. IPRoute2-4.2.0"
-tar -Jxf iproute2-4.2.0.tar.xz
-cd iproute2-4.2.0
+echo "# 6.57. IPRoute2-4.3.0"
+tar -Jxf iproute2-4.3.0.tar.xz
+cd iproute2-4.3.0
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-4.2.0 install
+make DOCDIR=/usr/share/doc/iproute2-4.3.0 install
 cd /sources
-rm -rf iproute2-4.2.0
+rm -rf iproute2-4.3.0
 
 echo "# 6.58. Kbd-2.0.3"
 tar -Jxf kbd-2.0.3.tar.xz
@@ -1051,9 +1055,9 @@ make install
 cd /sources
 rm -rf texinfo-6.0
 
-echo "# 6.67. Eudev-3.1.2"
-tar -zxf eudev-3.1.2.tar.gz
-cd eudev-3.1.2
+echo "# 6.67. Eudev-3.1.5"
+tar -zxf eudev-3.1.5.tar.gz
+cd eudev-3.1.5
 sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
 cat > config.cache << "EOF"
 HAVE_BLKID=1
@@ -1084,14 +1088,14 @@ tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
 LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
-rm -rf eudev-3.1.2
+rm -rf eudev-3.1.5
 
-echo "# 6.68. Util-linux-2.27"
-tar -Jxf util-linux-2.27.tar.xz
-cd util-linux-2.27
+echo "# 6.68. Util-linux-2.27.1"
+tar -Jxf util-linux-2.27.1.tar.xz
+cd util-linux-2.27.1
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
-            --docdir=/usr/share/doc/util-linux-2.27 \
+            --docdir=/usr/share/doc/util-linux-2.27.1 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1106,13 +1110,13 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.27
+rm -rf util-linux-2.27.1
 
-echo "# 6.69. Man-DB-2.7.3"
-tar -Jxf man-db-2.7.3.tar.xz
-cd man-db-2.7.3
+echo "# 6.69. Man-DB-2.7.4"
+tar -Jxf man-db-2.7.4.tar.xz
+cd man-db-2.7.4
 ./configure --prefix=/usr                        \
-            --docdir=/usr/share/doc/man-db-2.7.3 \
+            --docdir=/usr/share/doc/man-db-2.7.4 \
             --sysconfdir=/etc                    \
             --disable-setuid                     \
             --with-browser=/usr/bin/lynx         \
@@ -1121,7 +1125,7 @@ cd man-db-2.7.3
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf man-db-2.7.3
+rm -rf man-db-2.7.4
 
 echo "# 6.70. Vim-7.4"
 tar -jxf vim-7.4.tar.bz2

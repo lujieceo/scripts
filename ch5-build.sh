@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20151002 v1.0
+# PiLFS Build Script SVN-20151106 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -81,7 +81,7 @@ file-5.25.tar.gz
 findutils-4.4.2.tar.gz
 gawk-4.1.3.tar.xz
 gettext-0.19.6.tar.xz
-grep-2.21.tar.xz
+grep-2.22.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.1.tar.bz2
@@ -90,7 +90,7 @@ perl-5.22.0.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
 texinfo-6.0.tar.xz
-util-linux-2.27.tar.xz
+util-linux-2.27.1.tar.xz
 xz-5.2.2.tar.xz
 "
 
@@ -497,14 +497,14 @@ cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
 rm -rf gettext-0.19.6
 
-echo "# 5.24. Grep-2.21"
-tar -Jxf grep-2.21.tar.xz
-cd grep-2.21
+echo "# 5.24. Grep-2.22"
+tar -Jxf grep-2.22.tar.xz
+cd grep-2.22
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf grep-2.21
+rm -rf grep-2.22
 
 echo "# 5.25. Gzip-1.6"
 tar -Jxf gzip-1.6.tar.xz
@@ -580,9 +580,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-6.0
 
-echo "# 5.33. Util-linux-2.27"
-tar -Jxf util-linux-2.27.tar.xz
-cd util-linux-2.27
+echo "# 5.33. Util-linux-2.27.1"
+tar -Jxf util-linux-2.27.1.tar.xz
+cd util-linux-2.27.1
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -591,7 +591,7 @@ cd util-linux-2.27
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.27
+rm -rf util-linux-2.27.1
 
 echo "# 5.34. Xz-5.2.2"
 tar -Jxf xz-5.2.2.tar.xz
