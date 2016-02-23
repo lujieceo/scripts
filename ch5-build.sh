@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20151106 v1.0
+# PiLFS Build Script SVN-20160219 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -58,16 +58,15 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-binutils-2.25.1.tar.bz2
-gcc-5.2.0.tar.bz2
+binutils-2.26.tar.bz2
+gcc-5.3.0.tar.bz2
 gcc-5.2.0-pi-cpu-default.patch
 gcc-5.2.0-rpi2-cpu-default.patch
 mpfr-3.1.3.tar.xz
-gmp-6.0.0a.tar.xz
+gmp-6.1.0.tar.xz
 mpc-1.0.3.tar.gz
 rpi-4.1.y.tar.gz
-glibc-2.22.tar.xz
-glibc-2.22-upstream_i386_fix-1.patch
+glibc-2.23.tar.xz
 tcl-core8.6.4-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.3.tar.gz
@@ -75,21 +74,21 @@ check-0.10.0.tar.gz
 ncurses-6.0.tar.gz
 bash-4.3.30.tar.gz
 bzip2-1.0.6.tar.gz
-coreutils-8.24.tar.xz
+coreutils-8.25.tar.xz
 diffutils-3.3.tar.xz
 file-5.25.tar.gz
-findutils-4.4.2.tar.gz
+findutils-4.6.0.tar.gz
 gawk-4.1.3.tar.xz
-gettext-0.19.6.tar.xz
-grep-2.22.tar.xz
+gettext-0.19.7.tar.xz
+grep-2.23.tar.xz
 gzip-1.6.tar.xz
 m4-1.4.17.tar.xz
 make-4.1.tar.bz2
 patch-2.7.5.tar.xz
-perl-5.22.0.tar.bz2
+perl-5.22.1.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.28.tar.xz
-texinfo-6.0.tar.xz
+texinfo-6.1.tar.xz
 util-linux-2.27.1.tar.xz
 xz-5.2.2.tar.xz
 "
@@ -153,39 +152,38 @@ done
 total_time=$(timer)
 sbu_time=$(timer)
 
-echo "# 5.4. Binutils-2.25.1 - Pass 1"
+echo "# 5.4. Binutils-2.26 - Pass 1"
 cd $LFS/sources
-tar -jxf binutils-2.25.1.tar.bz2
-cd binutils-2.25.1
-mkdir -v ../binutils-build
-cd ../binutils-build
-../binutils-2.25.1/configure   \
-    --prefix=/tools            \
-    --with-sysroot=$LFS        \
-    --with-lib-path=/tools/lib \
-    --target=$LFS_TGT          \
-    --disable-nls              \
-    --disable-werror
+tar -jxf binutils-2.26.tar.bz2
+cd binutils-2.26
+mkdir -v build
+cd build
+../configure --prefix=/tools            \
+             --with-sysroot=$LFS        \
+             --with-lib-path=/tools/lib \
+             --target=$LFS_TGT          \
+             --disable-nls              \
+             --disable-werror
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf binutils-build binutils-2.25.1
+rm -rf binutils-2.26
 
 echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
 echo -e "==========================\n"
 
-echo "# 5.5. gcc-5.2.0 - Pass 1"
-tar -jxf gcc-5.2.0.tar.bz2
-cd gcc-5.2.0
+echo "# 5.5. gcc-5.3.0 - Pass 1"
+tar -jxf gcc-5.3.0.tar.bz2
+cd gcc-5.3.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.2.0-pi-cpu-default.patch ;;
   armv7l) patch -Np1 -i ../gcc-5.2.0-rpi2-cpu-default.patch ;;
 esac
 tar -Jxf ../mpfr-3.1.3.tar.xz
 mv -v mpfr-3.1.3 mpfr
-tar -Jxf ../gmp-6.0.0a.tar.xz
-mv -v gmp-6.0.0 gmp
+tar -Jxf ../gmp-6.1.0.tar.xz
+mv -v gmp-6.1.0 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
 mv -v mpc-1.0.3 mpc
 for file in \
@@ -201,9 +199,9 @@ do
 #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
   touch $file.orig
 done
-mkdir -v ../gcc-build
-cd ../gcc-build
-../gcc-5.2.0/configure                             \
+mkdir -v build
+cd build
+../configure                                       \
     --target=$LFS_TGT                              \
     --prefix=/tools                                \
     --with-glibc-version=2.11                      \
@@ -233,7 +231,7 @@ esac
 make
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-5.2.0
+rm -rf gcc-5.3.0
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
 tar -zxf rpi-4.1.y.tar.gz
@@ -243,57 +241,56 @@ make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-echo "# 5.7. Glibc-2.22"
-tar -Jxf glibc-2.22.tar.xz
-cd glibc-2.22
-patch -Np1 -i ../glibc-2.22-upstream_i386_fix-1.patch
-mkdir -v ../glibc-build
-cd ../glibc-build
-../glibc-2.22/configure                             \
-      --prefix=/tools                               \
-      --host=$LFS_TGT                               \
-      --build=$(../glibc-2.22/scripts/config.guess) \
-      --disable-profile                             \
-      --enable-kernel=2.6.32                        \
-      --enable-obsolete-rpc                         \
-      --with-headers=/tools/include                 \
-      libc_cv_forced_unwind=yes                     \
-      libc_cv_ctors_header=yes                      \
+echo "# 5.7. Glibc-2.23"
+tar -Jxf glibc-2.23.tar.xz
+cd glibc-2.23
+mkdir -v build
+cd build
+../configure                             \
+      --prefix=/tools                    \
+      --host=$LFS_TGT                    \
+      --build=$(../scripts/config.guess) \
+      --disable-profile                  \
+      --enable-kernel=2.6.32             \
+      --enable-obsolete-rpc              \
+      --with-headers=/tools/include      \
+      libc_cv_forced_unwind=yes          \
+      libc_cv_ctors_header=yes           \
       libc_cv_c_cleanup=yes
 make -j $PARALLEL_JOBS
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.22.so $LFS/tools/lib/ld-linux.so.3
+ln -sv ld-2.23.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-build glibc-2.22
+rm -rf glibc-2.23
 
-echo "# 5.8. Libstdc++-5.2.0"
-tar -jxf gcc-5.2.0.tar.bz2
-cd gcc-5.2.0
-mkdir -pv ../gcc-build
-cd ../gcc-build
-../gcc-5.2.0/libstdc++-v3/configure \
+echo "# 5.8. Libstdc++-5.3.0"
+tar -jxf gcc-5.3.0.tar.bz2
+cd gcc-5.3.0
+mkdir -v build
+cd build
+../libstdc++-v3/configure           \
     --host=$LFS_TGT                 \
     --prefix=/tools                 \
     --disable-multilib              \
     --disable-nls                   \
     --disable-libstdcxx-threads     \
     --disable-libstdcxx-pch         \
-    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/5.2.0
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/5.3.0
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf gcc-build gcc-5.2.0
+rm -rf gcc-5.3.0
 
-echo "# 5.9. Binutils-2.25.1 - Pass 2"
-tar -jxf binutils-2.25.1.tar.bz2
-cd binutils-2.25.1
-mkdir -v ../binutils-build
-cd ../binutils-build
+echo "# 5.9. Binutils-2.26 - Pass 2"
+tar -jxf binutils-2.26.tar.bz2
+cd binutils-2.26
+mkdir -v build
+cd build
 CC=$LFS_TGT-gcc                \
 AR=$LFS_TGT-ar                 \
 RANLIB=$LFS_TGT-ranlib         \
-../binutils-2.25.1/configure   \
+../configure                   \
     --prefix=/tools            \
     --disable-nls              \
     --disable-werror           \
@@ -305,11 +302,11 @@ make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
 cp -v ld/ld-new /tools/bin
 cd $LFS/sources
-rm -rf binutils-build binutils-2.25.1
+rm -rf binutils-2.26
 
-echo "# 5.10. gcc-5.2.0 - Pass 2"
-tar -jxf gcc-5.2.0.tar.bz2
-cd gcc-5.2.0
+echo "# 5.10. gcc-5.3.0 - Pass 2"
+tar -jxf gcc-5.3.0.tar.bz2
+cd gcc-5.3.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.2.0-pi-cpu-default.patch ;;
   armv7l) patch -Np1 -i ../gcc-5.2.0-rpi2-cpu-default.patch ;;
@@ -331,17 +328,17 @@ do
 done
 tar -Jxf ../mpfr-3.1.3.tar.xz
 mv -v mpfr-3.1.3 mpfr
-tar -Jxf ../gmp-6.0.0a.tar.xz
-mv -v gmp-6.0.0 gmp
+tar -Jxf ../gmp-6.1.0.tar.xz
+mv -v gmp-6.1.0 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
 mv -v mpc-1.0.3 mpc
-mkdir -v ../gcc-build
-cd ../gcc-build
+mkdir -v build
+cd build
 CC=$LFS_TGT-gcc                                    \
 CXX=$LFS_TGT-g++                                   \
 AR=$LFS_TGT-ar                                     \
 RANLIB=$LFS_TGT-ranlib                             \
-../gcc-5.2.0/configure                             \
+../configure                                       \
     --prefix=/tools                                \
     --with-local-prefix=/tools                     \
     --with-native-system-header-dir=/tools/include \
@@ -360,7 +357,7 @@ make
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-build gcc-5.2.0
+rm -rf gcc-5.3.0
 
 echo "# 5.11. Tcl-core-8.6.4"
 tar -zxf tcl-core8.6.4-src.tar.gz
@@ -438,14 +435,14 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-echo "# 5.18. Coreutils-8.24"
-tar -Jxf coreutils-8.24.tar.xz
-cd coreutils-8.24
+echo "# 5.18. Coreutils-8.25"
+tar -Jxf coreutils-8.25.tar.xz
+cd coreutils-8.25
 ./configure --prefix=/tools --enable-install-program=hostname
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf coreutils-8.24
+rm -rf coreutils-8.25
 
 echo "# 5.19. Diffutils-3.3"
 tar -Jxf diffutils-3.3.tar.xz
@@ -465,14 +462,14 @@ make install
 cd $LFS/sources
 rm -rf file-5.25
 
-echo "# 5.21. Findutils-4.4.2"
-tar -zxf findutils-4.4.2.tar.gz
-cd findutils-4.4.2
+echo "# 5.21. Findutils-4.6.0"
+tar -zxf findutils-4.6.0.tar.gz
+cd findutils-4.6.0
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf findutils-4.4.2
+rm -rf findutils-4.6.0
 
 echo "# 5.22. Gawk-4.1.3"
 tar -Jxf gawk-4.1.3.tar.xz
@@ -483,9 +480,9 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.3
 
-echo "# 5.23. Gettext-0.19.6"
-tar -Jxf gettext-0.19.6.tar.xz
-cd gettext-0.19.6
+echo "# 5.23. Gettext-0.19.7"
+tar -Jxf gettext-0.19.7.tar.xz
+cd gettext-0.19.7
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
@@ -495,16 +492,16 @@ make -C src msgmerge
 make -C src xgettext
 cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.19.6
+rm -rf gettext-0.19.7
 
-echo "# 5.24. Grep-2.22"
-tar -Jxf grep-2.22.tar.xz
-cd grep-2.22
+echo "# 5.24. Grep-2.23"
+tar -Jxf grep-2.23.tar.xz
+cd grep-2.23
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf grep-2.22
+rm -rf grep-2.23
 
 echo "# 5.25. Gzip-1.6"
 tar -Jxf gzip-1.6.tar.xz
@@ -542,16 +539,16 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.5
 
-echo "# 5.29. Perl-5.22.0"
-tar -jxf perl-5.22.0.tar.bz2
-cd perl-5.22.0
+echo "# 5.29. Perl-5.22.1"
+tar -jxf perl-5.22.1.tar.bz2
+cd perl-5.22.1
 sh Configure -des -Dprefix=/tools -Dlibs=-lm
 make -j $PARALLEL_JOBS
 cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.22.0
-cp -Rv lib/* /tools/lib/perl5/5.22.0
+mkdir -pv /tools/lib/perl5/5.22.1
+cp -Rv lib/* /tools/lib/perl5/5.22.1
 cd $LFS/sources
-rm -rf perl-5.22.0
+rm -rf perl-5.22.1
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -571,14 +568,14 @@ make install
 cd $LFS/sources
 rm -rf tar-1.28
 
-echo "# 5.32. Texinfo-6.0"
-tar -Jxf texinfo-6.0.tar.xz
-cd texinfo-6.0
+echo "# 5.32. Texinfo-6.1"
+tar -Jxf texinfo-6.1.tar.xz
+cd texinfo-6.1
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf texinfo-6.0
+rm -rf texinfo-6.1
 
 echo "# 5.33. Util-linux-2.27.1"
 tar -Jxf util-linux-2.27.1.tar.xz
