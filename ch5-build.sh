@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160219 v1.0
+# PiLFS Build Script SVN-20160313 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
 
-PARALLEL_JOBS=1             # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 recommended.
+PARALLEL_JOBS=1             # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
 STRIP_AND_DELETE_DOCS=1     # Strip binaries and delete manpages to save space at the end of chapter 5?
 
 # End of optional parameters
@@ -26,7 +26,7 @@ function prebuild_sanity_check {
     fi
 
     if ! [[ -v LFS_TGT ]] || [[ $LFS_TGT != "armv6l-lfs-linux-gnueabihf" && $LFS_TGT != "armv7l-lfs-linux-gnueabihf" ]] ; then
-        echo "Your LFS_TGT variable should be set to armv6l-lfs-linux-gnueabihf for Raspberry Pi or armv7l-lfs-linux-gnueabihf for Raspberry Pi 2"
+        echo "Your LFS_TGT variable should be set to armv6l-lfs-linux-gnueabihf for RPi1 or armv7l-lfs-linux-gnueabihf for RPi2 and RPi3"
         exit 1
     fi
 
@@ -60,14 +60,15 @@ function check_tarballs {
 LIST_OF_TARBALLS="
 binutils-2.26.tar.bz2
 gcc-5.3.0.tar.bz2
-gcc-5.2.0-pi-cpu-default.patch
-gcc-5.2.0-rpi2-cpu-default.patch
-mpfr-3.1.3.tar.xz
+gcc-5.3.0-rpi1-cpu-default.patch
+gcc-5.3.0-rpi2-cpu-default.patch
+gcc-5.3.0-rpi3-cpu-default.patch
+mpfr-3.1.4.tar.xz
 gmp-6.1.0.tar.xz
 mpc-1.0.3.tar.gz
 rpi-4.1.y.tar.gz
 glibc-2.23.tar.xz
-tcl-core8.6.4-src.tar.gz
+tcl-core8.6.5-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.5.3.tar.gz
 check-0.10.0.tar.gz
@@ -177,11 +178,15 @@ echo "# 5.5. gcc-5.3.0 - Pass 1"
 tar -jxf gcc-5.3.0.tar.bz2
 cd gcc-5.3.0
 case $(uname -m) in
-  armv6l) patch -Np1 -i ../gcc-5.2.0-pi-cpu-default.patch ;;
-  armv7l) patch -Np1 -i ../gcc-5.2.0-rpi2-cpu-default.patch ;;
+  armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
+  armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
+    a02082|a22082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
+    *) patch -Np1 -i ../gcc-5.3.0-rpi2-cpu-default.patch ;;
+    esac
+  ;;
 esac
-tar -Jxf ../mpfr-3.1.3.tar.xz
-mv -v mpfr-3.1.3 mpfr
+tar -Jxf ../mpfr-3.1.4.tar.xz
+mv -v mpfr-3.1.4 mpfr
 tar -Jxf ../gmp-6.1.0.tar.xz
 mv -v gmp-6.1.0 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
@@ -250,9 +255,7 @@ cd build
       --prefix=/tools                    \
       --host=$LFS_TGT                    \
       --build=$(../scripts/config.guess) \
-      --disable-profile                  \
       --enable-kernel=2.6.32             \
-      --enable-obsolete-rpc              \
       --with-headers=/tools/include      \
       libc_cv_forced_unwind=yes          \
       libc_cv_ctors_header=yes           \
@@ -308,8 +311,12 @@ echo "# 5.10. gcc-5.3.0 - Pass 2"
 tar -jxf gcc-5.3.0.tar.bz2
 cd gcc-5.3.0
 case $(uname -m) in
-  armv6l) patch -Np1 -i ../gcc-5.2.0-pi-cpu-default.patch ;;
-  armv7l) patch -Np1 -i ../gcc-5.2.0-rpi2-cpu-default.patch ;;
+  armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
+  armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
+    a02082|a22082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
+    *) patch -Np1 -i ../gcc-5.3.0-rpi2-cpu-default.patch ;;
+    esac
+  ;;
 esac
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
@@ -326,8 +333,8 @@ do
 #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
   touch $file.orig
 done
-tar -Jxf ../mpfr-3.1.3.tar.xz
-mv -v mpfr-3.1.3 mpfr
+tar -Jxf ../mpfr-3.1.4.tar.xz
+mv -v mpfr-3.1.4 mpfr
 tar -Jxf ../gmp-6.1.0.tar.xz
 mv -v gmp-6.1.0 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
@@ -359,9 +366,9 @@ ln -sv gcc /tools/bin/cc
 cd $LFS/sources
 rm -rf gcc-5.3.0
 
-echo "# 5.11. Tcl-core-8.6.4"
-tar -zxf tcl-core8.6.4-src.tar.gz
-cd tcl8.6.4
+echo "# 5.11. Tcl-core-8.6.5"
+tar -zxf tcl-core8.6.5-src.tar.gz
+cd tcl8.6.5
 cd unix
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
@@ -370,7 +377,7 @@ chmod -v u+w /tools/lib/libtcl8.6.so
 make install-private-headers
 ln -sv tclsh8.6 /tools/bin/tclsh
 cd $LFS/sources
-rm -rf tcl8.6.4
+rm -rf tcl8.6.5
 
 echo "# 5.12. Expect-5.45"
 tar -zxf expect5.45.tar.gz

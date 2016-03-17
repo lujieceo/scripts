@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160219 v1.0
+# PiLFS Build Script SVN-20160313 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
 
-PARALLEL_JOBS=1                 # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 recommended.
+PARALLEL_JOBS=1                 # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
 LOCAL_TIMEZONE=Europe/London    # Use this timezone from /usr/share/zoneinfo/ to set /etc/localtime. See "6.9.2. Configuring Glibc".
 GROFF_PAPER_SIZE=A4             # Use this default paper size for Groff. See "6.52. Groff-1.22.3".
 INSTALL_OPTIONAL_DOCS=1         # Install optional documentation when given a choice?
@@ -47,15 +47,15 @@ file-5.25.tar.gz
 binutils-2.26.tar.bz2
 binutils-2.26-upstream_fix-2.patch
 gmp-6.1.0.tar.xz
-mpfr-3.1.3.tar.xz
-mpfr-3.1.3-upstream_fixes-2.patch
+mpfr-3.1.4.tar.xz
 mpc-1.0.3.tar.gz
 gcc-5.3.0.tar.bz2
-gcc-5.2.0-pi-cpu-default.patch
-gcc-5.2.0-rpi2-cpu-default.patch
+gcc-5.3.0-rpi1-cpu-default.patch
+gcc-5.3.0-rpi2-cpu-default.patch
+gcc-5.3.0-rpi3-cpu-default.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
-pkg-config-0.29.tar.gz
+pkg-config-0.29.1.tar.gz
 ncurses-6.0.tar.gz
 attr-2.4.47.src.tar.gz
 acl-2.2.52.src.tar.gz
@@ -191,7 +191,6 @@ patch -Np1 -i ../glibc-2.23-fhs-1.patch
 mkdir -v build
 cd build
 ../configure --prefix=/usr          \
-             --disable-profile      \
              --enable-kernel=2.6.32 \
              --enable-obsolete-rpc
 make -j $PARALLEL_JOBS
@@ -318,14 +317,13 @@ fi
 cd /sources
 rm -rf gmp-6.1.0
 
-echo "# 6.15. MPFR-3.1.3"
-tar -Jxf mpfr-3.1.3.tar.xz
-cd mpfr-3.1.3
-patch -Np1 -i ../mpfr-3.1.3-upstream_fixes-2.patch
+echo "# 6.15. MPFR-3.1.4"
+tar -Jxf mpfr-3.1.4.tar.xz
+cd mpfr-3.1.4
 ./configure  --prefix=/usr        \
              --disable-static     \
              --enable-thread-safe \
-             --docdir=/usr/share/doc/mpfr-3.1.3
+             --docdir=/usr/share/doc/mpfr-3.1.4
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -333,7 +331,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     make install-html
 fi
 cd /sources
-rm -rf mpfr-3.1.3
+rm -rf mpfr-3.1.4
 
 echo "# 6.16. MPC-1.0.3"
 tar -zxf mpc-1.0.3.tar.gz
@@ -354,8 +352,12 @@ echo "# 6.17. GCC-5.3.0"
 tar -jxf gcc-5.3.0.tar.bz2
 cd gcc-5.3.0
 case $(uname -m) in
-  armv6l) patch -Np1 -i ../gcc-5.2.0-pi-cpu-default.patch ;;
-  armv7l) patch -Np1 -i ../gcc-5.2.0-rpi2-cpu-default.patch ;; 
+  armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
+  armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
+    a02082|a22082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
+    *) patch -Np1 -i ../gcc-5.3.0-rpi2-cpu-default.patch ;;
+    esac
+  ;;
 esac
 mkdir -v build
 cd build
@@ -395,17 +397,17 @@ ln -sv bzip2 /bin/bzcat
 cd /sources
 rm -rf bzip2-1.0.6
 
-echo "# 6.19. Pkg-config-0.29"
-tar -zxf pkg-config-0.29.tar.gz
-cd pkg-config-0.29
+echo "# 6.19. Pkg-config-0.29.1"
+tar -zxf pkg-config-0.29.1.tar.gz
+cd pkg-config-0.29.1
 ./configure --prefix=/usr         \
             --with-internal-glib  \
             --disable-host-tool   \
-            --docdir=/usr/share/doc/pkg-config-0.29
+            --docdir=/usr/share/doc/pkg-config-0.29.1
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf pkg-config-0.29
+rm -rf pkg-config-0.29.1
 
 echo "# 6.20. Ncurses-6.0"
 tar -zxf ncurses-6.0.tar.gz
@@ -461,8 +463,7 @@ tar -zxf acl-2.2.52.src.tar.gz
 cd acl-2.2.52
 sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
 sed -i "s:| sed.*::g" test/{sbits-restore,cp,misc}.test
-sed -i -e "/TABS-1;/a if (x > (TABS-1)) x = (TABS-1);" \
-    libacl/__acl_to_any_text.c
+sed -i -e "/TABS-1;/a if (x > (TABS-1)) x = (TABS-1);" libacl/__acl_to_any_text.c
 ./configure --prefix=/usr \
             --bindir=/bin \
             --disable-static \
@@ -507,7 +508,9 @@ echo "# 6.25. Shadow-4.2.1"
 tar -Jxf shadow-4.2.1.tar.xz
 cd shadow-4.2.1
 sed -i 's/groups$(EXEEXT) //' src/Makefile.in
-find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
+find man -name Makefile.in -exec sed -i 's/groups\.1 / /'   {} \;
+find man -name Makefile.in -exec sed -i 's/getspnam\.3 / /' {} \;
+find man -name Makefile.in -exec sed -i 's/passwd\.5 / /'   {} \;
 sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
        -e 's@/var/spool/mail@/var/mail@' etc/login.defs
 sed -i 's/1000/999/' etc/useradd
@@ -609,9 +612,7 @@ rm -rf bison-3.0.4
 echo "# 6.32. Flex-2.6.0"
 tar -Jxf flex-2.6.0.tar.xz
 cd flex-2.6.0
-./configure --prefix=/usr    \
-            --disable-static \
-            --docdir=/usr/share/doc/flex-2.6.0
+./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.0
 make -j $PARALLEL_JOBS
 make install
 ln -sv flex /usr/bin/lex
@@ -1038,7 +1039,7 @@ rm -rf tar-1.28
 echo "# 6.66. Texinfo-6.1"
 tar -Jxf texinfo-6.1.tar.xz
 cd texinfo-6.1
-./configure --prefix=/usr
+./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 # I don't know anybody who wants this... prove me wrong!
