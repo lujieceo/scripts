@@ -229,10 +229,7 @@ cd build
     --enable-languages=c,c++
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
-case $(uname -m) in
-  armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
-  armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
-esac
+sed -i 's/none-/armv6l-/' Makefile
 make
 make install
 cd $LFS/sources
@@ -356,10 +353,7 @@ RANLIB=$LFS_TGT-ranlib                             \
     --disable-libgomp
 # Workaround for a problem introduced with GMP 5.1.0.
 # If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
-case $(uname -m) in
-  armv6l) sed -i 's/none-/armv6l-/' Makefile ;;
-  armv7l) sed -i 's/none-/armv7l-/' Makefile ;;
-esac
+sed -i 's/none-/armv6l-/' Makefile
 make
 make install
 ln -sv gcc /tools/bin/cc
