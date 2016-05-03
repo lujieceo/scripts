@@ -6,7 +6,7 @@
 #
 # Optional parameteres below:
 
-PARALLEL_JOBS=4             # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
+PARALLEL_JOBS=1             # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
 STRIP_AND_DELETE_DOCS=1     # Strip binaries and delete manpages to save space at the end of chapter 5?
 
 # End of optional parameters

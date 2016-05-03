@@ -6,7 +6,7 @@
 #
 # Optional parameteres below:
 
-PARALLEL_JOBS=4                 # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
+PARALLEL_JOBS=1                 # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
 LOCAL_TIMEZONE=Europe/London    # Use this timezone from /usr/share/zoneinfo/ to set /etc/localtime. See "6.9.2. Configuring Glibc".
 GROFF_PAPER_SIZE=A4             # Use this default paper size for Groff. See "6.52. Groff-1.22.3".
 INSTALL_OPTIONAL_DOCS=1         # Install optional documentation when given a choice?
