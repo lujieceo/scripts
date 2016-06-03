@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160428 v1.0
+# PiLFS Build Script SVN-20160527 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -78,18 +78,18 @@ bash-4.3.30.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.25.tar.xz
 diffutils-3.3.tar.xz
-file-5.26.tar.gz
+file-5.27.tar.gz
 findutils-4.6.0.tar.gz
 gawk-4.1.3.tar.xz
 gettext-0.19.7.tar.xz
 grep-2.25.tar.xz
 gzip-1.8.tar.xz
 m4-1.4.17.tar.xz
-make-4.1.tar.bz2
+make-4.2.tar.bz2
 patch-2.7.5.tar.xz
-perl-5.22.1.tar.bz2
+perl-5.24.0.tar.bz2
 sed-4.2.2.tar.bz2
-tar-1.28.tar.xz
+tar-1.29.tar.xz
 texinfo-6.1.tar.xz
 util-linux-2.28.tar.xz
 xz-5.2.2.tar.xz
@@ -457,14 +457,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.26"
-tar -zxf file-5.26.tar.gz
-cd file-5.26
+echo "# 5.20. File-5.27"
+tar -zxf file-5.27.tar.gz
+cd file-5.27
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf file-5.26
+rm -rf file-5.27
 
 echo "# 5.21. Findutils-4.6.0"
 tar -zxf findutils-4.6.0.tar.gz
@@ -525,14 +525,14 @@ make install
 cd $LFS/sources
 rm -rf m4-1.4.17
 
-echo "# 5.27. Make-4.1"
-tar -jxf make-4.1.tar.bz2
-cd make-4.1
+echo "# 5.27. Make-4.2"
+tar -jxf make-4.2.tar.bz2
+cd make-4.2
 ./configure --prefix=/tools --without-guile
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf make-4.1
+rm -rf make-4.2
 
 echo "# 5.28. Patch-2.7.5"
 tar -Jxf patch-2.7.5.tar.xz
@@ -543,16 +543,16 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.5
 
-echo "# 5.29. Perl-5.22.1"
-tar -jxf perl-5.22.1.tar.bz2
-cd perl-5.22.1
+echo "# 5.29. Perl-5.24.0"
+tar -jxf perl-5.24.0.tar.bz2
+cd perl-5.24.0
 sh Configure -des -Dprefix=/tools -Dlibs=-lm
 make -j $PARALLEL_JOBS
-cp -v perl cpan/podlators/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.22.1
-cp -Rv lib/* /tools/lib/perl5/5.22.1
+cp -v perl cpan/podlators/scripts/pod2man /tools/bin
+mkdir -pv /tools/lib/perl5/5.24.0
+cp -Rv lib/* /tools/lib/perl5/5.24.0
 cd $LFS/sources
-rm -rf perl-5.22.1
+rm -rf perl-5.24.0
 
 echo "# 5.30. Sed-4.2.2"
 tar -jxf sed-4.2.2.tar.bz2
@@ -563,14 +563,14 @@ make install
 cd $LFS/sources
 rm -rf sed-4.2.2
 
-echo "# 5.31. Tar-1.28"
-tar -Jxf tar-1.28.tar.xz
-cd tar-1.28
+echo "# 5.31. Tar-1.29"
+tar -Jxf tar-1.29.tar.xz
+cd tar-1.29
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf tar-1.28
+rm -rf tar-1.29
 
 echo "# 5.32. Texinfo-6.1"
 tar -Jxf texinfo-6.1.tar.xz
