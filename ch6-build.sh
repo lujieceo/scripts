@@ -838,7 +838,7 @@ PKG_CONFIG_PATH=/tools/lib/pkgconfig \
              --disable-libuuid       \
              --disable-uuidd         \
              --disable-fsck
-make -j $PARALLEL_JOBS
+make
 make install
 make install-libs
 chmod -v u+w /usr/lib/{libcom_err,libe2p,libext2fs,libss}.a
