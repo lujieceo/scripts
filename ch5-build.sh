@@ -589,7 +589,7 @@ cd util-linux-2.28
             --disable-makeinstall-chown    \
             --without-systemdsystemunitdir \
             PKG_CONFIG=""
-make -j $PARALLEL_JOBS
+make
 make install
 cd $LFS/sources
 rm -rf util-linux-2.28
