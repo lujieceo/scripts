@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160527 v1.0
+# PiLFS Build Script SVN-20160622 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -42,12 +42,12 @@ man-pages-4.06.tar.xz
 glibc-2.23.tar.xz
 glibc-2.23-fhs-1.patch
 glibc-2.23-upstream_fixes-1.patch
-tzdata2016d.tar.gz
+tzdata2016e.tar.gz
 zlib-1.2.8.tar.xz
-file-5.27.tar.gz
+file-5.28.tar.gz
 binutils-2.26.tar.bz2
 binutils-2.26-upstream_fixes-3.patch
-gmp-6.1.0.tar.xz
+gmp-6.1.1.tar.xz
 mpfr-3.1.4.tar.xz
 mpc-1.0.3.tar.gz
 gcc-6.1.0.tar.bz2
@@ -65,7 +65,7 @@ sed-4.2.2.tar.bz2
 shadow-4.2.1.tar.xz
 psmisc-22.21.tar.gz
 procps-ng-3.3.11.tar.xz
-e2fsprogs-1.43.tar.gz
+e2fsprogs-1.43.1.tar.gz
 iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
 bison-3.0.4.tar.xz
@@ -79,7 +79,7 @@ bc-1.06.95.tar.bz2
 bc-1.06.95-memory_leak-1.patch
 libtool-2.4.6.tar.xz
 gdbm-1.12.tar.gz
-expat-2.1.1.tar.bz2
+expat-2.2.0.tar.bz2
 inetutils-1.9.4.tar.xz
 perl-5.24.0.tar.bz2
 XML-Parser-2.44.tar.gz
@@ -90,7 +90,7 @@ coreutils-8.25-i18n-2.patch
 diffutils-3.3.tar.xz
 gawk-4.1.3.tar.xz
 findutils-4.6.0.tar.gz
-gettext-0.19.7.tar.xz
+gettext-0.19.8.1.tar.xz
 intltool-0.51.0.tar.gz
 gperf-3.0.4.tar.gz
 groff-1.22.3.tar.gz
@@ -102,7 +102,7 @@ kbd-2.0.3.tar.xz
 kbd-2.0.3-backspace-1.patch
 kmod-22.tar.xz
 libpipeline-1.4.1.tar.gz
-make-4.2.tar.bz2
+make-4.2.1.tar.bz2
 man-db-2.7.5.tar.xz
 patch-2.7.5.tar.xz
 sysklogd-1.5.1.tar.gz
@@ -110,7 +110,7 @@ sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.29.tar.xz
 texinfo-6.1.tar.xz
-eudev-3.1.5.tar.gz
+eudev-3.2.tar.gz
 udev-lfs-20140408.tar.bz2
 util-linux-2.28.tar.xz
 vim-7.4.tar.bz2
@@ -224,7 +224,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../../tzdata2016d.tar.gz
+tar -zxf ../../tzdata2016e.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -280,14 +280,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.27"
-tar -zxf file-5.27.tar.gz
-cd file-5.27
+echo "# 6.12. File-5.28"
+tar -zxf file-5.28.tar.gz
+cd file-5.28
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf file-5.27
+rm -rf file-5.28
 
 echo "# 6.13. Binutils-2.26"
 tar -jxf binutils-2.26.tar.bz2
@@ -303,13 +303,13 @@ make tooldir=/usr install
 cd /sources
 rm -rf binutils-2.26
 
-echo "# 6.14. GMP-6.1.0"
-tar -Jxf gmp-6.1.0.tar.xz
-cd gmp-6.1.0
+echo "# 6.14. GMP-6.1.1"
+tar -Jxf gmp-6.1.1.tar.xz
+cd gmp-6.1.1
 ./configure --prefix=/usr    \
             --enable-cxx     \
             --disable-static \
-            --docdir=/usr/share/doc/gmp-6.1.0
+            --docdir=/usr/share/doc/gmp-6.1.1
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -317,7 +317,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     make install-html
 fi
 cd /sources
-rm -rf gmp-6.1.0
+rm -rf gmp-6.1.1
 
 echo "# 6.15. MPFR-3.1.4"
 tar -Jxf mpfr-3.1.4.tar.xz
@@ -664,18 +664,18 @@ cd /sources
 rm -rf gperf-3.0.4
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.38. Expat-2.1.1"
-tar -jxf expat-2.1.1.tar.bz2
-cd expat-2.1.1
+echo "6.38. Expat-2.2.0"
+tar -jxf expat-2.2.0.tar.bz2
+cd expat-2.2.0
 ./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -dm755 /usr/share/doc/expat-2.1.1
-    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.1.1
+    install -v -dm755 /usr/share/doc/expat-2.2.0
+    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.2.0
 fi
 cd /sources
-rm -rf expat-2.1.1
+rm -rf expat-2.2.0
 fi
 
 echo "# 6.39. Inetutils-1.9.4"
@@ -793,17 +793,17 @@ ln -sv kmod /bin/lsmod
 cd /sources
 rm -rf kmod-22
 
-echo "# 6.47. Gettext-0.19.7"
-tar -Jxf gettext-0.19.7.tar.xz
-cd gettext-0.19.7
+echo "# 6.47. Gettext-0.19.8.1"
+tar -Jxf gettext-0.19.8.1.tar.xz
+cd gettext-0.19.8.1
 ./configure --prefix=/usr    \
             --disable-static \
-            --docdir=/usr/share/doc/gettext-0.19.7
+            --docdir=/usr/share/doc/gettext-0.19.8.1
 make -j $PARALLEL_JOBS
 make install
 chmod -v 0755 /usr/lib/preloadable_libintl.so
 cd /sources
-rm -rf gettext-0.19.7
+rm -rf gettext-0.19.8.1
 
 echo "# 6.48. Procps-ng-3.3.11"
 tar -Jxf procps-ng-3.3.11.tar.xz
@@ -821,9 +821,9 @@ ln -sfv ../../lib/$(readlink /usr/lib/libprocps.so) /usr/lib/libprocps.so
 cd /sources
 rm -rf procps-ng-3.3.11
 
-echo "# 6.49. E2fsprogs-1.43"
-tar -zxf e2fsprogs-1.43.tar.gz
-cd e2fsprogs-1.43
+echo "# 6.49. E2fsprogs-1.43.1"
+tar -zxf e2fsprogs-1.43.1.tar.gz
+cd e2fsprogs-1.43.1
 sed -i -e 's:\[\.-\]::' tests/filter.sed
 mkdir -v build
 cd build
@@ -838,7 +838,7 @@ PKG_CONFIG_PATH=/tools/lib/pkgconfig \
              --disable-libuuid       \
              --disable-uuidd         \
              --disable-fsck
-make
+make -j $PARALLEL_JOBS
 make install
 make install-libs
 chmod -v u+w /usr/lib/{libcom_err,libe2p,libext2fs,libss}.a
@@ -850,7 +850,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     install-info --dir-file=/usr/share/info/dir /usr/share/info/com_err.info
 fi
 cd /sources
-rm -rf e2fsprogs-1.43
+rm -rf e2fsprogs-1.43.1
 
 echo "# 6.50. Coreutils-8.25"
 tar -Jxf coreutils-8.25.tar.xz
@@ -977,14 +977,14 @@ make install
 cd /sources
 rm -rf libpipeline-1.4.1
 
-echo "# 6.61. Make-4.2"
-tar -jxf make-4.2.tar.bz2
-cd make-4.2
+echo "# 6.61. Make-4.2.1"
+tar -jxf make-4.2.1.tar.bz2
+cd make-4.2.1
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf make-4.2
+rm -rf make-4.2.1
 
 echo "# 6.62. Patch-2.7.5"
 tar -Jxf patch-2.7.5.tar.xz
@@ -1026,9 +1026,9 @@ make -C src install
 cd /sources
 rm -rf sysvinit-2.88dsf
 
-echo "# 6.65. Eudev-3.1.5"
-tar -zxf eudev-3.1.5.tar.gz
-cd eudev-3.1.5
+echo "# 6.65. Eudev-3.2"
+tar -zxf eudev-3.2.tar.gz
+cd eudev-3.2
 sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
 cat > config.cache << "EOF"
 HAVE_BLKID=1
@@ -1054,7 +1054,7 @@ tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
 LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
-rm -rf eudev-3.1.5
+rm -rf eudev-3.2
 
 echo "# 6.66. Util-linux-2.28"
 tar -Jxf util-linux-2.28.tar.xz

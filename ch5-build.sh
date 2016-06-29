@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160527 v1.0
+# PiLFS Build Script SVN-20160622 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -64,7 +64,7 @@ gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
 mpfr-3.1.4.tar.xz
-gmp-6.1.0.tar.xz
+gmp-6.1.1.tar.xz
 mpc-1.0.3.tar.gz
 rpi-4.4.y.tar.gz
 glibc-2.23.tar.xz
@@ -78,14 +78,14 @@ bash-4.3.30.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.25.tar.xz
 diffutils-3.3.tar.xz
-file-5.27.tar.gz
+file-5.28.tar.gz
 findutils-4.6.0.tar.gz
 gawk-4.1.3.tar.xz
-gettext-0.19.7.tar.xz
+gettext-0.19.8.1.tar.xz
 grep-2.25.tar.xz
 gzip-1.8.tar.xz
 m4-1.4.17.tar.xz
-make-4.2.tar.bz2
+make-4.2.1.tar.bz2
 patch-2.7.5.tar.xz
 perl-5.24.0.tar.bz2
 sed-4.2.2.tar.bz2
@@ -188,8 +188,8 @@ case $(uname -m) in
 esac
 tar -Jxf ../mpfr-3.1.4.tar.xz
 mv -v mpfr-3.1.4 mpfr
-tar -Jxf ../gmp-6.1.0.tar.xz
-mv -v gmp-6.1.0 gmp
+tar -Jxf ../gmp-6.1.1.tar.xz
+mv -v gmp-6.1.1 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
 mv -v mpc-1.0.3 mpc
 for file in \
@@ -229,9 +229,6 @@ cd build
     --disable-libvtv                               \
     --disable-libstdcxx                            \
     --enable-languages=c,c++
-# Workaround for a problem introduced with GMP 5.1.0.
-# If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
-sed -i 's/none-/armv6l-/' Makefile
 make
 make install
 cd $LFS/sources
@@ -335,8 +332,8 @@ do
 done
 tar -Jxf ../mpfr-3.1.4.tar.xz
 mv -v mpfr-3.1.4 mpfr
-tar -Jxf ../gmp-6.1.0.tar.xz
-mv -v gmp-6.1.0 gmp
+tar -Jxf ../gmp-6.1.1.tar.xz
+mv -v gmp-6.1.1 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
 mv -v mpc-1.0.3 mpc
 mkdir -v build
@@ -354,9 +351,6 @@ RANLIB=$LFS_TGT-ranlib                             \
     --disable-multilib                             \
     --disable-bootstrap                            \
     --disable-libgomp
-# Workaround for a problem introduced with GMP 5.1.0.
-# If configured by gcc with the "none" host & target, it will result in undefined references to '__gmpn_invert_limb' during linking.
-sed -i 's/none-/armv6l-/' Makefile
 make
 make install
 ln -sv gcc /tools/bin/cc
@@ -457,14 +451,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.3
 
-echo "# 5.20. File-5.27"
-tar -zxf file-5.27.tar.gz
-cd file-5.27
+echo "# 5.20. File-5.28"
+tar -zxf file-5.28.tar.gz
+cd file-5.28
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf file-5.27
+rm -rf file-5.28
 
 echo "# 5.21. Findutils-4.6.0"
 tar -zxf findutils-4.6.0.tar.gz
@@ -484,9 +478,9 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.3
 
-echo "# 5.23. Gettext-0.19.7"
-tar -Jxf gettext-0.19.7.tar.xz
-cd gettext-0.19.7
+echo "# 5.23. Gettext-0.19.8.1"
+tar -Jxf gettext-0.19.8.1.tar.xz
+cd gettext-0.19.8.1
 cd gettext-tools
 EMACS="no" ./configure --prefix=/tools --disable-shared
 make -C gnulib-lib
@@ -496,7 +490,7 @@ make -C src msgmerge
 make -C src xgettext
 cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
-rm -rf gettext-0.19.7
+rm -rf gettext-0.19.8.1
 
 echo "# 5.24. Grep-2.25"
 tar -Jxf grep-2.25.tar.xz
@@ -525,14 +519,14 @@ make install
 cd $LFS/sources
 rm -rf m4-1.4.17
 
-echo "# 5.27. Make-4.2"
-tar -jxf make-4.2.tar.bz2
-cd make-4.2
+echo "# 5.27. Make-4.2.1"
+tar -jxf make-4.2.1.tar.bz2
+cd make-4.2.1
 ./configure --prefix=/tools --without-guile
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf make-4.2
+rm -rf make-4.2.1
 
 echo "# 5.28. Patch-2.7.5"
 tar -Jxf patch-2.7.5.tar.xz
@@ -589,7 +583,7 @@ cd util-linux-2.28
             --disable-makeinstall-chown    \
             --without-systemdsystemunitdir \
             PKG_CONFIG=""
-make
+make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
 rm -rf util-linux-2.28
