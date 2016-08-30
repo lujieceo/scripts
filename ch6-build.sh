@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160622 v1.0
+# PiLFS Build Script SVN-20160824 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,19 +38,17 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-4.4.y.tar.gz
-man-pages-4.06.tar.xz
-glibc-2.23.tar.xz
-glibc-2.23-fhs-1.patch
-glibc-2.23-upstream_fixes-1.patch
-tzdata2016e.tar.gz
+man-pages-4.07.tar.xz
+glibc-2.24.tar.xz
+glibc-2.24-fhs-1.patch
+tzdata2016f.tar.gz
 zlib-1.2.8.tar.xz
 file-5.28.tar.gz
-binutils-2.26.tar.bz2
-binutils-2.26-upstream_fixes-3.patch
+binutils-2.27.tar.bz2
 gmp-6.1.1.tar.xz
 mpfr-3.1.4.tar.xz
 mpc-1.0.3.tar.gz
-gcc-6.1.0.tar.bz2
+gcc-6.2.0.tar.bz2
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
@@ -64,12 +62,12 @@ libcap-2.25.tar.xz
 sed-4.2.2.tar.bz2
 shadow-4.2.1.tar.xz
 psmisc-22.21.tar.gz
-procps-ng-3.3.11.tar.xz
+procps-ng-3.3.12.tar.xz
 e2fsprogs-1.43.1.tar.gz
 iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
 bison-3.0.4.tar.xz
-flex-2.6.0.tar.xz
+flex-2.6.1.tar.xz
 grep-2.25.tar.xz
 readline-6.3.tar.gz
 readline-6.3-upstream_fixes-3.patch
@@ -87,7 +85,7 @@ autoconf-2.69.tar.xz
 automake-1.15.tar.xz
 coreutils-8.25.tar.xz
 coreutils-8.25-i18n-2.patch
-diffutils-3.3.tar.xz
+diffutils-3.5.tar.xz
 gawk-4.1.3.tar.xz
 findutils-4.6.0.tar.gz
 gettext-0.19.8.1.tar.xz
@@ -97,10 +95,10 @@ groff-1.22.3.tar.gz
 xz-5.2.2.tar.xz
 less-481.tar.gz
 gzip-1.8.tar.xz
-iproute2-4.6.0.tar.xz
+iproute2-4.7.0.tar.xz
 kbd-2.0.3.tar.xz
 kbd-2.0.3-backspace-1.patch
-kmod-22.tar.xz
+kmod-23.tar.xz
 libpipeline-1.4.1.tar.gz
 make-4.2.1.tar.bz2
 man-db-2.7.5.tar.xz
@@ -112,7 +110,7 @@ tar-1.29.tar.xz
 texinfo-6.1.tar.xz
 eudev-3.2.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.28.tar.xz
+util-linux-2.28.1.tar.xz
 vim-7.4.tar.bz2
 master.tar.gz
 "
@@ -178,18 +176,17 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-4.06"
-tar -Jxf man-pages-4.06.tar.xz
-cd man-pages-4.06
+echo "# 6.8. Man-pages-4.07"
+tar -Jxf man-pages-4.07.tar.xz
+cd man-pages-4.07
 make install
 cd /sources
-rm -rf man-pages-4.06
+rm -rf man-pages-4.07
 
-echo "# 6.9. Glibc-2.23"
-tar -Jxf glibc-2.23.tar.xz
-cd glibc-2.23
-patch -Np1 -i ../glibc-2.23-fhs-1.patch
-patch -Np1 -i ../glibc-2.23-upstream_fixes-1.patch
+echo "# 6.9. Glibc-2.24"
+tar -Jxf glibc-2.24.tar.xz
+cd glibc-2.24
+patch -Np1 -i ../glibc-2.24-fhs-1.patch
 mkdir -v build
 cd build
 ../configure --prefix=/usr          \
@@ -224,7 +221,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../../tzdata2016e.tar.gz
+tar -zxf ../../tzdata2016f.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -255,9 +252,9 @@ include /etc/ld.so.conf.d/*.conf
 EOF
 mkdir -pv /etc/ld.so.conf.d
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.23.so /lib/ld-linux.so.3
+ln -sv ld-2.24.so /lib/ld-linux.so.3
 cd /sources
-rm -rf glibc-2.23
+rm -rf glibc-2.24
 
 echo "# 6.10. Adjusting the Toolchain"
 mv -v /tools/bin/{ld,ld-old}
@@ -289,10 +286,9 @@ make install
 cd /sources
 rm -rf file-5.28
 
-echo "# 6.13. Binutils-2.26"
-tar -jxf binutils-2.26.tar.bz2
-cd binutils-2.26
-patch -Np1 -i ../binutils-2.26-upstream_fixes-3.patch
+echo "# 6.13. Binutils-2.27"
+tar -jxf binutils-2.27.tar.bz2
+cd binutils-2.27
 mkdir -v build
 cd build
 ../configure --prefix=/usr   \
@@ -301,7 +297,7 @@ cd build
 make -j $PARALLEL_JOBS tooldir=/usr
 make tooldir=/usr install
 cd /sources
-rm -rf binutils-2.26
+rm -rf binutils-2.27
 
 echo "# 6.14. GMP-6.1.1"
 tar -Jxf gmp-6.1.1.tar.xz
@@ -350,9 +346,9 @@ fi
 cd /sources
 rm -rf mpc-1.0.3
 
-echo "# 6.17. GCC-6.1.0"
-tar -jxf gcc-6.1.0.tar.bz2
-cd gcc-6.1.0
+echo "# 6.17. GCC-6.2.0"
+tar -jxf gcc-6.2.0.tar.bz2
+cd gcc-6.2.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
@@ -374,11 +370,11 @@ make install
 ln -sv ../usr/bin/cpp /lib
 ln -sv gcc /usr/bin/cc
 install -v -dm755 /usr/lib/bfd-plugins
-ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/6.1.0/liblto_plugin.so /usr/lib/bfd-plugins/
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/6.2.0/liblto_plugin.so /usr/lib/bfd-plugins/
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-6.1.0
+rm -rf gcc-6.2.0
 
 echo "# 6.18. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -566,15 +562,15 @@ make install
 cd /sources
 rm -rf bison-3.0.4
 
-echo "# 6.30. Flex-2.6.0"
-tar -Jxf flex-2.6.0.tar.xz
-cd flex-2.6.0
-./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.0
+echo "# 6.30. Flex-2.6.1"
+tar -Jxf flex-2.6.1.tar.xz
+cd flex-2.6.1
+./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.1
 make -j $PARALLEL_JOBS
 make install
 ln -sv flex /usr/bin/lex
 cd /sources
-rm -rf flex-2.6.0
+rm -rf flex-2.6.1
 
 echo "# 6.31. Grep-2.25"
 tar -Jxf grep-2.25.tar.xz
@@ -775,9 +771,9 @@ ln -svf ../../lib/$(readlink /usr/lib/liblzma.so) /usr/lib/liblzma.so
 cd /sources
 rm -rf xz-5.2.2
 
-echo "# 6.46. Kmod-22"
-tar -Jxf kmod-22.tar.xz
-cd kmod-22
+echo "# 6.46. Kmod-23"
+tar -Jxf kmod-23.tar.xz
+cd kmod-23
 ./configure --prefix=/usr          \
             --bindir=/bin          \
             --sysconfdir=/etc      \
@@ -791,7 +787,7 @@ for target in depmod insmod lsmod modinfo modprobe rmmod; do
 done
 ln -sv kmod /bin/lsmod
 cd /sources
-rm -rf kmod-22
+rm -rf kmod-23
 
 echo "# 6.47. Gettext-0.19.8.1"
 tar -Jxf gettext-0.19.8.1.tar.xz
@@ -805,13 +801,13 @@ chmod -v 0755 /usr/lib/preloadable_libintl.so
 cd /sources
 rm -rf gettext-0.19.8.1
 
-echo "# 6.48. Procps-ng-3.3.11"
-tar -Jxf procps-ng-3.3.11.tar.xz
-cd procps-ng-3.3.11
+echo "# 6.48. Procps-ng-3.3.12"
+tar -Jxf procps-ng-3.3.12.tar.xz
+cd procps-ng-3.3.12
 ./configure --prefix=/usr                            \
             --exec-prefix=                           \
             --libdir=/usr/lib                        \
-            --docdir=/usr/share/doc/procps-ng-3.3.11 \
+            --docdir=/usr/share/doc/procps-ng-3.3.12 \
             --disable-static                         \
             --disable-kill
 make -j $PARALLEL_JOBS
@@ -819,7 +815,7 @@ make install
 mv -v /usr/lib/libprocps.so.* /lib
 ln -sfv ../../lib/$(readlink /usr/lib/libprocps.so) /usr/lib/libprocps.so
 cd /sources
-rm -rf procps-ng-3.3.11
+rm -rf procps-ng-3.3.12
 
 echo "# 6.49. E2fsprogs-1.43.1"
 tar -zxf e2fsprogs-1.43.1.tar.gz
@@ -874,15 +870,15 @@ mv -v /usr/bin/{head,sleep,nice,test,[} /bin
 cd /sources
 rm -rf coreutils-8.25
 
-echo "# 6.51. Diffutils-3.3"
-tar -Jxf diffutils-3.3.tar.xz
-cd diffutils-3.3
+echo "# 6.51. Diffutils-3.5"
+tar -Jxf diffutils-3.5.tar.xz
+cd diffutils-3.5
 sed -i 's:= @mkdir_p@:= /bin/mkdir -p:' po/Makefile.in.in
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf diffutils-3.3
+rm -rf diffutils-3.5
 
 echo "# 6.52. Gawk-4.1.3"
 tar -Jxf gawk-4.1.3.tar.xz
@@ -940,17 +936,17 @@ mv -v /usr/bin/gzip /bin
 cd /sources
 rm -rf gzip-1.8
 
-echo "# 6.58. IPRoute2-4.6.0"
-tar -Jxf iproute2-4.6.0.tar.xz
-cd iproute2-4.6.0
+echo "# 6.58. IPRoute2-4.7.0"
+tar -Jxf iproute2-4.7.0.tar.xz
+cd iproute2-4.7.0
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 rm -v doc/arpd.sgml
 sed -i 's/m_ipt.o//' tc/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-4.6.0 install
+make DOCDIR=/usr/share/doc/iproute2-4.7.0 install
 cd /sources
-rm -rf iproute2-4.6.0
+rm -rf iproute2-4.7.0
 
 echo "# 6.59. Kbd-2.0.3"
 tar -Jxf kbd-2.0.3.tar.xz
@@ -999,6 +995,7 @@ echo "# 6.63. Sysklogd-1.5.1"
 tar -zxf sysklogd-1.5.1.tar.gz
 cd sysklogd-1.5.1
 sed -i '/Error loading kernel symbols/{n;n;d}' ksym_mod.c
+sed -i 's/union wait/int/' syslogd.c
 make -j $PARALLEL_JOBS
 make BINDIR=/sbin install
 cat > /etc/syslog.conf << "EOF"
@@ -1056,12 +1053,12 @@ LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
 rm -rf eudev-3.2
 
-echo "# 6.66. Util-linux-2.28"
-tar -Jxf util-linux-2.28.tar.xz
-cd util-linux-2.28
+echo "# 6.66. Util-linux-2.28.1"
+tar -Jxf util-linux-2.28.1.tar.xz
+cd util-linux-2.28.1
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
-            --docdir=/usr/share/doc/util-linux-2.28 \
+            --docdir=/usr/share/doc/util-linux-2.28.1 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1076,7 +1073,7 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.28
+rm -rf util-linux-2.28.1
 
 echo "# 6.67. Man-DB-2.7.5"
 tar -Jxf man-db-2.7.5.tar.xz
