@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160824 v1.0
+# PiLFS Build Script SVN-20161109 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -63,7 +63,7 @@ gcc-6.2.0.tar.bz2
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
-mpfr-3.1.4.tar.xz
+mpfr-3.1.5.tar.xz
 gmp-6.1.1.tar.xz
 mpc-1.0.3.tar.gz
 rpi-4.4.y.tar.gz
@@ -73,15 +73,15 @@ expect5.45.tar.gz
 dejagnu-1.6.tar.gz
 check-0.10.0.tar.gz
 ncurses-6.0.tar.gz
-bash-4.3.30.tar.gz
+bash-4.4.tar.gz
 bzip2-1.0.6.tar.gz
 coreutils-8.25.tar.xz
 diffutils-3.5.tar.xz
-file-5.28.tar.gz
+file-5.29.tar.gz
 findutils-4.6.0.tar.gz
-gawk-4.1.3.tar.xz
+gawk-4.1.4.tar.xz
 gettext-0.19.8.1.tar.xz
-grep-2.25.tar.xz
+grep-2.26.tar.xz
 gzip-1.8.tar.xz
 m4-1.4.17.tar.xz
 make-4.2.1.tar.bz2
@@ -89,8 +89,8 @@ patch-2.7.5.tar.xz
 perl-5.24.0.tar.bz2
 sed-4.2.2.tar.bz2
 tar-1.29.tar.xz
-texinfo-6.1.tar.xz
-util-linux-2.28.1.tar.xz
+texinfo-6.3.tar.xz
+util-linux-2.29.tar.xz
 xz-5.2.2.tar.xz
 "
 
@@ -185,8 +185,8 @@ case $(uname -m) in
     esac
   ;;
 esac
-tar -Jxf ../mpfr-3.1.4.tar.xz
-mv -v mpfr-3.1.4 mpfr
+tar -Jxf ../mpfr-3.1.5.tar.xz
+mv -v mpfr-3.1.5 mpfr
 tar -Jxf ../gmp-6.1.1.tar.xz
 mv -v gmp-6.1.1 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
@@ -327,8 +327,8 @@ do
 #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
   touch $file.orig
 done
-tar -Jxf ../mpfr-3.1.4.tar.xz
-mv -v mpfr-3.1.4 mpfr
+tar -Jxf ../mpfr-3.1.5.tar.xz
+mv -v mpfr-3.1.5 mpfr
 tar -Jxf ../gmp-6.1.1.tar.xz
 mv -v gmp-6.1.1 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
@@ -412,15 +412,15 @@ make install
 cd $LFS/sources
 rm -rf ncurses-6.0
 
-echo "# 5.16. Bash-4.3.30"
-tar -zxf bash-4.3.30.tar.gz
-cd bash-4.3.30
+echo "# 5.16. Bash-4.4"
+tar -zxf bash-4.4.tar.gz
+cd bash-4.4
 ./configure --prefix=/tools --without-bash-malloc
 make -j $PARALLEL_JOBS
 make install
 ln -sv bash /tools/bin/sh
 cd $LFS/sources
-rm -rf bash-4.3.30
+rm -rf bash-4.4
 
 echo "# 5.17. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -448,14 +448,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.5
 
-echo "# 5.20. File-5.28"
-tar -zxf file-5.28.tar.gz
-cd file-5.28
+echo "# 5.20. File-5.29"
+tar -zxf file-5.29.tar.gz
+cd file-5.29
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf file-5.28
+rm -rf file-5.29
 
 echo "# 5.21. Findutils-4.6.0"
 tar -zxf findutils-4.6.0.tar.gz
@@ -466,14 +466,14 @@ make install
 cd $LFS/sources
 rm -rf findutils-4.6.0
 
-echo "# 5.22. Gawk-4.1.3"
-tar -Jxf gawk-4.1.3.tar.xz
-cd gawk-4.1.3
+echo "# 5.22. Gawk-4.1.4"
+tar -Jxf gawk-4.1.4.tar.xz
+cd gawk-4.1.4
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf gawk-4.1.3
+rm -rf gawk-4.1.4
 
 echo "# 5.23. Gettext-0.19.8.1"
 tar -Jxf gettext-0.19.8.1.tar.xz
@@ -489,14 +489,14 @@ cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
 rm -rf gettext-0.19.8.1
 
-echo "# 5.24. Grep-2.25"
-tar -Jxf grep-2.25.tar.xz
-cd grep-2.25
+echo "# 5.24. Grep-2.26"
+tar -Jxf grep-2.26.tar.xz
+cd grep-2.26
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf grep-2.25
+rm -rf grep-2.26
 
 echo "# 5.25. Gzip-1.8"
 tar -Jxf gzip-1.8.tar.xz
@@ -563,18 +563,18 @@ make install
 cd $LFS/sources
 rm -rf tar-1.29
 
-echo "# 5.32. Texinfo-6.1"
-tar -Jxf texinfo-6.1.tar.xz
-cd texinfo-6.1
+echo "# 5.32. Texinfo-6.3"
+tar -Jxf texinfo-6.3.tar.xz
+cd texinfo-6.3
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf texinfo-6.1
+rm -rf texinfo-6.3
 
-echo "# 5.33. Util-linux-2.28.1"
-tar -Jxf util-linux-2.28.1.tar.xz
-cd util-linux-2.28.1
+echo "# 5.33. Util-linux-2.29"
+tar -Jxf util-linux-2.29.tar.xz
+cd util-linux-2.29
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -583,7 +583,7 @@ cd util-linux-2.28.1
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.28.1
+rm -rf util-linux-2.29
 
 echo "# 5.34. Xz-5.2.2"
 tar -Jxf xz-5.2.2.tar.xz

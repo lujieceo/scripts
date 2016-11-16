@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20160824 v1.0
+# PiLFS Build Script SVN-20161109 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,15 +38,15 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-4.4.y.tar.gz
-man-pages-4.07.tar.xz
+man-pages-4.08.tar.xz
 glibc-2.24.tar.xz
 glibc-2.24-fhs-1.patch
-tzdata2016f.tar.gz
+tzdata2016i.tar.gz
 zlib-1.2.8.tar.xz
-file-5.28.tar.gz
+file-5.29.tar.gz
 binutils-2.27.tar.bz2
 gmp-6.1.1.tar.xz
-mpfr-3.1.4.tar.xz
+mpfr-3.1.5.tar.xz
 mpc-1.0.3.tar.gz
 gcc-6.2.0.tar.bz2
 gcc-5.3.0-rpi1-cpu-default.patch
@@ -63,16 +63,14 @@ sed-4.2.2.tar.bz2
 shadow-4.2.1.tar.xz
 psmisc-22.21.tar.gz
 procps-ng-3.3.12.tar.xz
-e2fsprogs-1.43.1.tar.gz
+e2fsprogs-1.43.3.tar.gz
 iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
 bison-3.0.4.tar.xz
-flex-2.6.1.tar.xz
-grep-2.25.tar.xz
-readline-6.3.tar.gz
-readline-6.3-upstream_fixes-3.patch
-bash-4.3.30.tar.gz
-bash-4.3.30-upstream_fixes-3.patch
+flex-2.6.2.tar.gz
+grep-2.26.tar.xz
+readline-7.0.tar.gz
+bash-4.4.tar.gz
 bc-1.06.95.tar.bz2
 bc-1.06.95-memory_leak-1.patch
 libtool-2.4.6.tar.xz
@@ -86,7 +84,7 @@ automake-1.15.tar.xz
 coreutils-8.25.tar.xz
 coreutils-8.25-i18n-2.patch
 diffutils-3.5.tar.xz
-gawk-4.1.3.tar.xz
+gawk-4.1.4.tar.xz
 findutils-4.6.0.tar.gz
 gettext-0.19.8.1.tar.xz
 intltool-0.51.0.tar.gz
@@ -95,7 +93,7 @@ groff-1.22.3.tar.gz
 xz-5.2.2.tar.xz
 less-481.tar.gz
 gzip-1.8.tar.xz
-iproute2-4.7.0.tar.xz
+iproute2-4.8.0.tar.xz
 kbd-2.0.3.tar.xz
 kbd-2.0.3-backspace-1.patch
 kmod-23.tar.xz
@@ -107,11 +105,11 @@ sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.29.tar.xz
-texinfo-6.1.tar.xz
+texinfo-6.3.tar.xz
 eudev-3.2.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.28.1.tar.xz
-vim-7.4.tar.bz2
+util-linux-2.29.tar.xz
+vim-8.0.069.tar.bz2
 master.tar.gz
 "
 
@@ -176,12 +174,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-4.07"
-tar -Jxf man-pages-4.07.tar.xz
-cd man-pages-4.07
+echo "# 6.8. Man-pages-4.08"
+tar -Jxf man-pages-4.08.tar.xz
+cd man-pages-4.08
 make install
 cd /sources
-rm -rf man-pages-4.07
+rm -rf man-pages-4.08
 
 echo "# 6.9. Glibc-2.24"
 tar -Jxf glibc-2.24.tar.xz
@@ -221,7 +219,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../../tzdata2016f.tar.gz
+tar -zxf ../../tzdata2016i.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -277,14 +275,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.8
 
-echo "# 6.12. File-5.28"
-tar -zxf file-5.28.tar.gz
-cd file-5.28
+echo "# 6.12. File-5.29"
+tar -zxf file-5.29.tar.gz
+cd file-5.29
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf file-5.28
+rm -rf file-5.29
 
 echo "# 6.13. Binutils-2.27"
 tar -jxf binutils-2.27.tar.bz2
@@ -315,13 +313,13 @@ fi
 cd /sources
 rm -rf gmp-6.1.1
 
-echo "# 6.15. MPFR-3.1.4"
-tar -Jxf mpfr-3.1.4.tar.xz
-cd mpfr-3.1.4
+echo "# 6.15. MPFR-3.1.5"
+tar -Jxf mpfr-3.1.5.tar.xz
+cd mpfr-3.1.5
 ./configure  --prefix=/usr        \
              --disable-static     \
              --enable-thread-safe \
-             --docdir=/usr/share/doc/mpfr-3.1.4
+             --docdir=/usr/share/doc/mpfr-3.1.5
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
@@ -329,7 +327,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     make install-html
 fi
 cd /sources
-rm -rf mpfr-3.1.4
+rm -rf mpfr-3.1.5
 
 echo "# 6.16. MPC-1.0.3"
 tar -zxf mpc-1.0.3.tar.gz
@@ -562,52 +560,50 @@ make install
 cd /sources
 rm -rf bison-3.0.4
 
-echo "# 6.30. Flex-2.6.1"
-tar -Jxf flex-2.6.1.tar.xz
-cd flex-2.6.1
-./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.1
+echo "# 6.30. Flex-2.6.2"
+tar -zxf flex-2.6.2.tar.gz
+cd flex-2.6.2
+HELP2MAN=/tools/bin/true ./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.2
 make -j $PARALLEL_JOBS
 make install
 ln -sv flex /usr/bin/lex
 cd /sources
-rm -rf flex-2.6.1
+rm -rf flex-2.6.2
 
-echo "# 6.31. Grep-2.25"
-tar -Jxf grep-2.25.tar.xz
-cd grep-2.25
+echo "# 6.31. Grep-2.26"
+tar -Jxf grep-2.26.tar.xz
+cd grep-2.26
 ./configure --prefix=/usr --bindir=/bin
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf grep-2.25
+rm -rf grep-2.26
 
-echo "# 6.32. Readline-6.3"
-tar -zxf readline-6.3.tar.gz
-cd readline-6.3
-patch -Np1 -i ../readline-6.3-upstream_fixes-3.patch
+echo "# 6.32. Readline-7.0"
+tar -zxf readline-7.0.tar.gz
+cd readline-7.0
 sed -i '/MV.*old/d' Makefile.in
 sed -i '/{OLDSUFF}/c:' support/shlib-install
 ./configure --prefix=/usr    \
             --disable-static \
-            --docdir=/usr/share/doc/readline-6.3
+            --docdir=/usr/share/doc/readline-7.0
 make -j $PARALLEL_JOBS SHLIB_LIBS=-lncurses
 make SHLIB_LIBS=-lncurses install
 mv -v /usr/lib/lib{readline,history}.so.* /lib
 ln -sfv ../../lib/$(readlink /usr/lib/libreadline.so) /usr/lib/libreadline.so
 ln -sfv ../../lib/$(readlink /usr/lib/libhistory.so ) /usr/lib/libhistory.so
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -m644 doc/*.{ps,pdf,html,dvi} /usr/share/doc/readline-6.3
+    install -v -m644 doc/*.{ps,pdf,html,dvi} /usr/share/doc/readline-7.0
 fi
 cd /sources
-rm -rf readline-6.3
+rm -rf readline-7.0
 
-echo "# 6.33. Bash-4.3.30"
-tar -zxf bash-4.3.30.tar.gz
-cd bash-4.3.30
-patch -Np1 -i ../bash-4.3.30-upstream_fixes-3.patch
-./configure --prefix=/usr                       \
-            --docdir=/usr/share/doc/bash-4.3.30 \
-            --without-bash-malloc               \
+echo "# 6.33. Bash-4.4"
+tar -zxf bash-4.4.tar.gz
+cd bash-4.4
+./configure --prefix=/usr                    \
+            --docdir=/usr/share/doc/bash-4.4 \
+            --without-bash-malloc            \
             --with-installed-readline
 make -j $PARALLEL_JOBS
 make install
@@ -615,7 +611,7 @@ mv -vf /usr/bin/bash /bin
 # exec /bin/bash --login +h
 # Don't know of a good way to keep running the script after entering bash here.
 cd /sources
-rm -rf bash-4.3.30
+rm -rf bash-4.4
 
 echo "# 6.34. Bc-1.06.95"
 tar -jxf bc-1.06.95.tar.bz2
@@ -817,10 +813,9 @@ ln -sfv ../../lib/$(readlink /usr/lib/libprocps.so) /usr/lib/libprocps.so
 cd /sources
 rm -rf procps-ng-3.3.12
 
-echo "# 6.49. E2fsprogs-1.43.1"
-tar -zxf e2fsprogs-1.43.1.tar.gz
-cd e2fsprogs-1.43.1
-sed -i -e 's:\[\.-\]::' tests/filter.sed
+echo "# 6.49. E2fsprogs-1.43.3"
+tar -zxf e2fsprogs-1.43.3.tar.gz
+cd e2fsprogs-1.43.3
 mkdir -v build
 cd build
 LIBS=-L/tools/lib                    \
@@ -846,7 +841,7 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     install-info --dir-file=/usr/share/info/dir /usr/share/info/com_err.info
 fi
 cd /sources
-rm -rf e2fsprogs-1.43.1
+rm -rf e2fsprogs-1.43.3
 
 echo "# 6.50. Coreutils-8.25"
 tar -Jxf coreutils-8.25.tar.xz
@@ -880,18 +875,18 @@ make install
 cd /sources
 rm -rf diffutils-3.5
 
-echo "# 6.52. Gawk-4.1.3"
-tar -Jxf gawk-4.1.3.tar.xz
-cd gawk-4.1.3
+echo "# 6.52. Gawk-4.1.4"
+tar -Jxf gawk-4.1.4.tar.xz
+cd gawk-4.1.4
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    mkdir -v /usr/share/doc/gawk-4.1.3
-    cp    -v doc/{awkforai.txt,*.{eps,pdf,jpg}} /usr/share/doc/gawk-4.1.3
+    mkdir -v /usr/share/doc/gawk-4.1.4
+    cp    -v doc/{awkforai.txt,*.{eps,pdf,jpg}} /usr/share/doc/gawk-4.1.4
 fi
 cd /sources
-rm -rf gawk-4.1.3
+rm -rf gawk-4.1.4
 
 echo "# 6.53. Findutils-4.6.0"
 tar -zxf findutils-4.6.0.tar.gz
@@ -936,17 +931,17 @@ mv -v /usr/bin/gzip /bin
 cd /sources
 rm -rf gzip-1.8
 
-echo "# 6.58. IPRoute2-4.7.0"
-tar -Jxf iproute2-4.7.0.tar.xz
-cd iproute2-4.7.0
+echo "# 6.58. IPRoute2-4.8.0"
+tar -Jxf iproute2-4.8.0.tar.xz
+cd iproute2-4.8.0
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 rm -v doc/arpd.sgml
 sed -i 's/m_ipt.o//' tc/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-4.7.0 install
+make DOCDIR=/usr/share/doc/iproute2-4.8.0 install
 cd /sources
-rm -rf iproute2-4.7.0
+rm -rf iproute2-4.8.0
 
 echo "# 6.59. Kbd-2.0.3"
 tar -Jxf kbd-2.0.3.tar.xz
@@ -1053,12 +1048,12 @@ LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
 rm -rf eudev-3.2
 
-echo "# 6.66. Util-linux-2.28.1"
-tar -Jxf util-linux-2.28.1.tar.xz
-cd util-linux-2.28.1
+echo "# 6.66. Util-linux-2.29"
+tar -Jxf util-linux-2.29.tar.xz
+cd util-linux-2.29
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
-            --docdir=/usr/share/doc/util-linux-2.28.1 \
+            --docdir=/usr/share/doc/util-linux-2.29 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1073,7 +1068,7 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.28.1
+rm -rf util-linux-2.29
 
 echo "# 6.67. Man-DB-2.7.5"
 tar -Jxf man-db-2.7.5.tar.xz
@@ -1105,20 +1100,20 @@ fi
 cd /sources
 rm -rf tar-1.29
 
-echo "# 6.69. Texinfo-6.1"
-tar -Jxf texinfo-6.1.tar.xz
-cd texinfo-6.1
+echo "# 6.69. Texinfo-6.3"
+tar -Jxf texinfo-6.3.tar.xz
+cd texinfo-6.3
 ./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 # I don't know anybody who wants this... prove me wrong!
 # make TEXMF=/usr/share/texmf install-tex
 cd /sources
-rm -rf texinfo-6.1
+rm -rf texinfo-6.3
 
-echo "# 6.70. Vim-7.4"
-tar -jxf vim-7.4.tar.bz2
-cd vim74
+echo "# 6.70. Vim-8.0.069"
+tar -jxf vim-8.0.069.tar.bz2
+cd vim80
 echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
@@ -1127,7 +1122,7 @@ ln -sv vim /usr/bin/vi
 for L in /usr/share/man/{,*/}man1/vim.1; do
     ln -sv vim.1 $(dirname $L)/vi.1
 done
-ln -sv ../vim/vim74/doc /usr/share/doc/vim-7.4
+ln -sv ../vim/vim80/doc /usr/share/doc/vim-8.0.069
 cat > /etc/vimrc << "EOF"
 " Begin /etc/vimrc
 
@@ -1141,7 +1136,7 @@ endif
 " End /etc/vimrc
 EOF
 cd /sources
-rm -rf vim74
+rm -rf vim80
 
 echo -e "--------------------------------------------------------------------"
 echo -e "\nYou made it! Now there are just a few things left to take care of..."
