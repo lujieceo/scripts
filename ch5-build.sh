@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20161109 v1.0
+# PiLFS Build Script SVN-20161203 v1.0
 # Builds chapters 5.4 - Binutils to 5.34 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -75,7 +75,7 @@ check-0.10.0.tar.gz
 ncurses-6.0.tar.gz
 bash-4.4.tar.gz
 bzip2-1.0.6.tar.gz
-coreutils-8.25.tar.xz
+coreutils-8.26.tar.xz
 diffutils-3.5.tar.xz
 file-5.29.tar.gz
 findutils-4.6.0.tar.gz
@@ -430,14 +430,14 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-echo "# 5.18. Coreutils-8.25"
-tar -Jxf coreutils-8.25.tar.xz
-cd coreutils-8.25
+echo "# 5.18. Coreutils-8.26"
+tar -Jxf coreutils-8.26.tar.xz
+cd coreutils-8.26
 ./configure --prefix=/tools --enable-install-program=hostname
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf coreutils-8.25
+rm -rf coreutils-8.26
 
 echo "# 5.19. Diffutils-3.5"
 tar -Jxf diffutils-3.5.tar.xz

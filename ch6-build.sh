@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20161109 v1.0
+# PiLFS Build Script SVN-20161203 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -41,7 +41,7 @@ rpi-4.4.y.tar.gz
 man-pages-4.08.tar.xz
 glibc-2.24.tar.xz
 glibc-2.24-fhs-1.patch
-tzdata2016i.tar.gz
+tzdata2016j.tar.gz
 zlib-1.2.8.tar.xz
 file-5.29.tar.gz
 binutils-2.27.tar.bz2
@@ -68,6 +68,7 @@ iana-etc-2.30.tar.bz2
 m4-1.4.17.tar.xz
 bison-3.0.4.tar.xz
 flex-2.6.2.tar.gz
+flex-2.6.2-fixes-1.patch
 grep-2.26.tar.xz
 readline-7.0.tar.gz
 bash-4.4.tar.gz
@@ -81,8 +82,8 @@ perl-5.24.0.tar.bz2
 XML-Parser-2.44.tar.gz
 autoconf-2.69.tar.xz
 automake-1.15.tar.xz
-coreutils-8.25.tar.xz
-coreutils-8.25-i18n-2.patch
+coreutils-8.26.tar.xz
+coreutils-8.26-i18n-1.patch
 diffutils-3.5.tar.xz
 gawk-4.1.4.tar.xz
 findutils-4.6.0.tar.gz
@@ -219,7 +220,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../../tzdata2016i.tar.gz
+tar -zxf ../../tzdata2016j.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -563,6 +564,7 @@ rm -rf bison-3.0.4
 echo "# 6.30. Flex-2.6.2"
 tar -zxf flex-2.6.2.tar.gz
 cd flex-2.6.2
+patch -Np1 -i ../flex-2.6.2-fixes-1.patch && touch src/scan.*
 HELP2MAN=/tools/bin/true ./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.2
 make -j $PARALLEL_JOBS
 make install
@@ -843,10 +845,10 @@ fi
 cd /sources
 rm -rf e2fsprogs-1.43.3
 
-echo "# 6.50. Coreutils-8.25"
-tar -Jxf coreutils-8.25.tar.xz
-cd coreutils-8.25
-patch -Np1 -i ../coreutils-8.25-i18n-2.patch
+echo "# 6.50. Coreutils-8.26"
+tar -Jxf coreutils-8.26.tar.xz
+cd coreutils-8.26
+patch -Np1 -i ../coreutils-8.26-i18n-1.patch
 FORCE_UNSAFE_CONFIGURE=1 ./configure \
             --prefix=/usr            \
             --enable-no-install-program=kill,uptime
@@ -863,7 +865,7 @@ mv -v /usr/share/man/man1/chroot.1 /usr/share/man/man8/chroot.8
 sed -i s/\"1\"/\"8\"/1 /usr/share/man/man8/chroot.8
 mv -v /usr/bin/{head,sleep,nice,test,[} /bin
 cd /sources
-rm -rf coreutils-8.25
+rm -rf coreutils-8.26
 
 echo "# 6.51. Diffutils-3.5"
 tar -Jxf diffutils-3.5.tar.xz
