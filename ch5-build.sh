@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20161203 v1.0
-# Builds chapters 5.4 - Binutils to 5.34 - Xz
+# PiLFS Build Script SVN-20170226 v1.0
+# Builds chapters 5.4 - Binutils to 5.35 - Xz
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
@@ -59,39 +59,40 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 binutils-2.27.tar.bz2
-gcc-6.2.0.tar.bz2
+gcc-6.3.0.tar.bz2
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
 mpfr-3.1.5.tar.xz
-gmp-6.1.1.tar.xz
+gmp-6.1.2.tar.xz
 mpc-1.0.3.tar.gz
-rpi-4.4.y.tar.gz
-glibc-2.24.tar.xz
+rpi-4.9.y.tar.gz
+glibc-2.25.tar.xz
 tcl-core8.6.6-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.6.tar.gz
-check-0.10.0.tar.gz
+check-0.11.0.tar.gz
 ncurses-6.0.tar.gz
 bash-4.4.tar.gz
+bison-3.0.4.tar.xz
 bzip2-1.0.6.tar.gz
 coreutils-8.26.tar.xz
 diffutils-3.5.tar.xz
-file-5.29.tar.gz
+file-5.30.tar.gz
 findutils-4.6.0.tar.gz
 gawk-4.1.4.tar.xz
 gettext-0.19.8.1.tar.xz
-grep-2.26.tar.xz
+grep-3.0.tar.xz
 gzip-1.8.tar.xz
-m4-1.4.17.tar.xz
+m4-1.4.18.tar.xz
 make-4.2.1.tar.bz2
 patch-2.7.5.tar.xz
-perl-5.24.0.tar.bz2
-sed-4.2.2.tar.bz2
+perl-5.24.1.tar.bz2
+sed-4.4.tar.xz
 tar-1.29.tar.xz
 texinfo-6.3.tar.xz
-util-linux-2.29.tar.xz
-xz-5.2.2.tar.xz
+util-linux-2.29.2.tar.xz
+xz-5.2.3.tar.xz
 "
 
 for tarball in $LIST_OF_TARBALLS ; do
@@ -174,9 +175,9 @@ echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
 echo -e "==========================\n"
 
-echo "# 5.5. gcc-6.2.0 - Pass 1"
-tar -jxf gcc-6.2.0.tar.bz2
-cd gcc-6.2.0
+echo "# 5.5. gcc-6.3.0 - Pass 1"
+tar -jxf gcc-6.3.0.tar.bz2
+cd gcc-6.3.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
@@ -187,12 +188,11 @@ case $(uname -m) in
 esac
 tar -Jxf ../mpfr-3.1.5.tar.xz
 mv -v mpfr-3.1.5 mpfr
-tar -Jxf ../gmp-6.1.1.tar.xz
-mv -v gmp-6.1.1 gmp
+tar -Jxf ../gmp-6.1.2.tar.xz
+mv -v gmp-6.1.2 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
 mv -v mpc-1.0.3 mpc
-for file in \
- $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
+for file in gcc/config/arm/linux-eabi.h
 do
   cp -uv $file{,.orig}
   sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' \
@@ -231,19 +231,19 @@ cd build
 make
 make install
 cd $LFS/sources
-rm -rf gcc-6.2.0
+rm -rf gcc-6.3.0
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
-tar -zxf rpi-4.4.y.tar.gz
-cd linux-rpi-4.4.y
+tar -zxf rpi-4.9.y.tar.gz
+cd linux-rpi-4.9.y
 make mrproper
 make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-echo "# 5.7. Glibc-2.24"
-tar -Jxf glibc-2.24.tar.xz
-cd glibc-2.24
+echo "# 5.7. Glibc-2.25"
+tar -Jxf glibc-2.25.tar.xz
+cd glibc-2.25
 mkdir -v build
 cd build
 ../configure                             \
@@ -257,13 +257,13 @@ cd build
 make -j $PARALLEL_JOBS
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.24.so $LFS/tools/lib/ld-linux.so.3
+ln -sv ld-2.25.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-2.24
+rm -rf glibc-2.25
 
-echo "# 5.8. Libstdc++-6.2.0"
-tar -jxf gcc-6.2.0.tar.bz2
-cd gcc-6.2.0
+echo "# 5.8. Libstdc++-6.3.0"
+tar -jxf gcc-6.3.0.tar.bz2
+cd gcc-6.3.0
 mkdir -v build
 cd build
 ../libstdc++-v3/configure           \
@@ -273,11 +273,11 @@ cd build
     --disable-nls                   \
     --disable-libstdcxx-threads     \
     --disable-libstdcxx-pch         \
-    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/6.2.0
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/6.3.0
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf gcc-6.2.0
+rm -rf gcc-6.3.0
 
 echo "# 5.9. Binutils-2.27 - Pass 2"
 tar -jxf binutils-2.27.tar.bz2
@@ -301,9 +301,9 @@ cp -v ld/ld-new /tools/bin
 cd $LFS/sources
 rm -rf binutils-2.27
 
-echo "# 5.10. gcc-6.2.0 - Pass 2"
-tar -jxf gcc-6.2.0.tar.bz2
-cd gcc-6.2.0
+echo "# 5.10. gcc-6.3.0 - Pass 2"
+tar -jxf gcc-6.3.0.tar.bz2
+cd gcc-6.3.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
@@ -314,8 +314,7 @@ case $(uname -m) in
 esac
 cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
   `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
-for file in \
- $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h -o -name linux-eabi.h -o -name linux-elf.h)
+for file in gcc/config/arm/linux-eabi.h
 do
   cp -uv $file{,.orig}
   sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' \
@@ -329,8 +328,8 @@ do
 done
 tar -Jxf ../mpfr-3.1.5.tar.xz
 mv -v mpfr-3.1.5 mpfr
-tar -Jxf ../gmp-6.1.1.tar.xz
-mv -v gmp-6.1.1 gmp
+tar -Jxf ../gmp-6.1.2.tar.xz
+mv -v gmp-6.1.2 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
 mv -v mpc-1.0.3 mpc
 mkdir -v build
@@ -352,7 +351,7 @@ make
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-6.2.0
+rm -rf gcc-6.3.0
 
 echo "# 5.11. Tcl-core-8.6.6"
 tar -zxf tcl-core8.6.6-src.tar.gz
@@ -388,14 +387,14 @@ make install
 cd $LFS/sources
 rm -rf dejagnu-1.6
 
-echo "# 5.14. Check-0.10.0"
-tar -zxf check-0.10.0.tar.gz
-cd check-0.10.0
+echo "# 5.14. Check-0.11.0"
+tar -zxf check-0.11.0.tar.gz
+cd check-0.11.0
 PKG_CONFIG= ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf check-0.10.0
+rm -rf check-0.11.0
 
 echo "# 5.15. Ncurses-6.0"
 tar -zxf ncurses-6.0.tar.gz
@@ -422,7 +421,16 @@ ln -sv bash /tools/bin/sh
 cd $LFS/sources
 rm -rf bash-4.4
 
-echo "# 5.17. Bzip2-1.0.6"
+echo "# 5.17. Bison-3.0.4"
+tar -Jxf bison-3.0.4.tar.xz
+cd bison-3.0.4
+./configure --prefix=/tools
+make -j $PARALLEL_JOBS
+make install
+cd $LFS/sources
+rm -rf bison-3.0.4
+
+echo "# 5.18. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
 cd bzip2-1.0.6
 make -j $PARALLEL_JOBS
@@ -430,7 +438,7 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-echo "# 5.18. Coreutils-8.26"
+echo "# 5.19. Coreutils-8.26"
 tar -Jxf coreutils-8.26.tar.xz
 cd coreutils-8.26
 ./configure --prefix=/tools --enable-install-program=hostname
@@ -439,7 +447,7 @@ make install
 cd $LFS/sources
 rm -rf coreutils-8.26
 
-echo "# 5.19. Diffutils-3.5"
+echo "# 5.20. Diffutils-3.5"
 tar -Jxf diffutils-3.5.tar.xz
 cd diffutils-3.5
 ./configure --prefix=/tools
@@ -448,16 +456,16 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.5
 
-echo "# 5.20. File-5.29"
-tar -zxf file-5.29.tar.gz
-cd file-5.29
+echo "# 5.21. File-5.30"
+tar -zxf file-5.30.tar.gz
+cd file-5.30
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf file-5.29
+rm -rf file-5.30
 
-echo "# 5.21. Findutils-4.6.0"
+echo "# 5.22. Findutils-4.6.0"
 tar -zxf findutils-4.6.0.tar.gz
 cd findutils-4.6.0
 ./configure --prefix=/tools
@@ -466,7 +474,7 @@ make install
 cd $LFS/sources
 rm -rf findutils-4.6.0
 
-echo "# 5.22. Gawk-4.1.4"
+echo "# 5.23. Gawk-4.1.4"
 tar -Jxf gawk-4.1.4.tar.xz
 cd gawk-4.1.4
 ./configure --prefix=/tools
@@ -475,7 +483,7 @@ make install
 cd $LFS/sources
 rm -rf gawk-4.1.4
 
-echo "# 5.23. Gettext-0.19.8.1"
+echo "# 5.24. Gettext-0.19.8.1"
 tar -Jxf gettext-0.19.8.1.tar.xz
 cd gettext-0.19.8.1
 cd gettext-tools
@@ -489,16 +497,16 @@ cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
 cd $LFS/sources
 rm -rf gettext-0.19.8.1
 
-echo "# 5.24. Grep-2.26"
-tar -Jxf grep-2.26.tar.xz
-cd grep-2.26
+echo "# 5.25. Grep-3.0"
+tar -Jxf grep-3.0.tar.xz
+cd grep-3.0
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf grep-2.26
+rm -rf grep-3.0
 
-echo "# 5.25. Gzip-1.8"
+echo "# 5.26. Gzip-1.8"
 tar -Jxf gzip-1.8.tar.xz
 cd gzip-1.8
 ./configure --prefix=/tools
@@ -507,16 +515,16 @@ make install
 cd $LFS/sources
 rm -rf gzip-1.8
 
-echo "# 5.26. M4-1.4.17"
-tar -Jxf m4-1.4.17.tar.xz
-cd m4-1.4.17
+echo "# 5.27. M4-1.4.18"
+tar -Jxf m4-1.4.18.tar.xz
+cd m4-1.4.18
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf m4-1.4.17
+rm -rf m4-1.4.18
 
-echo "# 5.27. Make-4.2.1"
+echo "# 5.28. Make-4.2.1"
 tar -jxf make-4.2.1.tar.bz2
 cd make-4.2.1
 ./configure --prefix=/tools --without-guile
@@ -525,7 +533,7 @@ make install
 cd $LFS/sources
 rm -rf make-4.2.1
 
-echo "# 5.28. Patch-2.7.5"
+echo "# 5.29. Patch-2.7.5"
 tar -Jxf patch-2.7.5.tar.xz
 cd patch-2.7.5
 ./configure --prefix=/tools
@@ -534,27 +542,27 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.5
 
-echo "# 5.29. Perl-5.24.0"
-tar -jxf perl-5.24.0.tar.bz2
-cd perl-5.24.0
+echo "# 5.30. Perl-5.24.1"
+tar -jxf perl-5.24.1.tar.bz2
+cd perl-5.24.1
 sh Configure -des -Dprefix=/tools -Dlibs=-lm
 make -j $PARALLEL_JOBS
 cp -v perl cpan/podlators/scripts/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.24.0
-cp -Rv lib/* /tools/lib/perl5/5.24.0
+mkdir -pv /tools/lib/perl5/5.24.1
+cp -Rv lib/* /tools/lib/perl5/5.24.1
 cd $LFS/sources
-rm -rf perl-5.24.0
+rm -rf perl-5.24.1
 
-echo "# 5.30. Sed-4.2.2"
-tar -jxf sed-4.2.2.tar.bz2
-cd sed-4.2.2
+echo "# 5.31. Sed-4.4"
+tar -Jxf sed-4.4.tar.xz
+cd sed-4.4
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf sed-4.2.2
+rm -rf sed-4.4
 
-echo "# 5.31. Tar-1.29"
+echo "# 5.32. Tar-1.29"
 tar -Jxf tar-1.29.tar.xz
 cd tar-1.29
 ./configure --prefix=/tools
@@ -563,7 +571,7 @@ make install
 cd $LFS/sources
 rm -rf tar-1.29
 
-echo "# 5.32. Texinfo-6.3"
+echo "# 5.33. Texinfo-6.3"
 tar -Jxf texinfo-6.3.tar.xz
 cd texinfo-6.3
 ./configure --prefix=/tools
@@ -572,9 +580,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-6.3
 
-echo "# 5.33. Util-linux-2.29"
-tar -Jxf util-linux-2.29.tar.xz
-cd util-linux-2.29
+echo "# 5.34. Util-linux-2.29.2"
+tar -Jxf util-linux-2.29.2.tar.xz
+cd util-linux-2.29.2
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -583,16 +591,16 @@ cd util-linux-2.29
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.29
+rm -rf util-linux-2.29.2
 
-echo "# 5.34. Xz-5.2.2"
-tar -Jxf xz-5.2.2.tar.xz
-cd xz-5.2.2
+echo "# 5.35. Xz-5.2.3"
+tar -Jxf xz-5.2.3.tar.xz
+cd xz-5.2.3
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf xz-5.2.2
+rm -rf xz-5.2.3
 
 do_strip
 
