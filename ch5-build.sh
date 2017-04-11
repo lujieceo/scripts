@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20170226 v1.0
+# PiLFS Build Script SVN-20170407 v1.0
 # Builds chapters 5.4 - Binutils to 5.35 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -58,7 +58,7 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-binutils-2.27.tar.bz2
+binutils-2.28.tar.bz2
 gcc-6.3.0.tar.bz2
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
@@ -76,7 +76,7 @@ ncurses-6.0.tar.gz
 bash-4.4.tar.gz
 bison-3.0.4.tar.xz
 bzip2-1.0.6.tar.gz
-coreutils-8.26.tar.xz
+coreutils-8.27.tar.xz
 diffutils-3.5.tar.xz
 file-5.30.tar.gz
 findutils-4.6.0.tar.gz
@@ -154,10 +154,10 @@ done
 total_time=$(timer)
 sbu_time=$(timer)
 
-echo "# 5.4. Binutils-2.27 - Pass 1"
+echo "# 5.4. Binutils-2.28 - Pass 1"
 cd $LFS/sources
-tar -jxf binutils-2.27.tar.bz2
-cd binutils-2.27
+tar -jxf binutils-2.28.tar.bz2
+cd binutils-2.28
 mkdir -v build
 cd build
 ../configure --prefix=/tools            \
@@ -169,7 +169,7 @@ cd build
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf binutils-2.27
+rm -rf binutils-2.28
 
 echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
@@ -279,9 +279,9 @@ make install
 cd $LFS/sources
 rm -rf gcc-6.3.0
 
-echo "# 5.9. Binutils-2.27 - Pass 2"
-tar -jxf binutils-2.27.tar.bz2
-cd binutils-2.27
+echo "# 5.9. Binutils-2.28 - Pass 2"
+tar -jxf binutils-2.28.tar.bz2
+cd binutils-2.28
 mkdir -v build
 cd build
 CC=$LFS_TGT-gcc                \
@@ -299,7 +299,7 @@ make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
 cp -v ld/ld-new /tools/bin
 cd $LFS/sources
-rm -rf binutils-2.27
+rm -rf binutils-2.28
 
 echo "# 5.10. gcc-6.3.0 - Pass 2"
 tar -jxf gcc-6.3.0.tar.bz2
@@ -438,14 +438,14 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-echo "# 5.19. Coreutils-8.26"
-tar -Jxf coreutils-8.26.tar.xz
-cd coreutils-8.26
+echo "# 5.19. Coreutils-8.27"
+tar -Jxf coreutils-8.27.tar.xz
+cd coreutils-8.27
 ./configure --prefix=/tools --enable-install-program=hostname
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf coreutils-8.26
+rm -rf coreutils-8.27
 
 echo "# 5.20. Diffutils-3.5"
 tar -Jxf diffutils-3.5.tar.xz

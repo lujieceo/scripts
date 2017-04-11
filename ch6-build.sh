@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20170226 v1.0
+# PiLFS Build Script SVN-20170407 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,13 +38,13 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-4.9.y.tar.gz
-man-pages-4.09.tar.xz
+man-pages-4.10.tar.xz
 glibc-2.25.tar.xz
 glibc-2.25-fhs-1.patch
-tzdata2016j.tar.gz
+tzdata2017b.tar.gz
 zlib-1.2.11.tar.xz
 file-5.30.tar.gz
-binutils-2.27.tar.bz2
+binutils-2.28.tar.bz2
 gmp-6.1.2.tar.xz
 mpfr-3.1.5.tar.xz
 mpc-1.0.3.tar.gz
@@ -54,7 +54,7 @@ gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
 bzip2-1.0.6.tar.gz
 bzip2-1.0.6-install_docs-1.patch
-pkg-config-0.29.1.tar.gz
+pkg-config-0.29.2.tar.gz
 ncurses-6.0.tar.gz
 attr-2.4.47.src.tar.gz
 acl-2.2.52.src.tar.gz
@@ -72,18 +72,17 @@ grep-3.0.tar.xz
 readline-7.0.tar.gz
 bash-4.4.tar.gz
 bash-4.4-upstream_fixes-1.patch
-bc-1.06.95.tar.bz2
-bc-1.06.95-memory_leak-1.patch
+bc-1.07.tar.gz
 libtool-2.4.6.tar.xz
-gdbm-1.12.tar.gz
+gdbm-1.13.tar.gz
 expat-2.2.0.tar.bz2
 inetutils-1.9.4.tar.xz
 perl-5.24.1.tar.bz2
 XML-Parser-2.44.tar.gz
 autoconf-2.69.tar.xz
 automake-1.15.tar.xz
-coreutils-8.26.tar.xz
-coreutils-8.26-i18n-1.patch
+coreutils-8.27.tar.xz
+coreutils-8.27-i18n-1.patch
 diffutils-3.5.tar.xz
 gawk-4.1.4.tar.xz
 findutils-4.6.0.tar.gz
@@ -92,7 +91,7 @@ intltool-0.51.0.tar.gz
 gperf-3.0.4.tar.gz
 groff-1.22.3.tar.gz
 xz-5.2.3.tar.xz
-less-481.tar.gz
+less-487.tar.gz
 gzip-1.8.tar.xz
 iproute2-4.10.0.tar.xz
 kbd-2.0.4.tar.xz
@@ -175,12 +174,12 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-4.09"
-tar -Jxf man-pages-4.09.tar.xz
-cd man-pages-4.09
+echo "# 6.8. Man-pages-4.10"
+tar -Jxf man-pages-4.10.tar.xz
+cd man-pages-4.10
 make install
 cd /sources
-rm -rf man-pages-4.09
+rm -rf man-pages-4.10
 
 echo "# 6.9. Glibc-2.25"
 tar -Jxf glibc-2.25.tar.xz
@@ -222,7 +221,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../../tzdata2016j.tar.gz
+tar -zxf ../../tzdata2017b.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -287,9 +286,64 @@ make install
 cd /sources
 rm -rf file-5.30
 
-echo "# 6.13. Binutils-2.27"
-tar -jxf binutils-2.27.tar.bz2
-cd binutils-2.27
+echo "# 6.13. Readline-7.0"
+tar -zxf readline-7.0.tar.gz
+cd readline-7.0
+sed -i '/MV.*old/d' Makefile.in
+sed -i '/{OLDSUFF}/c:' support/shlib-install
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/readline-7.0
+make -j $PARALLEL_JOBS SHLIB_LIBS="-L/tools/lib -lncursesw"
+make SHLIB_LIBS="-L/tools/lib -lncurses" install
+mv -v /usr/lib/lib{readline,history}.so.* /lib
+ln -sfv ../../lib/$(readlink /usr/lib/libreadline.so) /usr/lib/libreadline.so
+ln -sfv ../../lib/$(readlink /usr/lib/libhistory.so ) /usr/lib/libhistory.so
+if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
+    install -v -m644 doc/*.{ps,pdf,html,dvi} /usr/share/doc/readline-7.0
+fi
+cd /sources
+rm -rf readline-7.0
+
+echo "# 6.14. M4-1.4.18"
+tar -Jxf m4-1.4.18.tar.xz
+cd m4-1.4.18
+./configure --prefix=/usr
+make -j $PARALLEL_JOBS
+make install
+cd /sources
+rm -rf m4-1.4.18
+
+echo "# 6.15. Bc-1.07"
+tar -zxf bc-1.07.tar.gz
+cd bc-1.07
+cat > bc/fix-libmath_h << "EOF"
+#! /bin/bash
+sed -e '1   s/^/{"/' \
+    -e     's/$/",/' \
+    -e '2,$ s/^/"/'  \
+    -e   '$ d'       \
+    -i libmath.h
+
+sed -e '$ s/$/0}/' \
+    -i libmath.h
+EOF
+sed -i "/return (' ')/s/' '/':'/" bc/execute.c
+ln -sv /tools/lib/libncursesw.so.6 /usr/lib/libncursesw.so.6
+ln -sfv libncurses.so.6 /usr/lib/libncurses.so
+sed -i -e '/flex/s/as_fn_error/: ;; # &/' configure
+./configure --prefix=/usr           \
+            --with-readline         \
+            --mandir=/usr/share/man \
+            --infodir=/usr/share/info
+make -j $PARALLEL_JOBS
+make install
+cd /sources
+rm -rf bc-1.07
+
+echo "# 6.16. Binutils-2.28"
+tar -jxf binutils-2.28.tar.bz2
+cd binutils-2.28
 mkdir -v build
 cd build
 ../configure --prefix=/usr       \
@@ -303,9 +357,9 @@ cd build
 make tooldir=/usr
 make tooldir=/usr install
 cd /sources
-rm -rf binutils-2.27
+rm -rf binutils-2.28
 
-echo "# 6.14. GMP-6.1.2"
+echo "# 6.17. GMP-6.1.2"
 tar -Jxf gmp-6.1.2.tar.xz
 cd gmp-6.1.2
 ./configure --prefix=/usr    \
@@ -321,7 +375,7 @@ fi
 cd /sources
 rm -rf gmp-6.1.2
 
-echo "# 6.15. MPFR-3.1.5"
+echo "# 6.18. MPFR-3.1.5"
 tar -Jxf mpfr-3.1.5.tar.xz
 cd mpfr-3.1.5
 ./configure  --prefix=/usr        \
@@ -337,7 +391,7 @@ fi
 cd /sources
 rm -rf mpfr-3.1.5
 
-echo "# 6.16. MPC-1.0.3"
+echo "# 6.19. MPC-1.0.3"
 tar -zxf mpc-1.0.3.tar.gz
 cd mpc-1.0.3
 ./configure --prefix=/usr    \
@@ -352,7 +406,7 @@ fi
 cd /sources
 rm -rf mpc-1.0.3
 
-echo "# 6.17. GCC-6.3.0"
+echo "# 6.20. GCC-6.3.0"
 tar -jxf gcc-6.3.0.tar.bz2
 cd gcc-6.3.0
 case $(uname -m) in
@@ -382,7 +436,7 @@ mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
 rm -rf gcc-6.3.0
 
-echo "# 6.18. Bzip2-1.0.6"
+echo "# 6.21. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
 cd bzip2-1.0.6
 patch -Np1 -i ../bzip2-1.0.6-install_docs-1.patch
@@ -401,20 +455,20 @@ ln -sv bzip2 /bin/bzcat
 cd /sources
 rm -rf bzip2-1.0.6
 
-echo "# 6.19. Pkg-config-0.29.1"
-tar -zxf pkg-config-0.29.1.tar.gz
-cd pkg-config-0.29.1
+echo "# 6.22. Pkg-config-0.29.2"
+tar -zxf pkg-config-0.29.2.tar.gz
+cd pkg-config-0.29.2
 ./configure --prefix=/usr              \
             --with-internal-glib       \
             --disable-compile-warnings \
             --disable-host-tool        \
-            --docdir=/usr/share/doc/pkg-config-0.29.1
+            --docdir=/usr/share/doc/pkg-config-0.29.2
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf pkg-config-0.29.1
+rm -rf pkg-config-0.29.2
 
-echo "# 6.20. Ncurses-6.0"
+echo "# 6.23. Ncurses-6.0"
 tar -zxf ncurses-6.0.tar.gz
 cd ncurses-6.0
 sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
@@ -445,7 +499,7 @@ cd /sources
 rm -rf ncurses-6.0
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.21. Attr-2.4.47"
+echo "6.24. Attr-2.4.47"
 tar -zxf attr-2.4.47.src.tar.gz
 cd attr-2.4.47
 sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
@@ -463,7 +517,7 @@ rm -rf attr-2.4.47
 fi
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.22. Acl-2.2.52"
+echo "6.25. Acl-2.2.52"
 tar -zxf acl-2.2.52.src.tar.gz
 cd acl-2.2.52
 sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
@@ -483,7 +537,7 @@ rm -rf acl-2.2.52
 fi
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.23. Libcap-2.25"
+echo "6.26. Libcap-2.25"
 tar -Jxf libcap-2.25.tar.xz
 cd libcap-2.25
 sed -i '/install.*STALIBNAME/d' libcap/Makefile
@@ -496,7 +550,7 @@ cd /sources
 rm -rf libcap-2.25
 fi
 
-echo "# 6.24. Sed-4.4"
+echo "# 6.27. Sed-4.4"
 tar -Jxf sed-4.4.tar.xz
 cd sed-4.4
 sed -i 's/usr/tools/'       build-aux/help2man
@@ -512,7 +566,7 @@ fi
 cd /sources
 rm -rf sed-4.4
 
-echo "# 6.25. Shadow-4.4"
+echo "# 6.28. Shadow-4.4"
 tar -Jxf shadow-4.4.tar.xz
 cd shadow-4.4
 sed -i 's/groups$(EXEEXT) //' src/Makefile.in
@@ -555,7 +609,7 @@ sed -i 's/yes/no/' /etc/default/useradd
 cd /sources
 rm -rf shadow-4.4
 
-echo "# 6.26. Psmisc-22.21"
+echo "# 6.29. Psmisc-22.21"
 tar -zxf psmisc-22.21.tar.gz
 cd psmisc-22.21
 ./configure --prefix=/usr
@@ -566,7 +620,7 @@ mv -v /usr/bin/killall /bin
 cd /sources
 rm -rf psmisc-22.21
 
-echo "# 6.27. Iana-Etc-2.30"
+echo "# 6.30. Iana-Etc-2.30"
 tar -jxf iana-etc-2.30.tar.bz2
 cd iana-etc-2.30
 make -j $PARALLEL_JOBS
@@ -574,16 +628,8 @@ make install
 cd /sources
 rm -rf iana-etc-2.30
 
-echo "# 6.28. M4-1.4.18"
-tar -Jxf m4-1.4.18.tar.xz
-cd m4-1.4.18
-./configure --prefix=/usr
-make -j $PARALLEL_JOBS
-make install
-cd /sources
-rm -rf m4-1.4.18
 
-echo "# 6.29. Bison-3.0.4"
+echo "# 6.31. Bison-3.0.4"
 tar -Jxf bison-3.0.4.tar.xz
 cd bison-3.0.4
 ./configure --prefix=/usr --docdir=/usr/share/doc/bison-3.0.4
@@ -592,7 +638,7 @@ make install
 cd /sources
 rm -rf bison-3.0.4
 
-echo "# 6.30. Flex-2.6.3"
+echo "# 6.32. Flex-2.6.3"
 tar -zxf flex-2.6.3.tar.gz
 cd flex-2.6.3
 HELP2MAN=/tools/bin/true ./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.3
@@ -602,7 +648,7 @@ ln -sv flex /usr/bin/lex
 cd /sources
 rm -rf flex-2.6.3
 
-echo "# 6.31. Grep-3.0"
+echo "# 6.33. Grep-3.0"
 tar -Jxf grep-3.0.tar.xz
 cd grep-3.0
 ./configure --prefix=/usr --bindir=/bin
@@ -611,26 +657,7 @@ make install
 cd /sources
 rm -rf grep-3.0
 
-echo "# 6.32. Readline-7.0"
-tar -zxf readline-7.0.tar.gz
-cd readline-7.0
-sed -i '/MV.*old/d' Makefile.in
-sed -i '/{OLDSUFF}/c:' support/shlib-install
-./configure --prefix=/usr    \
-            --disable-static \
-            --docdir=/usr/share/doc/readline-7.0
-make -j $PARALLEL_JOBS SHLIB_LIBS=-lncurses
-make SHLIB_LIBS=-lncurses install
-mv -v /usr/lib/lib{readline,history}.so.* /lib
-ln -sfv ../../lib/$(readlink /usr/lib/libreadline.so) /usr/lib/libreadline.so
-ln -sfv ../../lib/$(readlink /usr/lib/libhistory.so ) /usr/lib/libhistory.so
-if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -m644 doc/*.{ps,pdf,html,dvi} /usr/share/doc/readline-7.0
-fi
-cd /sources
-rm -rf readline-7.0
-
-echo "# 6.33. Bash-4.4"
+echo "# 6.34. Bash-4.4"
 tar -zxf bash-4.4.tar.gz
 cd bash-4.4
 patch -Np1 -i ../bash-4.4-upstream_fixes-1.patch
@@ -646,19 +673,6 @@ mv -vf /usr/bin/bash /bin
 cd /sources
 rm -rf bash-4.4
 
-echo "# 6.34. Bc-1.06.95"
-tar -jxf bc-1.06.95.tar.bz2
-cd bc-1.06.95
-patch -Np1 -i ../bc-1.06.95-memory_leak-1.patch
-./configure --prefix=/usr           \
-            --with-readline         \
-            --mandir=/usr/share/man \
-            --infodir=/usr/share/info
-make -j $PARALLEL_JOBS
-make install
-cd /sources
-rm -rf bc-1.06.95
-
 echo "# 6.35. Libtool-2.4.6"
 tar -Jxf libtool-2.4.6.tar.xz
 cd libtool-2.4.6
@@ -668,16 +682,16 @@ make install
 cd /sources
 rm -rf libtool-2.4.6
 
-echo "# 6.36. GDBM-1.12"
-tar -zxf gdbm-1.12.tar.gz
-cd gdbm-1.12
+echo "# 6.36. GDBM-1.13"
+tar -zxf gdbm-1.13.tar.gz
+cd gdbm-1.13
 ./configure --prefix=/usr \
             --disable-static \
             --enable-libgdbm-compat
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf gdbm-1.12
+rm -rf gdbm-1.13
 
 echo "6.37. Gperf-3.0.4"
 tar -zxf gperf-3.0.4.tar.gz
@@ -733,7 +747,8 @@ sh Configure -des -Dprefix=/usr                 \
                   -Dman1dir=/usr/share/man/man1 \
                   -Dman3dir=/usr/share/man/man3 \
                   -Dpager="/usr/bin/less -isR"  \
-                  -Duseshrplib
+                  -Duseshrplib                  \
+                  -Dusethreads
 make -j $PARALLEL_JOBS
 make install
 unset BUILD_ZLIB BUILD_BZIP2
@@ -875,10 +890,10 @@ fi
 cd /sources
 rm -rf e2fsprogs-1.43.4
 
-echo "# 6.50. Coreutils-8.26"
-tar -Jxf coreutils-8.26.tar.xz
-cd coreutils-8.26
-patch -Np1 -i ../coreutils-8.26-i18n-1.patch
+echo "# 6.50. Coreutils-8.27"
+tar -Jxf coreutils-8.27.tar.xz
+cd coreutils-8.27
+patch -Np1 -i ../coreutils-8.27-i18n-1.patch
 FORCE_UNSAFE_CONFIGURE=1 ./configure \
             --prefix=/usr            \
             --enable-no-install-program=kill,uptime
@@ -895,7 +910,7 @@ mv -v /usr/share/man/man1/chroot.1 /usr/share/man/man8/chroot.8
 sed -i s/\"1\"/\"8\"/1 /usr/share/man/man8/chroot.8
 mv -v /usr/bin/{head,sleep,nice,test,[} /bin
 cd /sources
-rm -rf coreutils-8.26
+rm -rf coreutils-8.27
 
 echo "# 6.51. Diffutils-3.5"
 tar -Jxf diffutils-3.5.tar.xz
@@ -944,14 +959,14 @@ rm -rf groff-1.22.3
 # 6.55. GRUB-2.02~beta2
 # We don't use GRUB on ARM
 
-echo "# 6.56. Less-481"
-tar -zxf less-481.tar.gz
-cd less-481
+echo "# 6.56. Less-487"
+tar -zxf less-487.tar.gz
+cd less-487
 ./configure --prefix=/usr --sysconfdir=/etc
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf less-481
+rm -rf less-487
 
 echo "# 6.57. Gzip-1.8"
 tar -Jxf gzip-1.8.tar.xz
