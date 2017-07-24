@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20170407 v1.0
+# PiLFS Build Script SVN-20170718 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,17 +38,17 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-4.9.y.tar.gz
-man-pages-4.10.tar.xz
-glibc-2.25.tar.xz
-glibc-2.25-fhs-1.patch
+man-pages-4.11.tar.xz
+glibc-2.25+adc7e06.tar.xz
+glibc-2.25+adc7e06-fhs-1.patch
 tzdata2017b.tar.gz
 zlib-1.2.11.tar.xz
-file-5.30.tar.gz
+file-5.31.tar.gz
 binutils-2.28.tar.bz2
 gmp-6.1.2.tar.xz
 mpfr-3.1.5.tar.xz
 mpc-1.0.3.tar.gz
-gcc-6.3.0.tar.bz2
+gcc-7.1.0.tar.bz2
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
@@ -60,44 +60,44 @@ attr-2.4.47.src.tar.gz
 acl-2.2.52.src.tar.gz
 libcap-2.25.tar.xz
 sed-4.4.tar.xz
-shadow-4.4.tar.xz
-psmisc-22.21.tar.gz
+shadow-4.5.tar.xz
+psmisc-23.1.tar.xz
 procps-ng-3.3.12.tar.xz
 e2fsprogs-1.43.4.tar.gz
 iana-etc-2.30.tar.bz2
 m4-1.4.18.tar.xz
 bison-3.0.4.tar.xz
-flex-2.6.3.tar.gz
-grep-3.0.tar.xz
+flex-2.6.4.tar.gz
+grep-3.1.tar.xz
 readline-7.0.tar.gz
 bash-4.4.tar.gz
 bash-4.4-upstream_fixes-1.patch
-bc-1.07.tar.gz
+bc-1.07.1.tar.gz
 libtool-2.4.6.tar.xz
 gdbm-1.13.tar.gz
-expat-2.2.0.tar.bz2
+expat-2.2.2.tar.bz2
 inetutils-1.9.4.tar.xz
-perl-5.24.1.tar.bz2
+perl-5.26.0.tar.xz
 XML-Parser-2.44.tar.gz
 autoconf-2.69.tar.xz
-automake-1.15.tar.xz
+automake-1.15.1.tar.xz
 coreutils-8.27.tar.xz
 coreutils-8.27-i18n-1.patch
-diffutils-3.5.tar.xz
+diffutils-3.6.tar.xz
 gawk-4.1.4.tar.xz
 findutils-4.6.0.tar.gz
 gettext-0.19.8.1.tar.xz
 intltool-0.51.0.tar.gz
-gperf-3.0.4.tar.gz
+gperf-3.1.tar.gz
 groff-1.22.3.tar.gz
 xz-5.2.3.tar.xz
 less-487.tar.gz
 gzip-1.8.tar.xz
-iproute2-4.10.0.tar.xz
+iproute2-4.12.0.tar.xz
 kbd-2.0.4.tar.xz
 kbd-2.0.4-backspace-1.patch
 kmod-24.tar.xz
-libpipeline-1.4.1.tar.gz
+libpipeline-1.4.2.tar.gz
 make-4.2.1.tar.bz2
 man-db-2.7.6.1.tar.xz
 patch-2.7.5.tar.xz
@@ -105,11 +105,11 @@ sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
 tar-1.29.tar.xz
-texinfo-6.3.tar.xz
-eudev-3.2.1.tar.gz
+texinfo-6.4.tar.xz
+eudev-3.2.2.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.29.2.tar.xz
-vim-8.0.069.tar.bz2
+util-linux-2.30.tar.xz
+vim-8.0.586.tar.bz2
 master.tar.gz
 "
 
@@ -174,24 +174,29 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-4.10"
-tar -Jxf man-pages-4.10.tar.xz
-cd man-pages-4.10
+echo "# 6.8. Man-pages-4.11"
+tar -Jxf man-pages-4.11.tar.xz
+cd man-pages-4.11
 make install
 cd /sources
-rm -rf man-pages-4.10
+rm -rf man-pages-4.11
 
-echo "# 6.9. Glibc-2.25"
-tar -Jxf glibc-2.25.tar.xz
-cd glibc-2.25
-patch -Np1 -i ../glibc-2.25-fhs-1.patch
+echo "# 6.9. Glibc-2.25+adc7e06"
+tar -Jxf glibc-2.25+adc7e06.tar.xz
+cd glibc-2.25+adc7e06
+patch -Np1 -i ../glibc-2.25+adc7e06-fhs-1.patch
+ln -sfv /tools/lib/gcc /usr/lib
+GCC_INCDIR=/usr/lib/gcc/$(gcc -dumpmachine)/7.1.0/include
 mkdir -v build
 cd build
-../configure --prefix=/usr          \
-             --enable-kernel=2.6.32 \
-             --enable-obsolete-rpc  \
-             --enable-stack-protector=strong \
+CC="gcc -isystem $GCC_INCDIR -isystem /usr/include" \
+../configure --prefix=/usr                          \
+             --disable-werror                       \
+             --enable-kernel=2.6.32                 \
+             --enable-obsolete-rpc                  \
+             --enable-stack-protector=strong        \
              libc_cv_slibdir=/lib
+unset GCC_INCDIR
 make -j $PARALLEL_JOBS
 touch /etc/ld.so.conf
 make install
@@ -254,7 +259,7 @@ mkdir -pv /etc/ld.so.conf.d
 # Compatibility symlink for non ld-linux-armhf awareness
 ln -sv ld-2.25.so /lib/ld-linux.so.3
 cd /sources
-rm -rf glibc-2.25
+rm -rf glibc-2.25+adc7e06
 
 echo "# 6.10. Adjusting the Toolchain"
 mv -v /tools/bin/{ld,ld-old}
@@ -277,14 +282,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.11
 
-echo "# 6.12. File-5.30"
-tar -zxf file-5.30.tar.gz
-cd file-5.30
+echo "# 6.12. File-5.31"
+tar -zxf file-5.31.tar.gz
+cd file-5.31
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf file-5.30
+rm -rf file-5.31
 
 echo "# 6.13. Readline-7.0"
 tar -zxf readline-7.0.tar.gz
@@ -314,9 +319,9 @@ make install
 cd /sources
 rm -rf m4-1.4.18
 
-echo "# 6.15. Bc-1.07"
-tar -zxf bc-1.07.tar.gz
-cd bc-1.07
+echo "# 6.15. Bc-1.07.1"
+tar -zxf bc-1.07.1.tar.gz
+cd bc-1.07.1
 cat > bc/fix-libmath_h << "EOF"
 #! /bin/bash
 sed -e '1   s/^/{"/' \
@@ -328,7 +333,6 @@ sed -e '1   s/^/{"/' \
 sed -e '$ s/$/0}/' \
     -i libmath.h
 EOF
-sed -i "/return (' ')/s/' '/':'/" bc/execute.c
 ln -sv /tools/lib/libncursesw.so.6 /usr/lib/libncursesw.so.6
 ln -sfv libncurses.so.6 /usr/lib/libncurses.so
 sed -i -e '/flex/s/as_fn_error/: ;; # &/' configure
@@ -339,7 +343,7 @@ sed -i -e '/flex/s/as_fn_error/: ;; # &/' configure
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf bc-1.07
+rm -rf bc-1.07.1
 
 echo "# 6.16. Binutils-2.28"
 tar -jxf binutils-2.28.tar.bz2
@@ -406,9 +410,9 @@ fi
 cd /sources
 rm -rf mpc-1.0.3
 
-echo "# 6.20. GCC-6.3.0"
-tar -jxf gcc-6.3.0.tar.bz2
-cd gcc-6.3.0
+echo "# 6.20. GCC-7.1.0"
+tar -jxf gcc-7.1.0.tar.bz2
+cd gcc-7.1.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
@@ -417,6 +421,7 @@ case $(uname -m) in
     esac
   ;;
 esac
+rm -f /usr/lib/gcc
 mkdir -v build
 cd build
 SED=sed                               \
@@ -430,11 +435,11 @@ make install
 ln -sv ../usr/bin/cpp /lib
 ln -sv gcc /usr/bin/cc
 install -v -dm755 /usr/lib/bfd-plugins
-ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/6.3.0/liblto_plugin.so /usr/lib/bfd-plugins/
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/7.1.0/liblto_plugin.so /usr/lib/bfd-plugins/
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-6.3.0
+rm -rf gcc-7.1.0
 
 echo "# 6.21. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -460,7 +465,6 @@ tar -zxf pkg-config-0.29.2.tar.gz
 cd pkg-config-0.29.2
 ./configure --prefix=/usr              \
             --with-internal-glib       \
-            --disable-compile-warnings \
             --disable-host-tool        \
             --docdir=/usr/share/doc/pkg-config-0.29.2
 make -j $PARALLEL_JOBS
@@ -553,8 +557,8 @@ fi
 echo "# 6.27. Sed-4.4"
 tar -Jxf sed-4.4.tar.xz
 cd sed-4.4
-sed -i 's/usr/tools/'       build-aux/help2man
-sed -i 's/panic-tests.sh//' Makefile.in
+sed -i 's/usr/tools/'                 build-aux/help2man
+sed -i 's/testsuite.panic-tests.sh//' Makefile.in
 ./configure --prefix=/usr --bindir=/bin
 make -j $PARALLEL_JOBS
 make install
@@ -566,37 +570,16 @@ fi
 cd /sources
 rm -rf sed-4.4
 
-echo "# 6.28. Shadow-4.4"
-tar -Jxf shadow-4.4.tar.xz
-cd shadow-4.4
+echo "# 6.28. Shadow-4.5"
+tar -Jxf shadow-4.5.tar.xz
+cd shadow-4.5
 sed -i 's/groups$(EXEEXT) //' src/Makefile.in
 find man -name Makefile.in -exec sed -i 's/groups\.1 / /'   {} \;
 find man -name Makefile.in -exec sed -i 's/getspnam\.3 / /' {} \;
 find man -name Makefile.in -exec sed -i 's/passwd\.5 / /'   {} \;
 sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
        -e 's@/var/spool/mail@/var/mail@' etc/login.defs
-echo '--- src/useradd.c   (old)
-+++ src/useradd.c   (new)
-@@ -2027,6 +2027,8 @@
-        is_shadow_grp = sgr_file_present ();
- #endif
- 
-+       get_defaults ();
-+
-        process_flags (argc, argv);
- 
- #ifdef ENABLE_SUBIDS
-@@ -2036,8 +2038,6 @@
-            (!user_id || (user_id <= uid_max && user_id >= uid_min));
- #endif                         /* ENABLE_SUBIDS */
- 
--       get_defaults ();
--
- #ifdef ACCT_TOOLS_SETUID
- #ifdef USE_PAM
-        {' | patch -p0 -l
 sed -i 's/1000/999/' etc/useradd
-sed -i -e '47 d' -e '60,65 d' libmisc/myname.c
 ./configure --sysconfdir=/etc --with-group-name-max-length=32
 make -j $PARALLEL_JOBS
 make install
@@ -607,18 +590,18 @@ sed -i 's/yes/no/' /etc/default/useradd
 # passwd root
 # Root password will be set at the end of the script to prevent a stop here
 cd /sources
-rm -rf shadow-4.4
+rm -rf shadow-4.5
 
-echo "# 6.29. Psmisc-22.21"
-tar -zxf psmisc-22.21.tar.gz
-cd psmisc-22.21
+echo "# 6.29. Psmisc-23.1"
+tar -Jxf psmisc-23.1.tar.xz
+cd psmisc-23.1
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 mv -v /usr/bin/fuser   /bin
 mv -v /usr/bin/killall /bin
 cd /sources
-rm -rf psmisc-22.21
+rm -rf psmisc-23.1
 
 echo "# 6.30. Iana-Etc-2.30"
 tar -jxf iana-etc-2.30.tar.bz2
@@ -627,7 +610,6 @@ make -j $PARALLEL_JOBS
 make install
 cd /sources
 rm -rf iana-etc-2.30
-
 
 echo "# 6.31. Bison-3.0.4"
 tar -Jxf bison-3.0.4.tar.xz
@@ -638,24 +620,24 @@ make install
 cd /sources
 rm -rf bison-3.0.4
 
-echo "# 6.32. Flex-2.6.3"
-tar -zxf flex-2.6.3.tar.gz
-cd flex-2.6.3
-HELP2MAN=/tools/bin/true ./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.3
+echo "# 6.32. Flex-2.6.4"
+tar -zxf flex-2.6.4.tar.gz
+cd flex-2.6.4
+HELP2MAN=/tools/bin/true ./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.4
 make -j $PARALLEL_JOBS
 make install
 ln -sv flex /usr/bin/lex
 cd /sources
-rm -rf flex-2.6.3
+rm -rf flex-2.6.4
 
-echo "# 6.33. Grep-3.0"
-tar -Jxf grep-3.0.tar.xz
-cd grep-3.0
+echo "# 6.33. Grep-3.1"
+tar -Jxf grep-3.1.tar.xz
+cd grep-3.1
 ./configure --prefix=/usr --bindir=/bin
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf grep-3.0
+rm -rf grep-3.1
 
 echo "# 6.34. Bash-4.4"
 tar -zxf bash-4.4.tar.gz
@@ -693,28 +675,28 @@ make install
 cd /sources
 rm -rf gdbm-1.13
 
-echo "6.37. Gperf-3.0.4"
-tar -zxf gperf-3.0.4.tar.gz
-cd gperf-3.0.4
-./configure --prefix=/usr --docdir=/usr/share/doc/gperf-3.0.4
+echo "6.37. Gperf-3.1"
+tar -zxf gperf-3.1.tar.gz
+cd gperf-3.1
+./configure --prefix=/usr --docdir=/usr/share/doc/gperf-3.1
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf gperf-3.0.4
+rm -rf gperf-3.1
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.38. Expat-2.2.0"
-tar -jxf expat-2.2.0.tar.bz2
-cd expat-2.2.0
+echo "6.38. Expat-2.2.2"
+tar -jxf expat-2.2.2.tar.bz2
+cd expat-2.2.2
 ./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -dm755 /usr/share/doc/expat-2.2.0
-    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.2.0
+    install -v -dm755 /usr/share/doc/expat-2.2.2
+    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.2.2
 fi
 cd /sources
-rm -rf expat-2.2.0
+rm -rf expat-2.2.2
 fi
 
 echo "# 6.39. Inetutils-1.9.4"
@@ -736,9 +718,9 @@ mv -v /usr/bin/ifconfig /sbin
 cd /sources
 rm -rf inetutils-1.9.4
 
-echo "# 6.40. Perl-5.24.1"
-tar -jxf perl-5.24.1.tar.bz2
-cd perl-5.24.1
+echo "# 6.40. Perl-5.26.0"
+tar -Jxf perl-5.26.0.tar.xz
+cd perl-5.26.0
 echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
 export BUILD_ZLIB=False
 export BUILD_BZIP2=0
@@ -753,7 +735,7 @@ make -j $PARALLEL_JOBS
 make install
 unset BUILD_ZLIB BUILD_BZIP2
 cd /sources
-rm -rf perl-5.24.1
+rm -rf perl-5.26.0
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
 echo "6.41. XML::Parser-2.44"
@@ -790,15 +772,14 @@ make install
 cd /sources
 rm -rf autoconf-2.69
 
-echo "# 6.44. Automake-1.15"
-tar -Jxf automake-1.15.tar.xz
-cd automake-1.15
-sed -i 's:/\\\${:/\\\$\\{:' bin/automake.in
-./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.15
+echo "# 6.44. Automake-1.15.1"
+tar -Jxf automake-1.15.1.tar.xz
+cd automake-1.15.1
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.15.1
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf automake-1.15
+rm -rf automake-1.15.1
 
 echo "# 6.45. Xz-5.2.3"
 tar -Jxf xz-5.2.3.tar.xz
@@ -912,15 +893,14 @@ mv -v /usr/bin/{head,sleep,nice,test,[} /bin
 cd /sources
 rm -rf coreutils-8.27
 
-echo "# 6.51. Diffutils-3.5"
-tar -Jxf diffutils-3.5.tar.xz
-cd diffutils-3.5
-sed -i 's:= @mkdir_p@:= /bin/mkdir -p:' po/Makefile.in.in
+echo "# 6.51. Diffutils-3.6"
+tar -Jxf diffutils-3.6.tar.xz
+cd diffutils-3.6
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf diffutils-3.5
+rm -rf diffutils-3.6
 
 echo "# 6.52. Gawk-4.1.4"
 tar -Jxf gawk-4.1.4.tar.xz
@@ -978,17 +958,17 @@ mv -v /usr/bin/gzip /bin
 cd /sources
 rm -rf gzip-1.8
 
-echo "# 6.58. IPRoute2-4.10.0"
-tar -Jxf iproute2-4.10.0.tar.xz
-cd iproute2-4.10.0
+echo "# 6.58. IPRoute2-4.12.0"
+tar -Jxf iproute2-4.12.0.tar.xz
+cd iproute2-4.12.0
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 rm -v doc/arpd.sgml
 sed -i 's/m_ipt.o//' tc/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-4.10.0 install
+make DOCDIR=/usr/share/doc/iproute2-4.12.0 install
 cd /sources
-rm -rf iproute2-4.10.0
+rm -rf iproute2-4.12.0
 
 echo "# 6.59. Kbd-2.0.4"
 tar -Jxf kbd-2.0.4.tar.xz
@@ -1006,14 +986,14 @@ fi
 cd /sources
 rm -rf kbd-2.0.4
 
-echo "# 6.60. Libpipeline-1.4.1"
-tar -zxf libpipeline-1.4.1.tar.gz
-cd libpipeline-1.4.1
+echo "# 6.60. Libpipeline-1.4.2"
+tar -zxf libpipeline-1.4.2.tar.gz
+cd libpipeline-1.4.2
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf libpipeline-1.4.1
+rm -rf libpipeline-1.4.2
 
 echo "# 6.61. Make-4.2.1"
 tar -jxf make-4.2.1.tar.bz2
@@ -1065,9 +1045,9 @@ make -C src install
 cd /sources
 rm -rf sysvinit-2.88dsf
 
-echo "# 6.65. Eudev-3.2.1"
-tar -zxf eudev-3.2.1.tar.gz
-cd eudev-3.2.1
+echo "# 6.65. Eudev-3.2.2"
+tar -zxf eudev-3.2.2.tar.gz
+cd eudev-3.2.2
 sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
 sed -i '/keyboard_lookup_key/d' src/udev/udev-builtin-keyboard.c
 cat > config.cache << "EOF"
@@ -1094,14 +1074,14 @@ tar -jxf ../udev-lfs-20140408.tar.bz2
 make -f udev-lfs-20140408/Makefile.lfs install
 LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
-rm -rf eudev-3.2.1
+rm -rf eudev-3.2.2
 
-echo "# 6.66. Util-linux-2.29.2"
-tar -Jxf util-linux-2.29.2.tar.xz
-cd util-linux-2.29.2
+echo "# 6.66. Util-linux-2.30"
+tar -Jxf util-linux-2.30.tar.xz
+cd util-linux-2.30
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
-            --docdir=/usr/share/doc/util-linux-2.29.2 \
+            --docdir=/usr/share/doc/util-linux-2.30 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1116,7 +1096,7 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.29.2
+rm -rf util-linux-2.30
 
 echo "# 6.67. Man-DB-2.7.6.1"
 tar -Jxf man-db-2.7.6.1.tar.xz
@@ -1149,19 +1129,19 @@ fi
 cd /sources
 rm -rf tar-1.29
 
-echo "# 6.69. Texinfo-6.3"
-tar -Jxf texinfo-6.3.tar.xz
-cd texinfo-6.3
+echo "# 6.69. Texinfo-6.4"
+tar -Jxf texinfo-6.4.tar.xz
+cd texinfo-6.4
 ./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 # I don't know anybody who wants this... prove me wrong!
 # make TEXMF=/usr/share/texmf install-tex
 cd /sources
-rm -rf texinfo-6.3
+rm -rf texinfo-6.4
 
-echo "# 6.70. Vim-8.0.069"
-tar -jxf vim-8.0.069.tar.bz2
+echo "# 6.70. Vim-8.0.586"
+tar -jxf vim-8.0.586.tar.bz2
 cd vim80
 echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
 ./configure --prefix=/usr
@@ -1171,7 +1151,7 @@ ln -sv vim /usr/bin/vi
 for L in /usr/share/man/{,*/}man1/vim.1; do
     ln -sv vim.1 $(dirname $L)/vi.1
 done
-ln -sv ../vim/vim80/doc /usr/share/doc/vim-8.0.069
+ln -sv ../vim/vim80/doc /usr/share/doc/vim-8.0.586
 cat > /etc/vimrc << "EOF"
 " Begin /etc/vimrc
 
