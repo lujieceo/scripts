@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20170718 v1.0
+# PiLFS Build Script SVN-20170902 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.70 - Vim
 # http://www.intestinate.com/pilfs
 #
@@ -38,17 +38,17 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-4.9.y.tar.gz
-man-pages-4.11.tar.xz
-glibc-2.25+adc7e06.tar.xz
-glibc-2.25+adc7e06-fhs-1.patch
+man-pages-4.12.tar.xz
+glibc-2.26.tar.xz
+glibc-2.26-fhs-1.patch
 tzdata2017b.tar.gz
 zlib-1.2.11.tar.xz
-file-5.31.tar.gz
-binutils-2.28.tar.bz2
+file-5.32.tar.gz
+binutils-2.29.tar.bz2
 gmp-6.1.2.tar.xz
 mpfr-3.1.5.tar.xz
 mpc-1.0.3.tar.gz
-gcc-7.1.0.tar.bz2
+gcc-7.2.0.tar.xz
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
@@ -63,7 +63,7 @@ sed-4.4.tar.xz
 shadow-4.5.tar.xz
 psmisc-23.1.tar.xz
 procps-ng-3.3.12.tar.xz
-e2fsprogs-1.43.4.tar.gz
+e2fsprogs-1.43.6.tar.gz
 iana-etc-2.30.tar.bz2
 m4-1.4.18.tar.xz
 bison-3.0.4.tar.xz
@@ -75,14 +75,14 @@ bash-4.4-upstream_fixes-1.patch
 bc-1.07.1.tar.gz
 libtool-2.4.6.tar.xz
 gdbm-1.13.tar.gz
-expat-2.2.2.tar.bz2
+expat-2.2.4.tar.bz2
 inetutils-1.9.4.tar.xz
 perl-5.26.0.tar.xz
 XML-Parser-2.44.tar.gz
 autoconf-2.69.tar.xz
 automake-1.15.1.tar.xz
-coreutils-8.27.tar.xz
-coreutils-8.27-i18n-1.patch
+coreutils-8.28.tar.xz
+coreutils-8.28-i18n-1.patch
 diffutils-3.6.tar.xz
 gawk-4.1.4.tar.xz
 findutils-4.6.0.tar.gz
@@ -108,7 +108,7 @@ tar-1.29.tar.xz
 texinfo-6.4.tar.xz
 eudev-3.2.2.tar.gz
 udev-lfs-20140408.tar.bz2
-util-linux-2.30.tar.xz
+util-linux-2.30.1.tar.xz
 vim-8.0.586.tar.bz2
 master.tar.gz
 "
@@ -174,31 +174,32 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-4.11"
-tar -Jxf man-pages-4.11.tar.xz
-cd man-pages-4.11
+echo "# 6.8. Man-pages-4.12"
+tar -Jxf man-pages-4.12.tar.xz
+cd man-pages-4.12
 make install
 cd /sources
-rm -rf man-pages-4.11
+rm -rf man-pages-4.12
 
-echo "# 6.9. Glibc-2.25+adc7e06"
-tar -Jxf glibc-2.25+adc7e06.tar.xz
-cd glibc-2.25+adc7e06
-patch -Np1 -i ../glibc-2.25+adc7e06-fhs-1.patch
+echo "# 6.9. Glibc-2.26"
+tar -Jxf glibc-2.26.tar.xz
+cd glibc-2.26
+patch -Np1 -i ../glibc-2.26-fhs-1.patch
 ln -sfv /tools/lib/gcc /usr/lib
-GCC_INCDIR=/usr/lib/gcc/$(gcc -dumpmachine)/7.1.0/include
+GCC_INCDIR=/usr/lib/gcc/$(gcc -dumpmachine)/7.2.0/include
+rm -f /usr/include/limits.h
 mkdir -v build
 cd build
 CC="gcc -isystem $GCC_INCDIR -isystem /usr/include" \
 ../configure --prefix=/usr                          \
              --disable-werror                       \
-             --enable-kernel=2.6.32                 \
-             --enable-obsolete-rpc                  \
+             --enable-kernel=3.2                    \
              --enable-stack-protector=strong        \
              libc_cv_slibdir=/lib
 unset GCC_INCDIR
 make -j $PARALLEL_JOBS
 touch /etc/ld.so.conf
+sed '/test-installation/s@$(PERL)@echo not running@' -i ../Makefile
 make install
 cp -v ../nscd/nscd.conf /etc/nscd.conf
 mkdir -pv /var/cache/nscd
@@ -257,9 +258,9 @@ include /etc/ld.so.conf.d/*.conf
 EOF
 mkdir -pv /etc/ld.so.conf.d
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.25.so /lib/ld-linux.so.3
+ln -sv ld-2.26.so /lib/ld-linux.so.3
 cd /sources
-rm -rf glibc-2.25+adc7e06
+rm -rf glibc-2.26
 
 echo "# 6.10. Adjusting the Toolchain"
 mv -v /tools/bin/{ld,ld-old}
@@ -282,14 +283,14 @@ ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
 cd /sources
 rm -rf zlib-1.2.11
 
-echo "# 6.12. File-5.31"
-tar -zxf file-5.31.tar.gz
-cd file-5.31
+echo "# 6.12. File-5.32"
+tar -zxf file-5.32.tar.gz
+cd file-5.32
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf file-5.31
+rm -rf file-5.32
 
 echo "# 6.13. Readline-7.0"
 tar -zxf readline-7.0.tar.gz
@@ -345,9 +346,9 @@ make install
 cd /sources
 rm -rf bc-1.07.1
 
-echo "# 6.16. Binutils-2.28"
-tar -jxf binutils-2.28.tar.bz2
-cd binutils-2.28
+echo "# 6.16. Binutils-2.29"
+tar -jxf binutils-2.29.tar.bz2
+cd binutils-2.29
 mkdir -v build
 cd build
 ../configure --prefix=/usr       \
@@ -361,7 +362,7 @@ cd build
 make tooldir=/usr
 make tooldir=/usr install
 cd /sources
-rm -rf binutils-2.28
+rm -rf binutils-2.29
 
 echo "# 6.17. GMP-6.1.2"
 tar -Jxf gmp-6.1.2.tar.xz
@@ -410,9 +411,9 @@ fi
 cd /sources
 rm -rf mpc-1.0.3
 
-echo "# 6.20. GCC-7.1.0"
-tar -jxf gcc-7.1.0.tar.bz2
-cd gcc-7.1.0
+echo "# 6.20. GCC-7.2.0"
+tar -Jxf gcc-7.2.0.tar.xz
+cd gcc-7.2.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
@@ -435,11 +436,11 @@ make install
 ln -sv ../usr/bin/cpp /lib
 ln -sv gcc /usr/bin/cc
 install -v -dm755 /usr/lib/bfd-plugins
-ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/7.1.0/liblto_plugin.so /usr/lib/bfd-plugins/
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/7.2.0/liblto_plugin.so /usr/lib/bfd-plugins/
 mkdir -pv /usr/share/gdb/auto-load/usr/lib
 mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
 cd /sources
-rm -rf gcc-7.1.0
+rm -rf gcc-7.2.0
 
 echo "# 6.21. Bzip2-1.0.6"
 tar -zxf bzip2-1.0.6.tar.gz
@@ -623,6 +624,7 @@ rm -rf bison-3.0.4
 echo "# 6.32. Flex-2.6.4"
 tar -zxf flex-2.6.4.tar.gz
 cd flex-2.6.4
+sed -i "/math.h/a #include <malloc.h>" src/flexdef.h
 HELP2MAN=/tools/bin/true ./configure --prefix=/usr --docdir=/usr/share/doc/flex-2.6.4
 make -j $PARALLEL_JOBS
 make install
@@ -685,18 +687,18 @@ cd /sources
 rm -rf gperf-3.1
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.38. Expat-2.2.2"
-tar -jxf expat-2.2.2.tar.bz2
-cd expat-2.2.2
+echo "6.38. Expat-2.2.4"
+tar -jxf expat-2.2.4.tar.bz2
+cd expat-2.2.4
 ./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -dm755 /usr/share/doc/expat-2.2.2
-    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.2.2
+    install -v -dm755 /usr/share/doc/expat-2.2.4
+    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.2.4
 fi
 cd /sources
-rm -rf expat-2.2.2
+rm -rf expat-2.2.4
 fi
 
 echo "# 6.39. Inetutils-1.9.4"
@@ -841,9 +843,9 @@ ln -sfv ../../lib/$(readlink /usr/lib/libprocps.so) /usr/lib/libprocps.so
 cd /sources
 rm -rf procps-ng-3.3.12
 
-echo "# 6.49. E2fsprogs-1.43.4"
-tar -zxf e2fsprogs-1.43.4.tar.gz
-cd e2fsprogs-1.43.4
+echo "# 6.49. E2fsprogs-1.43.6"
+tar -zxf e2fsprogs-1.43.6.tar.gz
+cd e2fsprogs-1.43.6
 mkdir -v build
 cd build
 LIBS=-L/tools/lib                    \
@@ -869,12 +871,12 @@ if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
     install-info --dir-file=/usr/share/info/dir /usr/share/info/com_err.info
 fi
 cd /sources
-rm -rf e2fsprogs-1.43.4
+rm -rf e2fsprogs-1.43.6
 
-echo "# 6.50. Coreutils-8.27"
-tar -Jxf coreutils-8.27.tar.xz
-cd coreutils-8.27
-patch -Np1 -i ../coreutils-8.27-i18n-1.patch
+echo "# 6.50. Coreutils-8.28"
+tar -Jxf coreutils-8.28.tar.xz
+cd coreutils-8.28
+patch -Np1 -i ../coreutils-8.28-i18n-1.patch
 FORCE_UNSAFE_CONFIGURE=1 ./configure \
             --prefix=/usr            \
             --enable-no-install-program=kill,uptime
@@ -891,7 +893,7 @@ mv -v /usr/share/man/man1/chroot.1 /usr/share/man/man8/chroot.8
 sed -i s/\"1\"/\"8\"/1 /usr/share/man/man8/chroot.8
 mv -v /usr/bin/{head,sleep,nice,test,[} /bin
 cd /sources
-rm -rf coreutils-8.27
+rm -rf coreutils-8.28
 
 echo "# 6.51. Diffutils-3.6"
 tar -Jxf diffutils-3.6.tar.xz
@@ -1076,12 +1078,12 @@ LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
 rm -rf eudev-3.2.2
 
-echo "# 6.66. Util-linux-2.30"
-tar -Jxf util-linux-2.30.tar.xz
-cd util-linux-2.30
+echo "# 6.66. Util-linux-2.30.1"
+tar -Jxf util-linux-2.30.1.tar.xz
+cd util-linux-2.30.1
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
-            --docdir=/usr/share/doc/util-linux-2.30 \
+            --docdir=/usr/share/doc/util-linux-2.30.1 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1096,7 +1098,7 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.30
+rm -rf util-linux-2.30.1
 
 echo "# 6.67. Man-DB-2.7.6.1"
 tar -Jxf man-db-2.7.6.1.tar.xz

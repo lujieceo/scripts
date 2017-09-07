@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20170718 v1.0
+# PiLFS Build Script SVN-20170902 v1.0
 # Builds chapters 5.4 - Binutils to 5.35 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -58,8 +58,8 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-binutils-2.28.tar.bz2
-gcc-7.1.0.tar.bz2
+binutils-2.29.tar.bz2
+gcc-7.2.0.tar.xz
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
@@ -67,8 +67,8 @@ mpfr-3.1.5.tar.xz
 gmp-6.1.2.tar.xz
 mpc-1.0.3.tar.gz
 rpi-4.9.y.tar.gz
-glibc-2.25+adc7e06.tar.xz
-tcl-core8.6.6-src.tar.gz
+glibc-2.26.tar.xz
+tcl-core8.6.7-src.tar.gz
 expect5.45.tar.gz
 dejagnu-1.6.tar.gz
 check-0.11.0.tar.gz
@@ -76,9 +76,9 @@ ncurses-6.0.tar.gz
 bash-4.4.tar.gz
 bison-3.0.4.tar.xz
 bzip2-1.0.6.tar.gz
-coreutils-8.27.tar.xz
+coreutils-8.28.tar.xz
 diffutils-3.6.tar.xz
-file-5.31.tar.gz
+file-5.32.tar.gz
 findutils-4.6.0.tar.gz
 gawk-4.1.4.tar.xz
 gettext-0.19.8.1.tar.xz
@@ -91,7 +91,7 @@ perl-5.26.0.tar.xz
 sed-4.4.tar.xz
 tar-1.29.tar.xz
 texinfo-6.4.tar.xz
-util-linux-2.30.tar.xz
+util-linux-2.30.1.tar.xz
 xz-5.2.3.tar.xz
 "
 
@@ -154,10 +154,10 @@ done
 total_time=$(timer)
 sbu_time=$(timer)
 
-echo "# 5.4. Binutils-2.28 - Pass 1"
+echo "# 5.4. Binutils-2.29 - Pass 1"
 cd $LFS/sources
-tar -jxf binutils-2.28.tar.bz2
-cd binutils-2.28
+tar -jxf binutils-2.29.tar.bz2
+cd binutils-2.29
 mkdir -v build
 cd build
 ../configure --prefix=/tools            \
@@ -169,15 +169,15 @@ cd build
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf binutils-2.28
+rm -rf binutils-2.29
 
 echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
 echo -e "==========================\n"
 
-echo "# 5.5. gcc-7.1.0 - Pass 1"
-tar -jxf gcc-7.1.0.tar.bz2
-cd gcc-7.1.0
+echo "# 5.5. gcc-7.2.0 - Pass 1"
+tar -Jxf gcc-7.2.0.tar.xz
+cd gcc-7.2.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
@@ -231,7 +231,7 @@ cd build
 make
 make install
 cd $LFS/sources
-rm -rf gcc-7.1.0
+rm -rf gcc-7.2.0
 
 echo "# 5.6. Raspberry Pi Linux API Headers"
 tar -zxf rpi-4.9.y.tar.gz
@@ -241,29 +241,29 @@ make INSTALL_HDR_PATH=dest headers_install
 cp -rv dest/include/* /tools/include
 cd $LFS/sources
 
-echo "# 5.7. Glibc-2.25+adc7e06"
-tar -Jxf glibc-2.25+adc7e06.tar.xz
-cd glibc-2.25+adc7e06
+echo "# 5.7. Glibc-2.26"
+tar -Jxf glibc-2.26.tar.xz
+cd glibc-2.26
 mkdir -v build
 cd build
 ../configure                             \
       --prefix=/tools                    \
       --host=$LFS_TGT                    \
       --build=$(../scripts/config.guess) \
-      --enable-kernel=2.6.32             \
+      --enable-kernel=3.2                \
       --with-headers=/tools/include      \
       libc_cv_forced_unwind=yes          \
       libc_cv_c_cleanup=yes
 make -j $PARALLEL_JOBS
 make install
 # Compatibility symlink for non ld-linux-armhf awareness
-ln -sv ld-2.25.so $LFS/tools/lib/ld-linux.so.3
+ln -sv ld-2.26.so $LFS/tools/lib/ld-linux.so.3
 cd $LFS/sources
-rm -rf glibc-2.25+adc7e06
+rm -rf glibc-2.26
 
-echo "# 5.8. Libstdc++-7.1.0"
-tar -jxf gcc-7.1.0.tar.bz2
-cd gcc-7.1.0
+echo "# 5.8. Libstdc++-7.2.0"
+tar -Jxf gcc-7.2.0.tar.xz
+cd gcc-7.2.0
 mkdir -v build
 cd build
 ../libstdc++-v3/configure           \
@@ -273,15 +273,15 @@ cd build
     --disable-nls                   \
     --disable-libstdcxx-threads     \
     --disable-libstdcxx-pch         \
-    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/7.1.0
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/7.2.0
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf gcc-7.1.0
+rm -rf gcc-7.2.0
 
-echo "# 5.9. Binutils-2.28 - Pass 2"
-tar -jxf binutils-2.28.tar.bz2
-cd binutils-2.28
+echo "# 5.9. Binutils-2.29 - Pass 2"
+tar -jxf binutils-2.29.tar.bz2
+cd binutils-2.29
 mkdir -v build
 cd build
 CC=$LFS_TGT-gcc                \
@@ -299,11 +299,11 @@ make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
 cp -v ld/ld-new /tools/bin
 cd $LFS/sources
-rm -rf binutils-2.28
+rm -rf binutils-2.29
 
-echo "# 5.10. gcc-7.1.0 - Pass 2"
-tar -jxf gcc-7.1.0.tar.bz2
-cd gcc-7.1.0
+echo "# 5.10. gcc-7.2.0 - Pass 2"
+tar -Jxf gcc-7.2.0.tar.xz
+cd gcc-7.2.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
@@ -351,11 +351,11 @@ make
 make install
 ln -sv gcc /tools/bin/cc
 cd $LFS/sources
-rm -rf gcc-7.1.0
+rm -rf gcc-7.2.0
 
-echo "# 5.11. Tcl-core-8.6.6"
-tar -zxf tcl-core8.6.6-src.tar.gz
-cd tcl8.6.6
+echo "# 5.11. Tcl-core-8.6.7"
+tar -zxf tcl-core8.6.7-src.tar.gz
+cd tcl8.6.7
 cd unix
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
@@ -364,7 +364,7 @@ chmod -v u+w /tools/lib/libtcl8.6.so
 make install-private-headers
 ln -sv tclsh8.6 /tools/bin/tclsh
 cd $LFS/sources
-rm -rf tcl8.6.6
+rm -rf tcl8.6.7
 
 echo "# 5.12. Expect-5.45"
 tar -zxf expect5.45.tar.gz
@@ -438,14 +438,14 @@ make PREFIX=/tools install
 cd $LFS/sources
 rm -rf bzip2-1.0.6
 
-echo "# 5.19. Coreutils-8.27"
-tar -Jxf coreutils-8.27.tar.xz
-cd coreutils-8.27
+echo "# 5.19. Coreutils-8.28"
+tar -Jxf coreutils-8.28.tar.xz
+cd coreutils-8.28
 ./configure --prefix=/tools --enable-install-program=hostname
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf coreutils-8.27
+rm -rf coreutils-8.28
 
 echo "# 5.20. Diffutils-3.6"
 tar -Jxf diffutils-3.6.tar.xz
@@ -456,14 +456,14 @@ make install
 cd $LFS/sources
 rm -rf diffutils-3.6
 
-echo "# 5.21. File-5.31"
-tar -zxf file-5.31.tar.gz
-cd file-5.31
+echo "# 5.21. File-5.32"
+tar -zxf file-5.32.tar.gz
+cd file-5.32
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf file-5.31
+rm -rf file-5.32
 
 echo "# 5.22. Findutils-4.6.0"
 tar -zxf findutils-4.6.0.tar.gz
@@ -583,9 +583,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-6.4
 
-echo "# 5.34. Util-linux-2.30"
-tar -Jxf util-linux-2.30.tar.xz
-cd util-linux-2.30
+echo "# 5.34. Util-linux-2.30.1"
+tar -Jxf util-linux-2.30.1.tar.xz
+cd util-linux-2.30.1
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -595,7 +595,7 @@ cd util-linux-2.30
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.30
+rm -rf util-linux-2.30.1
 
 echo "# 5.35. Xz-5.2.3"
 tar -Jxf xz-5.2.3.tar.xz
