@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20170902 v1.0
+# PiLFS Build Script SVN-20171020 v1.0
 # Builds chapters 5.4 - Binutils to 5.35 - Xz
 # http://www.intestinate.com/pilfs
 #
@@ -58,40 +58,40 @@ function prebuild_sanity_check {
 
 function check_tarballs {
 LIST_OF_TARBALLS="
-binutils-2.29.tar.bz2
+binutils-2.29.1.tar.bz2
 gcc-7.2.0.tar.xz
 gcc-5.3.0-rpi1-cpu-default.patch
 gcc-5.3.0-rpi2-cpu-default.patch
 gcc-5.3.0-rpi3-cpu-default.patch
-mpfr-3.1.5.tar.xz
+mpfr-3.1.6.tar.xz
 gmp-6.1.2.tar.xz
 mpc-1.0.3.tar.gz
 rpi-4.9.y.tar.gz
 glibc-2.26.tar.xz
 tcl-core8.6.7-src.tar.gz
-expect5.45.tar.gz
-dejagnu-1.6.tar.gz
+expect5.45.3.tar.gz
+dejagnu-1.6.1.tar.gz
 check-0.11.0.tar.gz
 ncurses-6.0.tar.gz
-bash-4.4.tar.gz
+bash-4.4.12.tar.gz
 bison-3.0.4.tar.xz
 bzip2-1.0.6.tar.gz
 coreutils-8.28.tar.xz
 diffutils-3.6.tar.xz
 file-5.32.tar.gz
 findutils-4.6.0.tar.gz
-gawk-4.1.4.tar.xz
+gawk-4.2.0.tar.xz
 gettext-0.19.8.1.tar.xz
 grep-3.1.tar.xz
 gzip-1.8.tar.xz
 m4-1.4.18.tar.xz
 make-4.2.1.tar.bz2
 patch-2.7.5.tar.xz
-perl-5.26.0.tar.xz
+perl-5.26.1.tar.xz
 sed-4.4.tar.xz
 tar-1.29.tar.xz
-texinfo-6.4.tar.xz
-util-linux-2.30.1.tar.xz
+texinfo-6.5.tar.xz
+util-linux-2.31.tar.xz
 xz-5.2.3.tar.xz
 "
 
@@ -154,10 +154,10 @@ done
 total_time=$(timer)
 sbu_time=$(timer)
 
-echo "# 5.4. Binutils-2.29 - Pass 1"
+echo "# 5.4. Binutils-2.29.1 - Pass 1"
 cd $LFS/sources
-tar -jxf binutils-2.29.tar.bz2
-cd binutils-2.29
+tar -jxf binutils-2.29.1.tar.bz2
+cd binutils-2.29.1
 mkdir -v build
 cd build
 ../configure --prefix=/tools            \
@@ -169,7 +169,7 @@ cd build
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf binutils-2.29
+rm -rf binutils-2.29.1
 
 echo -e "\n=========================="
 printf 'Your SBU time is: %s\n' $(timer $sbu_time)
@@ -186,8 +186,8 @@ case $(uname -m) in
     esac
   ;;
 esac
-tar -Jxf ../mpfr-3.1.5.tar.xz
-mv -v mpfr-3.1.5 mpfr
+tar -Jxf ../mpfr-3.1.6.tar.xz
+mv -v mpfr-3.1.6 mpfr
 tar -Jxf ../gmp-6.1.2.tar.xz
 mv -v gmp-6.1.2 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
@@ -279,9 +279,9 @@ make install
 cd $LFS/sources
 rm -rf gcc-7.2.0
 
-echo "# 5.9. Binutils-2.29 - Pass 2"
-tar -jxf binutils-2.29.tar.bz2
-cd binutils-2.29
+echo "# 5.9. Binutils-2.29.1 - Pass 2"
+tar -jxf binutils-2.29.1.tar.bz2
+cd binutils-2.29.1
 mkdir -v build
 cd build
 CC=$LFS_TGT-gcc                \
@@ -299,7 +299,7 @@ make -C ld clean
 make -C ld LIB_PATH=/usr/lib:/lib
 cp -v ld/ld-new /tools/bin
 cd $LFS/sources
-rm -rf binutils-2.29
+rm -rf binutils-2.29.1
 
 echo "# 5.10. gcc-7.2.0 - Pass 2"
 tar -Jxf gcc-7.2.0.tar.xz
@@ -326,8 +326,8 @@ do
 #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
   touch $file.orig
 done
-tar -Jxf ../mpfr-3.1.5.tar.xz
-mv -v mpfr-3.1.5 mpfr
+tar -Jxf ../mpfr-3.1.6.tar.xz
+mv -v mpfr-3.1.6 mpfr
 tar -Jxf ../gmp-6.1.2.tar.xz
 mv -v gmp-6.1.2 gmp
 tar -zxf ../mpc-1.0.3.tar.gz
@@ -366,9 +366,9 @@ ln -sv tclsh8.6 /tools/bin/tclsh
 cd $LFS/sources
 rm -rf tcl8.6.7
 
-echo "# 5.12. Expect-5.45"
-tar -zxf expect5.45.tar.gz
-cd expect5.45
+echo "# 5.12. Expect-5.45.3"
+tar -zxf expect5.45.3.tar.gz
+cd expect5.45.3
 cp -v configure{,.orig}
 sed 's:/usr/local/bin:/bin:' configure.orig > configure
 ./configure --prefix=/tools       \
@@ -377,15 +377,15 @@ sed 's:/usr/local/bin:/bin:' configure.orig > configure
 make -j $PARALLEL_JOBS
 make SCRIPTS="" install
 cd $LFS/sources
-rm -rf expect5.45
+rm -rf expect5.45.3
 
-echo "# 5.13. DejaGNU-1.6"
-tar -zxf dejagnu-1.6.tar.gz
-cd dejagnu-1.6
+echo "# 5.13. DejaGNU-1.6.1"
+tar -zxf dejagnu-1.6.1.tar.gz
+cd dejagnu-1.6.1
 ./configure --prefix=/tools
 make install
 cd $LFS/sources
-rm -rf dejagnu-1.6
+rm -rf dejagnu-1.6.1
 
 echo "# 5.14. Check-0.11.0"
 tar -zxf check-0.11.0.tar.gz
@@ -411,15 +411,15 @@ make install
 cd $LFS/sources
 rm -rf ncurses-6.0
 
-echo "# 5.16. Bash-4.4"
-tar -zxf bash-4.4.tar.gz
-cd bash-4.4
+echo "# 5.16. Bash-4.4.12"
+tar -zxf bash-4.4.12.tar.gz
+cd bash-4.4.12
 ./configure --prefix=/tools --without-bash-malloc
 make -j $PARALLEL_JOBS
 make install
 ln -sv bash /tools/bin/sh
 cd $LFS/sources
-rm -rf bash-4.4
+rm -rf bash-4.4.12
 
 echo "# 5.17. Bison-3.0.4"
 tar -Jxf bison-3.0.4.tar.xz
@@ -474,14 +474,14 @@ make install
 cd $LFS/sources
 rm -rf findutils-4.6.0
 
-echo "# 5.23. Gawk-4.1.4"
-tar -Jxf gawk-4.1.4.tar.xz
-cd gawk-4.1.4
+echo "# 5.23. Gawk-4.2.0"
+tar -Jxf gawk-4.2.0.tar.xz
+cd gawk-4.2.0
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf gawk-4.1.4
+rm -rf gawk-4.2.0
 
 echo "# 5.24. Gettext-0.19.8.1"
 tar -Jxf gettext-0.19.8.1.tar.xz
@@ -542,19 +542,16 @@ make install
 cd $LFS/sources
 rm -rf patch-2.7.5
 
-echo "# 5.30. Perl-5.26.0"
-tar -Jxf perl-5.26.0.tar.xz
-cd perl-5.26.0
-sed -e '9751 a#ifndef PERL_IN_XSUB_RE' \
-    -e '9808 a#endif'                  \
-    -i regexec.c
+echo "# 5.30. Perl-5.26.1"
+tar -Jxf perl-5.26.1.tar.xz
+cd perl-5.26.1
 sh Configure -des -Dprefix=/tools -Dlibs=-lm
 make -j $PARALLEL_JOBS
 cp -v perl cpan/podlators/scripts/pod2man /tools/bin
-mkdir -pv /tools/lib/perl5/5.26.0
-cp -Rv lib/* /tools/lib/perl5/5.26.0
+mkdir -pv /tools/lib/perl5/5.26.1
+cp -Rv lib/* /tools/lib/perl5/5.26.1
 cd $LFS/sources
-rm -rf perl-5.26.0
+rm -rf perl-5.26.1
 
 echo "# 5.31. Sed-4.4"
 tar -Jxf sed-4.4.tar.xz
@@ -574,18 +571,18 @@ make install
 cd $LFS/sources
 rm -rf tar-1.29
 
-echo "# 5.33. Texinfo-6.4"
-tar -Jxf texinfo-6.4.tar.xz
-cd texinfo-6.4
+echo "# 5.33. Texinfo-6.5"
+tar -Jxf texinfo-6.5.tar.xz
+cd texinfo-6.5
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf texinfo-6.4
+rm -rf texinfo-6.5
 
-echo "# 5.34. Util-linux-2.30.1"
-tar -Jxf util-linux-2.30.1.tar.xz
-cd util-linux-2.30.1
+echo "# 5.34. Util-linux-2.31"
+tar -Jxf util-linux-2.31.tar.xz
+cd util-linux-2.31
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -595,7 +592,7 @@ cd util-linux-2.30.1
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.30.1
+rm -rf util-linux-2.31
 
 echo "# 5.35. Xz-5.2.3"
 tar -Jxf xz-5.2.3.tar.xz
