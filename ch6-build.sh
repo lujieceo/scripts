@@ -1,17 +1,17 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20171020 v1.0
+# PiLFS Build Script SVN-20171225 v1.0
 # Builds chapters 6.7 - Raspberry Pi Linux API Headers to 6.74 - Vim
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
 
-PARALLEL_JOBS=1                 # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
+PARALLEL_JOBS=4                 # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
 LOCAL_TIMEZONE=Europe/London    # Use this timezone from /usr/share/zoneinfo/ to set /etc/localtime. See "6.9.2. Configuring Glibc".
-GROFF_PAPER_SIZE=A4             # Use this default paper size for Groff. See "6.52. Groff-1.22.3".
+GROFF_PAPER_SIZE=A4             # Use this default paper size for Groff. See "6.58. Groff-1.22.3".
 INSTALL_OPTIONAL_DOCS=1         # Install optional documentation when given a choice?
 INSTALL_ALL_LOCALES=0           # Install all glibc locales? By default only en_US.ISO-8859-1 and en_US.UTF-8 are installed.
-INSTALL_SYSTEMD_DEPS=1          # Install optional systemd dependencies? (Attr, Acl, Libcap, Expat, XML::Parser & Intltool, libffi, Meson, Ninja, Python)
+INSTALL_SYSTEMD_DEPS=1          # Install optional systemd dependencies? (Attr, Acl, Libcap, Expat, XML::Parser, Intltool, libffi, Meson, Ninja, Python)
 
 # End of optional parameters
 
@@ -38,10 +38,11 @@ function prebuild_sanity_check {
 function check_tarballs {
 LIST_OF_TARBALLS="
 rpi-4.9.y.tar.gz
-man-pages-4.13.tar.xz
+man-pages-4.14.tar.xz
 glibc-2.26.tar.xz
 glibc-2.26-fhs-1.patch
-tzdata2017b.tar.gz
+glibc-2.26-local_glob_exploits-2.patch
+tzdata2017c.tar.gz
 zlib-1.2.11.tar.xz
 file-5.32.tar.gz
 readline-7.0.tar.gz
@@ -73,7 +74,7 @@ bash-4.4.12.tar.gz
 libtool-2.4.6.tar.xz
 gdbm-1.13.tar.gz
 gperf-3.1.tar.gz
-expat-2.2.4.tar.bz2
+expat-2.2.5.tar.bz2
 inetutils-1.9.4.tar.xz
 perl-5.26.1.tar.xz
 XML-Parser-2.44.tar.gz
@@ -84,11 +85,11 @@ xz-5.2.3.tar.xz
 kmod-24.tar.xz
 gettext-0.19.8.1.tar.xz
 libffi-3.2.1.tar.gz
-Python-3.6.3.tar.xz
-python-3.6.3-docs-html.tar.bz2
+Python-3.6.4.tar.xz
+python-3.6.4-docs-html.tar.bz2
 ninja-1.8.2.tar.gz
 ninja-1.8.2-add_NINJAJOBS_var-1.patch
-meson-0.43.0.tar.gz
+meson-0.44.0.tar.gz
 procps-ng-3.3.12.tar.xz
 e2fsprogs-1.43.7.tar.gz
 coreutils-8.28.tar.xz
@@ -99,20 +100,20 @@ findutils-4.6.0.tar.gz
 groff-1.22.3.tar.gz
 less-487.tar.gz
 gzip-1.8.tar.xz
-iproute2-4.13.0.tar.xz
+iproute2-4.14.1.tar.xz
 kbd-2.0.4.tar.xz
 kbd-2.0.4-backspace-1.patch
-libpipeline-1.4.2.tar.gz
+libpipeline-1.5.0.tar.gz
 make-4.2.1.tar.bz2
 patch-2.7.5.tar.xz
 sysklogd-1.5.1.tar.gz
 sysvinit-2.88dsf.tar.bz2
 sysvinit-2.88dsf-consolidated-1.patch
-eudev-3.2.4.tar.gz
-udev-lfs-20140408.tar.bz2
-util-linux-2.31.tar.xz
+eudev-3.2.5.tar.gz
+udev-lfs-20171102.tar.bz2
+util-linux-2.31.1.tar.xz
 man-db-2.7.6.1.tar.xz
-tar-1.29.tar.xz
+tar-1.30.tar.xz
 texinfo-6.5.tar.xz
 vim-8.0.586.tar.bz2
 master.tar.gz
@@ -179,17 +180,18 @@ find dest/include \( -name .install -o -name ..install.cmd \) -delete
 cp -rv dest/include/* /usr/include
 cd /sources
 
-echo "# 6.8. Man-pages-4.13"
-tar -Jxf man-pages-4.13.tar.xz
-cd man-pages-4.13
+echo "# 6.8. Man-pages-4.14"
+tar -Jxf man-pages-4.14.tar.xz
+cd man-pages-4.14
 make install
 cd /sources
-rm -rf man-pages-4.13
+rm -rf man-pages-4.14
 
 echo "# 6.9. Glibc-2.26"
 tar -Jxf glibc-2.26.tar.xz
 cd glibc-2.26
 patch -Np1 -i ../glibc-2.26-fhs-1.patch
+patch -Np1 -i ../glibc-2.26-local_glob_exploits-2.patch
 ln -sfv /tools/lib/gcc /usr/lib
 GCC_INCDIR=/usr/lib/gcc/$(gcc -dumpmachine)/7.2.0/include
 rm -f /usr/include/limits.h
@@ -232,7 +234,7 @@ rpc: files
 
 # End /etc/nsswitch.conf
 EOF
-tar -zxf ../../tzdata2017b.tar.gz
+tar -zxf ../../tzdata2017c.tar.gz
 ZONEINFO=/usr/share/zoneinfo
 mkdir -pv $ZONEINFO/{posix,right}
 for tz in etcetera southamerica northamerica europe africa antarctica  \
@@ -253,7 +255,6 @@ fi
 cat > /etc/ld.so.conf << "EOF"
 # Begin /etc/ld.so.conf
 /usr/local/lib
-/opt/lib
 
 EOF
 cat >> /etc/ld.so.conf << "EOF"
@@ -422,7 +423,7 @@ cd gcc-7.2.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
-    a02082|a22082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
+    a02082|a22082|a32082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
     *) patch -Np1 -i ../gcc-5.3.0-rpi2-cpu-default.patch ;;
     esac
   ;;
@@ -514,6 +515,7 @@ tar -zxf attr-2.4.47.src.tar.gz
 cd attr-2.4.47
 sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
 sed -i -e "/SUBDIRS/s|man2||" man/Makefile
+sed -i 's:{(:\\{(:' test/run
 ./configure --prefix=/usr \
             --bindir=/bin \
             --disable-static
@@ -532,6 +534,7 @@ tar -zxf acl-2.2.52.src.tar.gz
 cd acl-2.2.52
 sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
 sed -i "s:| sed.*::g" test/{sbits-restore,cp,misc}.test
+sed -i 's/{(/\\{(/' test/run
 sed -i -e "/TABS-1;/a if (x > (TABS-1)) x = (TABS-1);" libacl/__acl_to_any_text.c
 ./configure --prefix=/usr \
             --bindir=/bin \
@@ -691,18 +694,19 @@ cd /sources
 rm -rf gperf-3.1
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.38. Expat-2.2.4"
-tar -jxf expat-2.2.4.tar.bz2
-cd expat-2.2.4
+echo "6.38. Expat-2.2.5"
+tar -jxf expat-2.2.5.tar.bz2
+cd expat-2.2.5
+sed -i 's|usr/bin/env |bin/|' run.sh.in
 ./configure --prefix=/usr --disable-static
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -dm755 /usr/share/doc/expat-2.2.4
-    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.2.4
+    install -v -dm755 /usr/share/doc/expat-2.2.5
+    install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.2.5
 fi
 cd /sources
-rm -rf expat-2.2.4
+rm -rf expat-2.2.5
 fi
 
 echo "# 6.39. Inetutils-1.9.4"
@@ -822,6 +826,8 @@ rm -rf kmod-24
 echo "# 6.47. Gettext-0.19.8.1"
 tar -Jxf gettext-0.19.8.1.tar.xz
 cd gettext-0.19.8.1
+sed -i '/^TESTS =/d' gettext-runtime/tests/Makefile.in &&
+sed -i 's/test-lock..EXEEXT.//' gettext-tools/gnulib-tests/Makefile.in
 ./configure --prefix=/usr    \
             --disable-static \
             --docdir=/usr/share/doc/gettext-0.19.8.1
@@ -845,9 +851,9 @@ rm -rf libffi-3.2.1
 fi
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.49. Python-3.6.3"
-tar -Jxf Python-3.6.3.tar.xz
-cd Python-3.6.3
+echo "6.49. Python-3.6.4"
+tar -Jxf Python-3.6.4.tar.xz
+cd Python-3.6.4
 ./configure --prefix=/usr       \
             --enable-shared     \
             --with-system-expat \
@@ -858,11 +864,11 @@ make install
 chmod -v 755 /usr/lib/libpython3.6m.so
 chmod -v 755 /usr/lib/libpython3.so
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    install -v -dm755 /usr/share/doc/python-3.6.3/html
-    tar --strip-components=1 --no-same-owner --no-same-permissions -C /usr/share/doc/python-3.6.3/html -jxf ../python-3.6.3-docs-html.tar.bz2
+    install -v -dm755 /usr/share/doc/python-3.6.4/html
+    tar --strip-components=1 --no-same-owner --no-same-permissions -C /usr/share/doc/python-3.6.4/html -jxf ../python-3.6.4-docs-html.tar.bz2
 fi
 cd /sources
-rm -rf Python-3.6.3
+rm -rf Python-3.6.4
 fi
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
@@ -880,13 +886,13 @@ rm -rf ninja-1.8.2
 fi
 
 if [[ $INSTALL_SYSTEMD_DEPS = 1 ]] ; then
-echo "6.51. Meson-0.43.0"
-tar -zxf meson-0.43.0.tar.gz
-cd meson-0.43.0
+echo "6.51. Meson-0.44.0"
+tar -zxf meson-0.44.0.tar.gz
+cd meson-0.44.0
 python3 setup.py build
 python3 setup.py install
 cd /sources
-rm -rf meson-0.43.0
+rm -rf meson-0.44.0
 fi
 
 echo "# 6.52. Procps-ng-3.3.12"
@@ -939,6 +945,7 @@ echo "# 6.54. Coreutils-8.28"
 tar -Jxf coreutils-8.28.tar.xz
 cd coreutils-8.28
 patch -Np1 -i ../coreutils-8.28-i18n-1.patch
+sed -i '/test.lock/s/^/#/' gnulib-tests/gnulib.mk
 FORCE_UNSAFE_CONFIGURE=1 ./configure \
             --prefix=/usr            \
             --enable-no-install-program=kill,uptime
@@ -953,7 +960,7 @@ mv -v /usr/bin/{rmdir,stty,sync,true,uname} /bin
 mv -v /usr/bin/chroot /usr/sbin
 mv -v /usr/share/man/man1/chroot.1 /usr/share/man/man8/chroot.8
 sed -i s/\"1\"/\"8\"/1 /usr/share/man/man8/chroot.8
-mv -v /usr/bin/{head,sleep,nice,test,[} /bin
+mv -v /usr/bin/{head,sleep,nice} /bin
 cd /sources
 rm -rf coreutils-8.28
 
@@ -969,6 +976,7 @@ rm -rf diffutils-3.6
 echo "# 6.56. Gawk-4.2.0"
 tar -Jxf gawk-4.2.0.tar.xz
 cd gawk-4.2.0
+sed -i 's/extras//' Makefile.in
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
@@ -982,6 +990,7 @@ rm -rf gawk-4.2.0
 echo "# 6.57. Findutils-4.6.0"
 tar -zxf findutils-4.6.0.tar.gz
 cd findutils-4.6.0
+sed -i 's/test-lock..EXEEXT.//' tests/Makefile.in
 ./configure --prefix=/usr --localstatedir=/var/lib/locate
 make -j $PARALLEL_JOBS
 make install
@@ -995,7 +1004,7 @@ tar -zxf groff-1.22.3.tar.gz
 cd groff-1.22.3
 PAGE=$GROFF_PAPER_SIZE ./configure --prefix=/usr
 # Groff doesn't like parallel jobs
-make
+make -j 1
 make install
 cd /sources
 rm -rf groff-1.22.3
@@ -1022,17 +1031,16 @@ mv -v /usr/bin/gzip /bin
 cd /sources
 rm -rf gzip-1.8
 
-echo "# 6.62. IPRoute2-4.13.0"
-tar -Jxf iproute2-4.13.0.tar.xz
-cd iproute2-4.13.0
+echo "# 6.62. IPRoute2-4.14.1"
+tar -Jxf iproute2-4.14.1.tar.xz
+cd iproute2-4.14.1
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
-rm -v doc/arpd.sgml
 sed -i 's/m_ipt.o//' tc/Makefile
 make -j $PARALLEL_JOBS
-make DOCDIR=/usr/share/doc/iproute2-4.13.0 install
+make DOCDIR=/usr/share/doc/iproute2-4.14.1 install
 cd /sources
-rm -rf iproute2-4.13.0
+rm -rf iproute2-4.14.1
 
 echo "# 6.63. Kbd-2.0.4"
 tar -Jxf kbd-2.0.4.tar.xz
@@ -1050,14 +1058,14 @@ fi
 cd /sources
 rm -rf kbd-2.0.4
 
-echo "# 6.64. Libpipeline-1.4.2"
-tar -zxf libpipeline-1.4.2.tar.gz
-cd libpipeline-1.4.2
+echo "# 6.64. Libpipeline-1.5.0"
+tar -zxf libpipeline-1.5.0.tar.gz
+cd libpipeline-1.5.0
 PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf libpipeline-1.4.2
+rm -rf libpipeline-1.5.0
 
 echo "# 6.65 Make-4.2.1"
 tar -jxf make-4.2.1.tar.bz2
@@ -1109,9 +1117,10 @@ make -C src install
 cd /sources
 rm -rf sysvinit-2.88dsf
 
-echo "# 6.69. Eudev-3.2.4"
-tar -zxf eudev-3.2.4.tar.gz
-cd eudev-3.2.4
+echo "# 6.69. Eudev-3.2.5"
+tar -zxf eudev-3.2.5.tar.gz
+cd eudev-3.2.5
+sed -r -i 's|/usr(/bin/test)|\1|' test/udev-test.pl
 cat > config.cache << "EOF"
 HAVE_BLKID=1
 BLKID_LIBS="-lblkid"
@@ -1132,18 +1141,18 @@ LIBRARY_PATH=/tools/lib make -j $PARALLEL_JOBS
 mkdir -pv /lib/udev/rules.d
 mkdir -pv /etc/udev/rules.d
 make LD_LIBRARY_PATH=/tools/lib install
-tar -jxf ../udev-lfs-20140408.tar.bz2
-make -f udev-lfs-20140408/Makefile.lfs install
+tar -jxf ../udev-lfs-20171102.tar.bz2
+make -f udev-lfs-20171102/Makefile.lfs install
 LD_LIBRARY_PATH=/tools/lib udevadm hwdb --update
 cd /sources
-rm -rf eudev-3.2.4
+rm -rf eudev-3.2.5
 
-echo "# 6.70. Util-linux-2.31"
-tar -Jxf util-linux-2.31.tar.xz
-cd util-linux-2.31
+echo "# 6.70. Util-linux-2.31.1"
+tar -Jxf util-linux-2.31.1.tar.xz
+cd util-linux-2.31.1
 mkdir -pv /var/lib/hwclock
 ./configure ADJTIME_PATH=/var/lib/hwclock/adjtime   \
-            --docdir=/usr/share/doc/util-linux-2.31 \
+            --docdir=/usr/share/doc/util-linux-2.31.1 \
             --disable-chfn-chsh  \
             --disable-login      \
             --disable-nologin    \
@@ -1158,7 +1167,7 @@ mkdir -pv /var/lib/hwclock
 make -j $PARALLEL_JOBS
 make install
 cd /sources
-rm -rf util-linux-2.31
+rm -rf util-linux-2.31.1
 
 echo "# 6.71. Man-DB-2.7.6.1"
 tar -Jxf man-db-2.7.6.1.tar.xz
@@ -1177,19 +1186,19 @@ make install
 cd /sources
 rm -rf man-db-2.7.6.1
 
-echo "# 6.72. Tar-1.29"
-tar -Jxf tar-1.29.tar.xz
-cd tar-1.29
+echo "# 6.72. Tar-1.30"
+tar -Jxf tar-1.30.tar.xz
+cd tar-1.30
 FORCE_UNSAFE_CONFIGURE=1  \
 ./configure --prefix=/usr \
             --bindir=/bin
 make -j $PARALLEL_JOBS
 make install
 if [[ $INSTALL_OPTIONAL_DOCS = 1 ]] ; then
-    make -C doc install-html docdir=/usr/share/doc/tar-1.29
+    make -C doc install-html docdir=/usr/share/doc/tar-1.30
 fi
 cd /sources
-rm -rf tar-1.29
+rm -rf tar-1.30
 
 echo "# 6.73. Texinfo-6.5"
 tar -Jxf texinfo-6.5.tar.xz
@@ -1206,6 +1215,7 @@ echo "# 6.74. Vim-8.0.586"
 tar -jxf vim-8.0.586.tar.bz2
 cd vim80
 echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
+sed -i '/call/{s/split/xsplit/;s/303/492/}' src/testdir/test_recover.vim
 ./configure --prefix=/usr
 make -j $PARALLEL_JOBS
 make install

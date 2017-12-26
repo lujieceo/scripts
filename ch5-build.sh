@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# PiLFS Build Script SVN-20171020 v1.0
+# PiLFS Build Script SVN-20171225 v1.0
 # Builds chapters 5.4 - Binutils to 5.35 - Xz
 # http://www.intestinate.com/pilfs
 #
 # Optional parameteres below:
 
-PARALLEL_JOBS=1             # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
+PARALLEL_JOBS=4             # Number of parallel make jobs, 1 for RPi1 and 4 for RPi2 and RPi3 recommended.
 STRIP_AND_DELETE_DOCS=1     # Strip binaries and delete manpages to save space at the end of chapter 5?
 
 # End of optional parameters
@@ -71,7 +71,7 @@ glibc-2.26.tar.xz
 tcl-core8.6.7-src.tar.gz
 expect5.45.3.tar.gz
 dejagnu-1.6.1.tar.gz
-check-0.11.0.tar.gz
+check-0.12.0.tar.gz
 ncurses-6.0.tar.gz
 bash-4.4.12.tar.gz
 bison-3.0.4.tar.xz
@@ -89,9 +89,9 @@ make-4.2.1.tar.bz2
 patch-2.7.5.tar.xz
 perl-5.26.1.tar.xz
 sed-4.4.tar.xz
-tar-1.29.tar.xz
+tar-1.30.tar.xz
 texinfo-6.5.tar.xz
-util-linux-2.31.tar.xz
+util-linux-2.31.1.tar.xz
 xz-5.2.3.tar.xz
 "
 
@@ -181,7 +181,7 @@ cd gcc-7.2.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
-    a02082|a22082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
+    a02082|a22082|a32082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
     *) patch -Np1 -i ../gcc-5.3.0-rpi2-cpu-default.patch ;;
     esac
   ;;
@@ -307,7 +307,7 @@ cd gcc-7.2.0
 case $(uname -m) in
   armv6l) patch -Np1 -i ../gcc-5.3.0-rpi1-cpu-default.patch ;;
   armv7l) case $(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo) in
-    a02082|a22082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
+    a02082|a22082|a32082) patch -Np1 -i ../gcc-5.3.0-rpi3-cpu-default.patch ;;
     *) patch -Np1 -i ../gcc-5.3.0-rpi2-cpu-default.patch ;;
     esac
   ;;
@@ -387,14 +387,14 @@ make install
 cd $LFS/sources
 rm -rf dejagnu-1.6.1
 
-echo "# 5.14. Check-0.11.0"
-tar -zxf check-0.11.0.tar.gz
-cd check-0.11.0
+echo "# 5.14. Check-0.12.0"
+tar -zxf check-0.12.0.tar.gz
+cd check-0.12.0
 PKG_CONFIG= ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf check-0.11.0
+rm -rf check-0.12.0
 
 echo "# 5.15. Ncurses-6.0"
 tar -zxf ncurses-6.0.tar.gz
@@ -562,14 +562,14 @@ make install
 cd $LFS/sources
 rm -rf sed-4.4
 
-echo "# 5.32. Tar-1.29"
-tar -Jxf tar-1.29.tar.xz
-cd tar-1.29
+echo "# 5.32. Tar-1.30"
+tar -Jxf tar-1.30.tar.xz
+cd tar-1.30
 ./configure --prefix=/tools
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf tar-1.29
+rm -rf tar-1.30
 
 echo "# 5.33. Texinfo-6.5"
 tar -Jxf texinfo-6.5.tar.xz
@@ -580,9 +580,9 @@ make install
 cd $LFS/sources
 rm -rf texinfo-6.5
 
-echo "# 5.34. Util-linux-2.31"
-tar -Jxf util-linux-2.31.tar.xz
-cd util-linux-2.31
+echo "# 5.34. Util-linux-2.31.1"
+tar -Jxf util-linux-2.31.1.tar.xz
+cd util-linux-2.31.1
 ./configure --prefix=/tools                \
             --without-python               \
             --disable-makeinstall-chown    \
@@ -592,7 +592,7 @@ cd util-linux-2.31
 make -j $PARALLEL_JOBS
 make install
 cd $LFS/sources
-rm -rf util-linux-2.31
+rm -rf util-linux-2.31.1
 
 echo "# 5.35. Xz-5.2.3"
 tar -Jxf xz-5.2.3.tar.xz
@@ -608,4 +608,4 @@ do_strip
 echo -e "----------------------------------------------------"
 echo -e "\nYou made it! This is the end of chapter 5!"
 printf 'Total script time: %s\n' $(timer $total_time)
-echo -e "Now continue reading from \"5.36. Changing Ownership\""
+echo -e "Now continue reading from \"5.37. Changing Ownership\""
